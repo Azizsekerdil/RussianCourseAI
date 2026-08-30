@@ -1,0 +1,8 @@
+Bu klasor ders materyalleriniz icindir.
+
+Onerilen duzen:
+  Resources\Dersler\        -> PDF ders kitaplari, sunumlar  (agacta 📘 gorunur)
+  Resources\Alistirmalar\   -> alistirma kitaplari, calisma kagitlari  (📝)
+
+PDF dosyalarini "Kurs Kaynaklari" sekmesinden secip "PDF Okuyucuda ac" ile
+program icinde acabilir, uzerine not alabilirsiniz.

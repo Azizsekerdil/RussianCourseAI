@@ -1,0 +1,302 @@
+# Russian Course AI
+
+**Türkçe** | [English](README.en.md)
+
+[Üç dilli tanıtım PDF'i](output/pdf/Russian-Course-AI-Trilingual.pdf) ·
+[Düzenlenebilir PowerPoint](docs/presentation/Russian-Course-AI-Trilingual.pptx)
+
+Windows uzerinde **%100 cevrimdisi** calisan, Rusca'yi A1'den C1'e (ТРКИ-3) goturmek
+icin tasarlanmis masaustu dil ogrenme istasyonu.
+
+Tek pencerede: PDF ders kitabi okuyucu + not alma, yerel yapay zeka ogretmen,
+Kiril yazi laboratuvari, dilbilgisi laboratuvarlari (hal / gorunus / hareket fiilleri),
+telaffuz & vurgu studyosu, kelime bankasi + aralikli tekrar, sinav motoru,
+el yazisi cizim tahtasi ve cift yonlu TR<->RU sozluk.
+
+**Hicbir veri makineden cikmaz.** Yapay zeka yerelde LM Studio ile calisir; program
+dosyalari kendisi okur ve modele yalnizca sectiginiz metni gonderir.
+Bulut yok, hesap yok, internet gerekmez.
+
+---
+
+## Hizli baslangic
+
+Kaynaktan calistirmak icin:
+
+```bash
+python Russian_Course_AI.pyw
+```
+
+Baska hicbir sey gerekmez. Program ilk acilista:
+- `%APPDATA%\RussianCourseAI` altinda veri klasorlerini olusturur,
+- SQLite semasini kurar,
+- **125 kelimelik hazir A1 destesini** (9 deste) yukler,
+- bir "Ogrenci" profili acar.
+
+Istege bagli ozellikler icin:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## .exe uretimi ve masaustu kisayolu
+
+```bash
+build.bat
+```
+
+Bu komut sirasiyla: PyInstaller'i kontrol eder (yoksa kurar), `assets/app.ico`
+simgesini uretir, tek dosyalik `dist\RussianCourseAI.exe` derler ve
+**masaustune "Russian Course AI" kisayolu koyar**.
+
+| Secenek | Etki |
+|---|---|
+| `build.bat` | exe + masaustu kisayolu |
+| `build.bat /noshortcut` | yalnizca exe |
+| `build.bat /onedir` | tek dosya yerine klasor (belirgin sekilde daha hizli acilir) |
+
+Yalnizca kisayol isterseniz (exe olmadan, kaynaktan calisan):
+
+```bash
+powershell -ExecutionPolicy Bypass -File tools\make_shortcut.ps1
+```
+
+Betik once `dist\` altinda exe arar; bulamazsa `pythonw.exe` + `.pyw` ile
+calisan bir kisayol olusturur, boylece derlemeden de kullanabilirsiniz.
+
+---
+
+## Arayuz
+
+Sol tarafta gruplu bir **kenar cubugu** vardir: Ogren · Laboratuvar · Oku ·
+Pratik · Sistem. Bekleyen tekrar sayisi "Aralikli Tekrar" ogesinin yaninda
+rozet olarak gorunur. Ust barda profil secici ve LM Studio durum isareti,
+altta durum cubugu bulunur.
+
+Ust cubuktaki dil seciciden **Türkçe, English veya Русский** secilebilir.
+Secim aninda uygulanir ve bir sonraki acilis icin kaydedilir.
+
+| Kisayol | Islev |
+|---|---|
+| `Ctrl+1..9` | Ilk dokuz sayfaya dogrudan gec |
+| `Ctrl+PgUp` / `Ctrl+PgDn` | Onceki / sonraki sayfa |
+| `F5` | Gorunen sayfayi tazele |
+
+Koyu ve acik tema tek bir `THEME` sozlugunden gelir; kartlar, grafikler ve
+kenar cubugu harici bir arayuz kutuphanesi olmadan tkinter Canvas ile cizilir.
+
+---
+
+## Bagimliliklar
+
+Cekirdek calisma icin **hicbir harici paket gerekmez** - Python 3.11 standart
+kutuphanesi (tkinter, sqlite3, urllib) yeterlidir. Asagidakiler eksikse ilgili
+dugmeler gri kalir, program acilmaya ve diger ozellikler calismaya devam eder:
+
+| Paket | Kapatilan ozellik |
+|---|---|
+| `pymupdf` | PDF goruntuleme, isaretleme, metin secimi |
+| `pyttsx3` | Cevrimdisi seslendirme (yedek: Windows System.Speech) |
+| `pillow` | El yazisi PNG kaydi, "ne yazdim?" gorsel sorusu |
+| `pymorphy3` | Kesin morfoloji etiketleri (yedek: sonek tabanli yaklasik etiketleme) |
+| `vosk` + `sounddevice` | Mikrofonla telaffuz karsilastirmasi |
+| `truststore` veya `certifi` | Kaynak Merkezi indirmeleri (bkz. asagidaki not) |
+
+Vosk icin ayrica bir Rusca model indirip su klasore acmalisiniz:
+`%APPDATA%\RussianCourseAI\models\vosk-ru`
+
+---
+
+## Yapay zeka kurulumu (istege bagli)
+
+1. [LM Studio](https://lmstudio.ai) kurun.
+2. Bir model indirin - onerilen: `qwen2.5-7b-instruct`.
+   Gorsel/OCR icin ayrica `qwen2-vl-7b-instruct` gibi bir vision modeli.
+3. LM Studio icinde **Local Server**'i baslatin (varsayilan `http://127.0.0.1:1234`).
+4. Programdaki **AI durumu** dugmesi yesile donunce hazirdir.
+
+Model bulunamazsa ozellik **cokmez**: profiller kurulu modellere karsi cozumlenir,
+hicbiri yoksa arayuz sakin bir uyari gosterir ve program calismaya devam eder.
+
+NVIDIA NIM ucu **varsayilan olarak kapalidir**; yalnizca Ayarlar'dan acikca
+acarsaniz ag cagrisi yapilir.
+
+---
+
+## Sekmeler
+
+| Sekme | Ne yapar |
+|---|---|
+| **Kelime Bankasi** | TR<->RU<->EN sozluk, frekans listeleri, gorunus ciftleri, CSV ice/disa aktarim |
+| **Aralikli Tekrar** | "Bugun" panosu + SM-2/Leitner kart oturumu, 5 calisma modu |
+| **Sinav** | 9 soru tipi, otomatik puanlama, esdeger cevap toleransi |
+| **Kiril Lab** | 33 harf, basili/el yazisi formlari, yazim animasyonu, karisan ciftler |
+| **Telaffuz & Vurgu** | Vurgu yeri, редукция kurallari, IPA, TTS, mikrofonla karsilastirma |
+| **Dilbilgisi Lab** | Hal / Fiil / Hareket / Sayi / Soz Dizimi + `grammar/*.md` notlari |
+| **Kurs Kaynaklari** | `Resources/` agaci, "bitirdim" tiki, arama, yazdirma |
+| **PDF Okuyucu** | Zoom, kalem/isaretleme/metin/silgi, Kiril metin secimi, isaretli PDF cikti |
+| **Kaynak Merkezi** | Acik lisansli e-kitap / ses / sozluk indirme, lisans gosterimi, sozluk ice aktarma |
+| **AI Ogretmen** | Acikla / cevir / duzelt / gorsel-OCR, gorev bazli model yonlendirme |
+| **Konusma Pratigi** | CEFR seviyeli rol-yapma senaryolari + oturum sonu hata dokumu |
+| **El Yazisi** | Kiril el yazisi tahtasi, PNG kaydi, "ne yazdim?" |
+| **Ogrenci Takip** | Ustalik tablosu, zayif konular, sinav trendi, haftalik A4 rapor |
+| **Paketler** | `.rupack` (ZIP) disa/ice aktarim, `.json` geriye donuk uyumlu |
+| **Token Defteri** | Bugun/7/30/tum zamanlar sayaclari, CSV cikti - **istek metinleri saklanmaz** |
+| **Kilavuz** | Her ekrani neden -> nasil -> fayda biciminde anlatan cevrimdisi rehber |
+| **Ayarlar** | Dil (TR/EN/RU), tema, hedef, ses, AI adresi, profiller, veri yonetimi |
+
+---
+
+## Kisayollar
+
+| Tus | Islev |
+|---|---|
+| `Space` | Kelime kartini cevir |
+| `1` / `2` / `3` | Bilmiyorum / Emin degilim / Biliyorum |
+| `Enter` | Alistirmada cevabi kontrol et |
+| `Ctrl+Enter` | AI Ogretmen'de soruyu gonder |
+| `Ctrl+1/2/3` | Ilk uc sekmeye gec |
+| `F5` | Gorunen sekmeyi tazele |
+| `Ctrl+Q` | Programi kapat |
+| `Space` (Kaynaklar) | "Bitirdim" isaretini degistir |
+
+---
+
+## CSV bicimi
+
+Kelime Bankasi -> **CSV Ice Aktar** su bicimi okur (noktali virgul veya virgul):
+
+```
+kelime;anlam;ornek cumle;deste
+молоко;sut;Молоко в холодильнике.;Yiyecek
+хлеб;ekmek;Я купил хлеб.;Yiyecek
+```
+
+Baslik satiri isteğe baglidir - ilk sutunda Kiril harf yoksa atlanir.
+Disa aktarim ayrica `ingilizce` ve `ornek_tr` sutunlarini da yazar.
+
+## Paket bicimi (.rupack)
+
+`.rupack` bir ZIP dosyasidir:
+
+```
+paket.json     # {format, version, name, author, words[], questions[]}
+audio/         # istege bagli ses dosyalari
+images/        # istege bagli gorseller
+```
+
+Eski duz `.json` paketleri de dogrudan acilir.
+
+---
+
+## Dosya duzeni
+
+```
+Russian_Course_AI.pyw     giris noktasi - yalnizca pencere + sekme kurulumu
+rca_common.py             TEK kaynak: baslik, surum, yollar, tema, model varsayilanlari
+rca/
+  db.py                   SQLite semasi, gocler, repository siniflari
+  srs.py                  SM-2 / Leitner  (saf mantik, arayuzden bagimsiz)
+  quiz_engine.py          soru uretimi + cevap dogrulama  (saf mantik)
+  content.py              gomulu icerik paketleri (alfabe, hal, fiil, hareket, sayi)
+  seed_words.py           A1 baslangic destesi
+  ai_client.py            LM Studio istemcisi (yalnizca stdlib)
+  tts.py                  seslendirme + konusma tanima sarmalayicilari
+  i18n.py                 TR / EN / RU arayuz metinleri + AI sistem yonergeleri
+  library.py              acik lisansli kaynak katalogu + indirici + ice aktarici
+  ui_util.py              tema, kenar cubugu, yuvarlak kartlar, grafikler, thread kuyrugu
+  tabs/                   17 sayfa, her biri tek bir LazyTab sinifi
+grammar/*.md              markdown dilbilgisi notlari
+assets/app.ico            uygulama simgesi
+tools/                    simge ureteci + masaustu kisayolu betigi
+build.bat                 exe uretimi + kisayol
+Resources/                ders dosyalariniz
+Resources/Indirilenler/   Kaynak Merkezinden inen dosyalar + LISANS.txt
+tests/                    pytest paketi
+PROMPT.md                 bu programi ureten birlestirilmis prompt
+KAYNAKLAR.md              kaynak taramasi: lisans dogrulamalari ve elenenler
+```
+
+Mimari kurallari:
+- Arayuz **asla** dogrudan SQL yazmaz; her erisim repository uzerinden.
+- `srs.py` ve `quiz_engine.py` arayuzden tamamen bagimsizdir ve dogrudan test edilir.
+- Hicbir modul baska bir modulun ic degiskenine dokunmaz; ortak seyler `rca_common.py`'de.
+- Her sekme **tembel yuklenir** - pencere acilisi hizli kalir.
+- Uzun islemler thread + kuyruk ile calisir, arayuz kilitlenmez.
+
+---
+
+## Kaynak Merkezi ve lisanslar
+
+**Kaynak Merkezi** sekmesi kuratorlu bir katalog sunar. Katalogda **yalnizca
+lisansi acikca dogrulanmis** kaynaklar bulunur: kamu mali (public domain) veya
+Creative Commons. Lisansi belirsiz hicbir sey listeye girmez ve program telifli
+materyal indirmez. Bu kural bir testle zorlanir
+(`tests/test_library.py::test_every_resource_has_a_known_open_license`).
+
+Indirilen her dosyanin yanina, kaynagi ve lisansiyla birlikte bir `LISANS.txt`
+yazilir. CC BY-SA kaynaklarini yeniden dagitirken ayni lisansi korumaniz gerekir.
+
+Katalogdaki kaynaklar:
+
+| Kaynak | Tur | Lisans |
+|---|---|---|
+| FSI Russian FAST - ogrenci kitaplari (Ders 1-5 / 6-8 / 9-11, tarama + OCR) | E-kitap | Kamu mali (ABD devlet eseri) |
+| FSI Russian FAST - 8 kaset + ek ses (~125 MB) | Ses | Public Domain Mark 1.0 |
+| OpenRussian - isim / fiil / sifat / diger (cekim tablolariyla) | Sozluk verisi | CC BY-SA 4.0 |
+| Tatoeba - Rusca cumle derlemi | Derlem | CC BY 2.0 FR |
+| Между нами (MSU), Sputnik, LLC Commons, OER Commons, Wikibooks Russian | Web kursu | CC (kaynaga gore) |
+| LibriVox Rusca sesli kitaplar, Project Gutenberg Rusca metinler | Okuma / dinleme | Kamu mali |
+| Open Culture ders listesi, FSI Language Courses | Video / kurs | CC / kamu mali |
+
+Her kaynagin nereden geldigi, lisansinin nerede dogrulandigi ve hangi adaylarin
+neden ELENDIGI [KAYNAKLAR.md](KAYNAKLAR.md) dosyasinda yazilidir.
+
+Depoda `Resources/Indirilenler/` altinda bir baslangic seti hazir gelir
+(FSI kitaplari, bir ses kaseti, OpenRussian sozlukleri, Tatoeba derlemi - ~65 MB).
+Kalanlari sekmeden tek tikla indirebilirsiniz.
+
+### OpenRussian sozlugunu kelime bankasina aktarma
+
+OpenRussian dosyalari **siklik sirasindadir**. Kaynak Merkezinde indirilmis bir
+sozluk dosyasini secip "Aktar" derseniz en sik N kelime bankaya eklenir; vurgu
+konumu kaynaktaki isaretlemeden cozulur, isimlerde cinsiyet ve hal ozeti, fiillerde
+cekim ozeti ornek alanina yazilir.
+
+Dikkat: bu verideki **ceviriler Ingilizcedir**. Turkce alani varsayilan olarak
+Ingilizce ile doldurulur ki kartlar hemen calissin; sonradan duzenleyebilirsiniz.
+
+---
+
+## Testler
+
+```bash
+python -m pytest tests -q
+```
+
+90 test: SM-2 aralik hesabi, cevap dogrulama ve harf-harf karsilastirma, veritabani
+repositoryleri, metin normalizasyonu (ё / vurgu), gomulu icerik tutarliligi,
+uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi ve pencere/sayfa duman testi.
+
+---
+
+## Gizlilik
+
+- Hicbir veri makineden cikmaz; bulut, hesap veya internet gerekmez.
+- AI yerelde calisir; modele yalnizca sectiginiz metin gonderilir.
+- Token defteri **yalnizca sayaclari** tutar - istek metinleri kaydedilmez.
+- API anahtari kullanilirsa Windows Credential Manager'da tutulur, diske duz metin yazilmaz.
+- Ag cagrisi yalnizca NVIDIA NIM'i acikca acarsaniz yapilir.
+- Kullanici verisi tek yerde: `%APPDATA%\RussianCourseAI` (`data/`, `settings/`,
+  `exports/`, `logs/`). Yedeklemek icin bu klasoru kopyalamak yeterlidir.
+
+---
+
+## Baska bir dile uyarlama
+
+`rca_common.py` icindeki `TARGET_LANG` / `TARGET_LANG_NAME` sabitleri tek degistirme
+noktasidir. Ardindan `rca/seed_words.py` icindeki desteyi ve `rca/content.py` icindeki
+icerik paketlerini hedef dile gore doldurun; arayuz, aralikli tekrar, sinav motoru ve
+istatistik katmanlari dilden bagimsiz calisir.

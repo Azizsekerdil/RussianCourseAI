@@ -1,0 +1,28 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Generated application builds
+build/
+dist/
+*.spec
+
+# Downloaded course material and local user data
+Resources/Indirilenler/
+data/
+settings/
+logs/
+exports/
+
+# Temporary artifact work
+tmp/
+*.inspect.ndjson
+
+# Editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

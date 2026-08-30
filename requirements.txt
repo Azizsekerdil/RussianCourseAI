@@ -1,0 +1,41 @@
+# Russian Course AI - bagimliliklar
+#
+# CEKIRDEK: yok. Program yalnizca Python 3.11 standart kutuphanesi (tkinter +
+# sqlite3 + urllib) ile eksiksiz acilir ve calisir. Asagidakiler ISTEGE
+# BAGLIDIR; kurulu degilse ilgili dugmeler gri kalir, program acilir ve diger
+# ozellikler calismaya devam eder.
+#
+# Hepsini kurmak icin:  pip install -r requirements.txt
+
+# --- Kaynak Merkezi indirmeleri ---
+# Bazi Windows kurulumlarinda Python'un gomulu kok sertifika deposu eskimistir
+# ve gecerli siteler bile "certificate has expired" hatasi verir. Bu ikisinden
+# biri kuruluysa program isletim sistemi / certifi deposunu kullanir.
+# Sertifika DOGRULAMASI hicbir kosulda kapatilmaz.
+truststore==0.10.4
+certifi==2026.5.20
+
+# --- PDF okuyucu / isaretleme ---
+pymupdf==1.24.10
+
+# --- cevrimdisi seslendirme (Windows SAPI5) ---
+pyttsx3==2.90
+
+# --- simge uretimi, el yazisi PNG kaydi, gorsel islemleri ---
+pillow==10.4.0
+
+# --- morfoloji: soz dizimi ayristiricisini kesinlestirir ---
+pymorphy3==2.0.2
+pymorphy3-dicts-ru==2.4.417150.4580142
+
+# --- cevrimdisi konusma tanima (telaffuz karsilastirmasi) ---
+# Ayrica bir Vosk 'ru' modeli indirip su klasore acmalisiniz:
+#   %APPDATA%\RussianCourseAI\models\vosk-ru
+vosk==0.3.45
+sounddevice==0.5.0
+
+# --- gelistirme / test ---
+pytest==8.3.3
+
+# --- .exe uretimi ---
+pyinstaller==6.10.0

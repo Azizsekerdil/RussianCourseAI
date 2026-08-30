@@ -1,0 +1,391 @@
+# -*- coding: utf-8 -*-
+"""Uc dilli arayuz metinleri (tr / en / ru) - hepsi ayni derinlikte."""
+from __future__ import annotations
+
+from typing import Dict
+
+LANGS = ("tr", "en", "ru")
+LANG_NAMES = {"tr": "Türkçe", "en": "English", "ru": "Русский"}
+
+S: Dict[str, Dict[str, str]] = {
+    # --- sekmeler ---
+    "tab.resources":  {"tr": "Kurs Kaynaklari", "en": "Course Resources", "ru": "Материалы"},
+    "tab.pdf":        {"tr": "PDF Okuyucu", "en": "PDF Reader", "ru": "PDF-читалка"},
+    "tab.ai":         {"tr": "AI Ogretmen", "en": "AI Tutor", "ru": "ИИ-преподаватель"},
+    "tab.cyrillic":   {"tr": "Kiril Lab", "en": "Cyrillic Lab", "ru": "Кириллица"},
+    "tab.pron":       {"tr": "Telaffuz & Vurgu", "en": "Pronunciation", "ru": "Произношение"},
+    "tab.grammar":    {"tr": "Dilbilgisi Lab", "en": "Grammar Labs", "ru": "Грамматика"},
+    "tab.vocab":      {"tr": "Kelime Bankasi", "en": "Word Bank", "ru": "Словарь"},
+    "tab.srs":        {"tr": "Aralikli Tekrar", "en": "Spaced Review", "ru": "Повторение"},
+    "tab.exam":       {"tr": "Sinav", "en": "Exam", "ru": "Экзамен"},
+    "tab.speaking":   {"tr": "Konusma Pratigi", "en": "Speaking", "ru": "Разговор"},
+    "tab.writing":    {"tr": "El Yazisi", "en": "Handwriting", "ru": "Почерк"},
+    "tab.progress":   {"tr": "Ogrenci Takip", "en": "Progress", "ru": "Прогресс"},
+    "tab.packs":      {"tr": "Paketler", "en": "Packs", "ru": "Пакеты"},
+    "tab.tokens":     {"tr": "Token Defteri", "en": "Token Log", "ru": "Журнал токенов"},
+    "tab.guide":      {"tr": "Kilavuz", "en": "Guide", "ru": "Руководство"},
+    "tab.settings":   {"tr": "Ayarlar", "en": "Settings", "ru": "Настройки"},
+    "tab.library":    {"tr": "Kaynak Merkezi", "en": "Library", "ru": "Библиотека"},
+
+    # --- kenar cubugu gruplari ---
+    "grp.learn":    {"tr": "Ogren", "en": "Learn", "ru": "Учить"},
+    "grp.lab":      {"tr": "Laboratuvar", "en": "Labs", "ru": "Лаборатории"},
+    "grp.read":     {"tr": "Oku", "en": "Read", "ru": "Читать"},
+    "grp.practice": {"tr": "Pratik", "en": "Practice", "ru": "Практика"},
+    "grp.system":   {"tr": "Sistem", "en": "System", "ru": "Система"},
+
+    # --- genel ---
+    "g.ok":        {"tr": "Tamam", "en": "OK", "ru": "ОК"},
+    "g.cancel":    {"tr": "Iptal", "en": "Cancel", "ru": "Отмена"},
+    "g.save":      {"tr": "Kaydet", "en": "Save", "ru": "Сохранить"},
+    "g.delete":    {"tr": "Sil", "en": "Delete", "ru": "Удалить"},
+    "g.add":       {"tr": "Ekle", "en": "Add", "ru": "Добавить"},
+    "g.search":    {"tr": "Ara", "en": "Search", "ru": "Поиск"},
+    "g.close":     {"tr": "Kapat", "en": "Close", "ru": "Закрыть"},
+    "g.start":     {"tr": "Basla", "en": "Start", "ru": "Начать"},
+    "g.next":      {"tr": "Ileri", "en": "Next", "ru": "Далее"},
+    "g.prev":      {"tr": "Geri", "en": "Back", "ru": "Назад"},
+    "g.check":     {"tr": "Kontrol Et", "en": "Check", "ru": "Проверить"},
+    "g.listen":    {"tr": "Dinle", "en": "Listen", "ru": "Слушать"},
+    "g.nodata":    {"tr": "Yeterli veri yok", "en": "Not enough data", "ru": "Недостаточно данных"},
+    "g.ready":     {"tr": "Hazir", "en": "Ready", "ru": "Готово"},
+    "g.correct":   {"tr": "Dogru", "en": "Correct", "ru": "Верно"},
+    "g.wrong":     {"tr": "Yanlis", "en": "Wrong", "ru": "Неверно"},
+    "g.total":     {"tr": "Toplam", "en": "Total", "ru": "Всего"},
+    "g.export":    {"tr": "Disa Aktar", "en": "Export", "ru": "Экспорт"},
+    "g.import":    {"tr": "Ice Aktar", "en": "Import", "ru": "Импорт"},
+    "g.refresh":   {"tr": "Yenile", "en": "Refresh", "ru": "Обновить"},
+    "g.download":  {"tr": "Indir", "en": "Download", "ru": "Скачать"},
+    "g.open":      {"tr": "Ac", "en": "Open", "ru": "Открыть"},
+    "g.license":   {"tr": "Lisans", "en": "License", "ru": "Лицензия"},
+    "g.size":      {"tr": "Boyut", "en": "Size", "ru": "Размер"},
+    "g.source":    {"tr": "Kaynak", "en": "Source", "ru": "Источник"},
+    "g.cancel_dl": {"tr": "Indirmeyi durdur", "en": "Stop download", "ru": "Остановить"},
+    "g.profile":   {"tr": "Profil", "en": "Profile", "ru": "Профиль"},
+    "g.refreshed": {"tr": "Yenilendi", "en": "Refreshed", "ru": "Обновлено"},
+    "g.new_profile": {"tr": "Yeni profil adi:", "en": "New profile name:",
+                      "ru": "Имя нового профиля:"},
+
+    # --- kelime / srs ---
+    "v.word":      {"tr": "Kelime", "en": "Word", "ru": "Слово"},
+    "v.meaning":   {"tr": "Anlam", "en": "Meaning", "ru": "Значение"},
+    "v.example":   {"tr": "Ornek", "en": "Example", "ru": "Пример"},
+    "v.deck":      {"tr": "Deste", "en": "Deck", "ru": "Набор"},
+    "v.know":      {"tr": "Biliyorum", "en": "I know it", "ru": "Знаю"},
+    "v.unsure":    {"tr": "Emin degilim", "en": "Not sure", "ru": "Не уверен"},
+    "v.dontknow":  {"tr": "Bilmiyorum", "en": "Don't know", "ru": "Не знаю"},
+    "v.flip":      {"tr": "Cevir (Space)", "en": "Flip (Space)", "ru": "Перевернуть (Space)"},
+    "v.due":       {"tr": "Bugun tekrar edilecek", "en": "Due today", "ru": "К повторению сегодня"},
+    "v.session_done": {"tr": "Oturum bitti", "en": "Session complete", "ru": "Сессия завершена"},
+
+    # --- aralikli tekrar ---
+    "srs.today":       {"tr": "Bugun", "en": "Today", "ru": "Сегодня"},
+    "srs.subtitle":    {"tr": "Kural tabanli pano - AI cagrisi yapilmaz",
+                        "en": "Rule-based dashboard - no AI call",
+                        "ru": "Панель работает по правилам — без запроса к ИИ"},
+    "srs.review":      {"tr": "Tekrar", "en": "Review", "ru": "Повторить"},
+    "srs.wrong_drill": {"tr": "Yanlis drill", "en": "Mistakes", "ru": "Ошибки"},
+    "srs.new_words":   {"tr": "Yeni kelime", "en": "New words", "ru": "Новые слова"},
+    "srs.favorites":   {"tr": "Favoriler", "en": "Favorites", "ru": "Избранное"},
+    "srs.count":       {"tr": "Adet", "en": "Count", "ru": "Количество"},
+    "srs.mode":        {"tr": "Mod", "en": "Mode", "ru": "Режим"},
+    "srs.mode.card":   {"tr": "Kart", "en": "Cards", "ru": "Карточки"},
+    "srs.mode.mcq":    {"tr": "Coktan secmeli", "en": "Multiple choice",
+                        "ru": "Выбор ответа"},
+    "srs.mode.type":   {"tr": "Yazarak", "en": "Typing", "ru": "Ввод текста"},
+    "srs.mode.listen": {"tr": "Dinleme", "en": "Listening", "ru": "Аудирование"},
+    "srs.mode.match":  {"tr": "Eslestirme", "en": "Matching", "ru": "Сопоставление"},
+    "srs.wrongs":      {"tr": "Yanlislar", "en": "Mistakes", "ru": "Ошибки"},
+    "srs.untried":     {"tr": "Denenmemis", "en": "Not attempted", "ru": "Не начато"},
+    "srs.learned":     {"tr": "Ogrenildi", "en": "Learned", "ru": "Изучено"},
+    "srs.streak":      {"tr": "Seri", "en": "Streak", "ru": "Серия"},
+    "srs.accuracy":    {"tr": "Dogruluk", "en": "Accuracy", "ru": "Точность"},
+    "srs.word":        {"tr": "kelime", "en": "word", "ru": "сл."},
+    "srs.drill_waiting": {"tr": "drill bekliyor", "en": "awaiting practice",
+                          "ru": "ждут практики"},
+    "srs.in_bank":     {"tr": "bankada", "en": "in bank", "ru": "в словаре"},
+    "srs.box3":        {"tr": "kutu 3+", "en": "box 3+", "ru": "уровень 3+"},
+    "srs.day":         {"tr": "gun", "en": "day", "ru": "дн."},
+    "srs.attempt":     {"tr": "deneme", "en": "attempts", "ru": "попыток"},
+    "srs.goal":        {"tr": "Bugunki hedef: {done} / {goal}",
+                        "en": "Today's goal: {done} / {goal}",
+                        "ru": "Цель на сегодня: {done} / {goal}"},
+    "srs.no_category": {"tr": "Bu kategoride kelime yok.\nBaska bir kaynak secin veya Kelime Bankasindan kelime ekleyin.",
+                        "en": "There are no words in this category.\nChoose another source or add words from the Word Bank.",
+                        "ru": "В этой категории нет слов.\nВыберите другой источник или добавьте слова из словаря."},
+    "srs.due_title":   {"tr": "{count} kelime tekrar bekliyor",
+                        "en": "{count} words are due for review",
+                        "ru": "Слов к повторению: {count}"},
+    "srs.due_detail":  {"tr": "Tekrar dugmesine basip baslayin.",
+                        "en": "Press Review to begin.", "ru": "Нажмите «Повторить», чтобы начать."},
+    "srs.new_title":   {"tr": "Bugun tekrar yok - yeni kelime ogrenebilirsiniz",
+                        "en": "Nothing to review today - you can learn new words",
+                        "ru": "Сегодня повторений нет — можно выучить новые слова"},
+    "srs.new_detail":  {"tr": "Yeni kelime dugmesi bankadan en sik kelimeleri getirir.",
+                        "en": "New words selects the most frequent words from the bank.",
+                        "ru": "Кнопка «Новые слова» выбирает самые частые слова из словаря."},
+    "srs.current":     {"tr": "Her sey guncel", "en": "You're all caught up",
+                        "ru": "Всё выполнено"},
+    "srs.current_detail": {"tr": "Kelime Bankasindan veya Kaynak Merkezinden yeni kelime ekleyerek devam edebilirsiniz.",
+                           "en": "Continue by adding words from the Word Bank or Library.",
+                           "ru": "Добавьте новые слова из словаря или библиотеки, чтобы продолжить."},
+    "srs.shortcuts":   {"tr": "Kart modu:  Space = cevir  ·  1 / 2 / 3 = degerlendir\nDiger modlar:  Enter = kontrol et",
+                        "en": "Card mode:  Space = flip  ·  1 / 2 / 3 = grade\nOther modes:  Enter = check",
+                        "ru": "Карточки:  Space = перевернуть  ·  1 / 2 / 3 = оценить\nДругие режимы:  Enter = проверить"},
+    "srs.type_heard":  {"tr": "Duydugunuz kelimeyi yazin", "en": "Type the word you hear",
+                        "ru": "Введите услышанное слово"},
+    "srs.listen_again": {"tr": "Tekrar dinle", "en": "Listen again", "ru": "Прослушать ещё раз"},
+    "srs.hint":        {"tr": "ipucu", "en": "hint", "ru": "подсказка"},
+    "srs.correct_is":  {"tr": "Dogrusu", "en": "Correct answer", "ru": "Правильный ответ"},
+    "srs.result":      {"tr": "{correct} / {total} dogru  ·  %{percent:.0f}  ·  {minutes} dk {seconds} sn",
+                        "en": "{correct} / {total} correct  ·  {percent:.0f}%  ·  {minutes} min {seconds} sec",
+                        "ru": "Верно: {correct} / {total}  ·  {percent:.0f}%  ·  {minutes} мин {seconds} сек"},
+    "srs.complete":    {"tr": "Oturum tamamlandi", "en": "Session completed",
+                        "ru": "Сессия завершена"},
+
+    # --- ai ---
+    "ai.offline":  {"tr": "LM Studio'ya baglanilamadi - AI ozellikleri devre disi.",
+                    "en": "Cannot reach LM Studio - AI features disabled.",
+                    "ru": "Нет связи с LM Studio - функции ИИ отключены."},
+    "ai.ask":      {"tr": "Sor", "en": "Ask", "ru": "Спросить"},
+    "ai.thinking": {"tr": "Dusunuyor...", "en": "Thinking...", "ru": "Думает..."},
+}
+
+
+# Eski sayfa modulleri tarihsel olarak gorunen metinleri dogrudan Turkce
+# yaziyordu. Bu katalog, o denetimleri de tek tek yeniden yazmadan ayni
+# derinlikte yerellestirmemizi saglar. Yeni kodda anahtarli ``t()`` tercih edilir.
+_UI: Dict[str, Dict[str, str]] = {
+    # ana pencere / ortak
+    "Profil": {"en": "Profile", "ru": "Профиль"},
+    "Bu bolum yuklenemedi.": {"en": "This section could not be loaded.", "ru": "Не удалось загрузить этот раздел."},
+    "Yenilendi": {"en": "Refreshed", "ru": "Обновлено"},
+    "Yeni profil adi:": {"en": "New profile name:", "ru": "Имя нового профиля:"},
+    "Space cevir · 1/2/3 degerlendir": {"en": "Space: flip · 1/2/3: grade", "ru": "Space: перевернуть · 1/2/3: оценить"},
+    "Cift tikla = dinle": {"en": "Double-click = listen", "ru": "Двойной щелчок = слушать"},
+    "Enter = kontrol et": {"en": "Enter = check", "ru": "Enter = проверить"},
+    "Metin sec araciyla parca secip AI'a sorun": {"en": "Select text and ask AI", "ru": "Выделите текст и спросите ИИ"},
+    "Ctrl+Enter = gonder": {"en": "Ctrl+Enter = send", "ru": "Ctrl+Enter = отправить"},
+    "Yalnizca acik lisansli kaynaklar": {"en": "Open-license resources only", "ru": "Только материалы с открытой лицензией"},
+    "Space = bitirdim isareti": {"en": "Space = mark complete", "ru": "Space = отметить выполненным"},
+    "AI: kapali": {"en": "AI: disabled", "ru": "ИИ: отключён"},
+    "AI: kontrol...": {"en": "AI: checking...", "ru": "ИИ: проверка..."},
+    "AI: cevrimdisi": {"en": "AI: offline", "ru": "ИИ: не в сети"},
+
+    # AI ogretmen
+    "Gorev:": {"en": "Task:", "ru": "Задача:"},
+    "Model:": {"en": "Model:", "ru": "Модель:"},
+    "Modelleri tara": {"en": "Scan models", "ru": "Найти модели"},
+    "🖼 Gorsel / OCR": {"en": "🖼 Image / OCR", "ru": "🖼 Изображение / OCR"},
+    "Temizle": {"en": "Clear", "ru": "Очистить"},
+    "Soru / metin (Ctrl+Enter = gonder)": {"en": "Question / text (Ctrl+Enter = send)", "ru": "Вопрос / текст (Ctrl+Enter = отправить)"},
+    "PDF'teki secimi al": {"en": "Use PDF selection", "ru": "Вставить выделение из PDF"},
+    "🔊 Yaniti oku": {"en": "🔊 Read answer", "ru": "🔊 Озвучить ответ"},
+    "Yanit": {"en": "Answer", "ru": "Ответ"},
+    "PDF Okuyucuda once 'Metin sec' araciyla bir parca secin.": {"en": "First select a passage in the PDF Reader.", "ru": "Сначала выделите фрагмент в PDF-читалке."},
+
+    # kiril / sinav
+    "Alfabe (33 harf)": {"en": "Alphabet (33 letters)", "ru": "Алфавит (33 буквы)"},
+    "Yazim / El yazisi": {"en": "Writing / Handwriting", "ru": "Письмо / Почерк"},
+    "Karisan ciftler": {"en": "Confusing pairs", "ru": "Похожие пары"},
+    "Alistirma": {"en": "Practice", "ru": "Упражнение"},
+    "Harf:": {"en": "Letter:", "ru": "Буква:"},
+    "▶ Yazim sirasini oynat": {"en": "▶ Show stroke order", "ru": "▶ Показать порядок написания"},
+    "Tuvali temizle": {"en": "Clear canvas", "ru": "Очистить холст"},
+    "Karsilastir": {"en": "Compare", "ru": "Сравнить"},
+    "Sik karistirilan harfler": {"en": "Frequently confused letters", "ru": "Часто путаемые буквы"},
+    "▶ 12 soruluk tur baslat": {"en": "▶ Start 12 questions", "ru": "▶ Начать 12 вопросов"},
+    "Sinav kur": {"en": "Set up exam", "ru": "Настроить экзамен"},
+    "Soru sayisi:": {"en": "Questions:", "ru": "Вопросов:"},
+    "Kaynak:": {"en": "Source:", "ru": "Источник:"},
+    "Soru tiplerini secip Basla'ya tiklayin": {"en": "Select question types and click Start", "ru": "Выберите типы вопросов и нажмите «Начать»"},
+    "Son sinavlar:": {"en": "Recent exams:", "ru": "Последние экзамены:"},
+    "Henuz sinav yok.": {"en": "No exams yet.", "ru": "Экзаменов пока нет."},
+    "Esdeger gorunuyor - dogru saymak ister misiniz?": {"en": "It looks equivalent — count it as correct?", "ru": "Ответ выглядит равнозначным — засчитать как верный?"},
+    "Dogru say": {"en": "Count as correct", "ru": "Засчитать"},
+    "Yanlis say": {"en": "Count as wrong", "ru": "Считать ошибкой"},
+    "Yine de dogru say": {"en": "Count as correct anyway", "ru": "Всё равно засчитать"},
+    "Devam": {"en": "Continue", "ru": "Продолжить"},
+    "Yanlislar (kelime bankasinda isaretlendi):": {"en": "Mistakes (marked in the Word Bank):", "ru": "Ошибки (отмечены в словаре):"},
+    "Hic hata yok - tebrikler!": {"en": "No mistakes — well done!", "ru": "Ошибок нет — отлично!"},
+
+    # dilbilgisi
+    "Notlar (.md)": {"en": "Notes (.md)", "ru": "Заметки (.md)"},
+    "Hal Lab (Падежи)": {"en": "Case Lab (Падежи)", "ru": "Падежи"},
+    "Fiil Lab (Вид)": {"en": "Aspect Lab (Вид)", "ru": "Вид глагола"},
+    "Hareket Fiilleri": {"en": "Verbs of Motion", "ru": "Глаголы движения"},
+    "Sayi & Olcu": {"en": "Numbers & Measures", "ru": "Числа и меры"},
+    "Soz Dizimi": {"en": "Syntax", "ru": "Синтаксис"},
+    "Dosya:": {"en": "File:", "ru": "Файл:"},
+    "6 hal - ne zaman kullanilir?": {"en": "Six cases — when are they used?", "ru": "Шесть падежей — когда они используются?"},
+    "Isim cekim tablosu": {"en": "Noun declension table", "ru": "Склонение существительных"},
+    "Zamir cekimi": {"en": "Pronoun declension", "ru": "Склонение местоимений"},
+    "Edat - hal eslesmesi": {"en": "Preposition–case matching", "ru": "Предлоги и падежи"},
+    "Cumledeki halleri isaretle": {"en": "Identify cases in a sentence", "ru": "Определить падежи в предложении"},
+    "Coz": {"en": "Analyze", "ru": "Разобрать"},
+    "Gorunus (вид): tamamlanmis / tamamlanmamis": {"en": "Aspect (вид): perfective / imperfective", "ru": "Вид: совершенный / несовершенный"},
+    "Gorunus ciftleri": {"en": "Aspect pairs", "ru": "Видовые пары"},
+    "Cekim tablolari": {"en": "Conjugation tables", "ru": "Таблицы спряжения"},
+    "Tek yon (однонаправленные) / Tekrarli (разнонаправленные)": {"en": "Unidirectional / multidirectional", "ru": "Однонаправленные / разнонаправленные"},
+    "On ekler ve anlamlari": {"en": "Prefixes and meanings", "ru": "Приставки и значения"},
+    "Sayi - isim uyumu": {"en": "Number–noun agreement", "ru": "Согласование числительных с существительными"},
+    "Saat · tarih · yas · para kaliplari": {"en": "Time · date · age · money patterns", "ru": "Время · дата · возраст · денежные конструкции"},
+    "Cumle ayristirici": {"en": "Sentence parser", "ru": "Разбор предложения"},
+    "Ayristir": {"en": "Parse", "ru": "Разобрать"},
+    "▶ 10 soruluk tur baslat": {"en": "▶ Start 10 questions", "ru": "▶ Начать 10 вопросов"},
+    "Tekrar": {"en": "Again", "ru": "Ещё раз"},
+    "Kelime": {"en": "Word", "ru": "Слово"},
+
+    # kaynaklar / PDF / paketler
+    "Kaynak Merkezi": {"en": "Library", "ru": "Библиотека"},
+    "Yalnizca lisansi dogrulanmis kaynaklar: kamu mali veya Creative Commons": {"en": "Verified-license resources only: public domain or Creative Commons", "ru": "Только ресурсы с проверенной лицензией: общественное достояние или Creative Commons"},
+    "Bir kaynak secin": {"en": "Select a resource", "ru": "Выберите ресурс"},
+    "Dosyayi ac": {"en": "Open file", "ru": "Открыть файл"},
+    "Kaynak sayfasi": {"en": "Source page", "ru": "Страница источника"},
+    "📂 Indirilenler klasoru": {"en": "📂 Downloads folder", "ru": "📂 Папка загрузок"},
+    "Tur:": {"en": "Type:", "ru": "Тип:"},
+    "Ara:": {"en": "Search:", "ru": "Поиск:"},
+    "Yalnizca indirilmemisler": {"en": "Not downloaded only", "ru": "Только незагруженные"},
+    "Kelime bankasina aktar": {"en": "Import into Word Bank", "ru": "Импортировать в словарь"},
+    "Adet:": {"en": "Count:", "ru": "Количество:"},
+    "Aktar": {"en": "Import", "ru": "Импортировать"},
+    "📕 PDF Okuyucuda ac": {"en": "📕 Open in PDF Reader", "ru": "📕 Открыть в PDF-читалке"},
+    "Disa aktar": {"en": "Export", "ru": "Экспорт"},
+    "Ice aktar": {"en": "Import", "ru": "Импорт"},
+    "Paket": {"en": "Pack", "ru": "Пакет"},
+    "Paket Sistemi": {"en": "Pack System", "ru": "Система пакетов"},
+    "Paket adi:": {"en": "Pack name:", "ru": "Название пакета:"},
+    "Yazar:": {"en": "Author:", "ru": "Автор:"},
+    "Kaynak deste:": {"en": "Source deck:", "ru": "Исходный набор:"},
+    "Kendi ilerlememi de ekle": {"en": "Include my progress", "ru": "Включить мой прогресс"},
+    "📦 .rupack olustur": {"en": "📦 Create .rupack", "ru": "📦 Создать .rupack"},
+    "{ } .json olustur": {"en": "{ } Create .json", "ru": "{ } Создать .json"},
+    "📂 Paket ac (.rupack / .json)": {"en": "📂 Open pack (.rupack / .json)", "ru": "📂 Открыть пакет (.rupack / .json)"},
+    "Kurulu paketler": {"en": "Installed packs", "ru": "Установленные пакеты"},
+    "📂 PDF ac": {"en": "📂 Open PDF", "ru": "📂 Открыть PDF"},
+    "Git...": {"en": "Go to...", "ru": "Перейти..."},
+    "Genislige sigdir": {"en": "Fit width", "ru": "По ширине"},
+    "Notlari kaydet": {"en": "Save notes", "ru": "Сохранить заметки"},
+    "Isaretli PDF disa aktar": {"en": "Export annotated PDF", "ru": "Экспорт PDF с пометками"},
+    "Sayfayi temizle": {"en": "Clear page", "ru": "Очистить страницу"},
+    "Secili metin": {"en": "Selected text", "ru": "Выделенный текст"},
+    "AI'a acikla": {"en": "Explain with AI", "ru": "Объяснить с ИИ"},
+    "Sozlukte ara": {"en": "Look up", "ru": "Найти в словаре"},
+    "Bankaya ekle": {"en": "Add to bank", "ru": "Добавить в словарь"},
+    "Sayfa notu": {"en": "Page note", "ru": "Заметка к странице"},
+    "AI yaniti": {"en": "AI answer", "ru": "Ответ ИИ"},
+    "AI yaniti:": {"en": "AI answer:", "ru": "Ответ ИИ:"},
+
+    # takip / pratik
+    "Ogrenci Takip": {"en": "Progress", "ru": "Прогресс"},
+    "📄 Haftalik Ozet": {"en": "📄 Weekly Summary", "ru": "📄 Недельный отчёт"},
+    "Son 30 gun - dogru cevap sayisi": {"en": "Last 30 days — correct answers", "ru": "Последние 30 дней — верные ответы"},
+    "Sinav puani trendi": {"en": "Exam score trend", "ru": "Динамика экзаменационных баллов"},
+    "Zayif konular": {"en": "Weak topics", "ru": "Слабые темы"},
+    "Kelime ustaligi (en dusuk 25)": {"en": "Word mastery (lowest 25)", "ru": "Освоение слов (25 самых слабых)"},
+    "Senaryo:": {"en": "Scenario:", "ru": "Сценарий:"},
+    "Seviye:": {"en": "Level:", "ru": "Уровень:"},
+    "▶ Oturumu baslat": {"en": "▶ Start session", "ru": "▶ Начать сессию"},
+    "⏹ Bitir ve rapor al": {"en": "⏹ Finish and report", "ru": "⏹ Завершить и получить отчёт"},
+    "Yanitlari seslendir": {"en": "Read answers aloud", "ru": "Озвучивать ответы"},
+    "Gonder": {"en": "Send", "ru": "Отправить"},
+    "Kelime:": {"en": "Word:", "ru": "Слово:"},
+    "Bankadan sec": {"en": "Choose from bank", "ru": "Выбрать из словаря"},
+    "Vurgulu hece:": {"en": "Stressed syllable:", "ru": "Ударный слог:"},
+    "Mikrofonla tekrar": {"en": "Repeat with microphone", "ru": "Повторить с микрофоном"},
+    "● Kaydet ve karsilastir": {"en": "● Record and compare", "ru": "● Записать и сравнить"},
+    "Редукция ve okuma kurallari": {"en": "Reduction and reading rules", "ru": "Редукция и правила чтения"},
+
+    # ayarlar / kilavuz / defter
+    "Arayuz": {"en": "Interface", "ru": "Интерфейс"},
+    "Dil:": {"en": "Language:", "ru": "Язык:"},
+    "(sekme adlari ve AI sistem yonergesi bu dile gore degisir)": {"en": "(the interface and AI instructions use this language)", "ru": "(интерфейс и инструкции для ИИ используют этот язык)"},
+    "Tema:": {"en": "Theme:", "ru": "Тема:"},
+    "Gunluk hedef:": {"en": "Daily goal:", "ru": "Цель на день:"},
+    "kelime / gun": {"en": "words / day", "ru": "слов / день"},
+    "CEFR seviyesi:": {"en": "CEFR level:", "ru": "Уровень CEFR:"},
+    "Ses": {"en": "Audio", "ru": "Звук"},
+    "Seslendirme acik": {"en": "Text-to-speech enabled", "ru": "Озвучивание включено"},
+    "Hiz:": {"en": "Speed:", "ru": "Скорость:"},
+    "Test et": {"en": "Test", "ru": "Проверить"},
+    "Yapay zeka (yerel)": {"en": "Artificial intelligence (local)", "ru": "Искусственный интеллект (локально)"},
+    "AI ozellikleri acik": {"en": "AI features enabled", "ru": "Функции ИИ включены"},
+    "LM Studio adresi:": {"en": "LM Studio address:", "ru": "Адрес LM Studio:"},
+    "Baglantiyi dene": {"en": "Test connection", "ru": "Проверить соединение"},
+    "Varsayilan model:": {"en": "Default model:", "ru": "Модель по умолчанию:"},
+    "Profiller": {"en": "Profiles", "ru": "Профили"},
+    "Seviye": {"en": "Level", "ru": "Уровень"},
+    "Olusturma": {"en": "Created", "ru": "Создан"},
+    "Yeni profil": {"en": "New profile", "ru": "Новый профиль"},
+    "Secili profili sil": {"en": "Delete selected profile", "ru": "Удалить выбранный профиль"},
+    "Veri": {"en": "Data", "ru": "Данные"},
+    "Veri klasorunu ac": {"en": "Open data folder", "ru": "Открыть папку данных"},
+    "Ilerlemeyi sifirla (bu profil)": {"en": "Reset progress (this profile)", "ru": "Сбросить прогресс (этот профиль)"},
+    "Eksik seed kelimeleri geri yukle": {"en": "Restore missing starter words", "ru": "Восстановить недостающие начальные слова"},
+    "Kaydedildi.": {"en": "Saved.", "ru": "Сохранено."},
+    "Gizlilik": {"en": "Privacy", "ru": "Конфиденциальность"},
+    "Kisayollar": {"en": "Shortcuts", "ru": "Горячие клавиши"},
+    "🖨 Yazdirilabilir surum": {"en": "🖨 Printable version", "ru": "🖨 Версия для печати"},
+    "Token Kullanim Defteri": {"en": "Token Usage Log", "ru": "Журнал использования токенов"},
+    "Defteri temizle": {"en": "Clear log", "ru": "Очистить журнал"},
+    "Grupla:": {"en": "Group by:", "ru": "Группировать:"},
+    "Frekans:": {"en": "Frequency:", "ru": "Частота:"},
+    "★ Favori": {"en": "★ Favorite", "ru": "★ В избранное"},
+    "AI'a sor": {"en": "Ask AI", "ru": "Спросить ИИ"},
+    "Kalem:": {"en": "Pen:", "ru": "Перо:"},
+    "Renk:": {"en": "Color:", "ru": "Цвет:"},
+    "Kilavuz:": {"en": "Guide:", "ru": "Направляющая:"},
+    "Geri al": {"en": "Undo", "ru": "Отменить"},
+    "PNG kaydet": {"en": "Save PNG", "ru": "Сохранить PNG"},
+    "🤖 Ne yazdim?": {"en": "🤖 What did I write?", "ru": "🤖 Что я написал?"},
+
+    # dosya kaynaklari
+    "Kok klasor:": {"en": "Root folder:", "ru": "Корневая папка:"},
+    "Degistir": {"en": "Change", "ru": "Изменить"},
+    "Dosya": {"en": "File", "ru": "Файл"},
+    "Bitirdim": {"en": "Completed", "ru": "Выполнено"},
+    "Boyut": {"en": "Size", "ru": "Размер"},
+    "☐/☑ Bitirdim (Space)": {"en": "☐/☑ Completed (Space)", "ru": "☐/☑ Выполнено (Space)"},
+    "PDF Okuyucuda ac": {"en": "Open in PDF Reader", "ru": "Открыть в PDF-читалке"},
+    "Varsayilan programda ac": {"en": "Open in default app", "ru": "Открыть в приложении по умолчанию"},
+    "Klasoru goster": {"en": "Show folder", "ru": "Показать папку"},
+    "Yazdir": {"en": "Print", "ru": "Печать"},
+}
+
+# AI'a giden sistem yonergesi de arayuz diline gore degisir
+SYSTEM_PROMPTS: Dict[str, str] = {
+    "tr": ("Sen deneyimli bir Rusca ogretmenisin. Ogrencinin ana dili Turkce. "
+           "Aciklamalarini Turkce yap, Rusca ornekleri Kiril alfabesiyle ve vurgu "
+           "isaretiyle ver. Kisa, somut ve kural adiyla birlikte aciklat."),
+    "en": ("You are an experienced Russian teacher. The learner's native language is English. "
+           "Explain in English, give Russian examples in Cyrillic with stress marks. "
+           "Be concise, concrete, and always name the rule."),
+    "ru": ("Ты опытный преподаватель русского языка. Объясняй по-русски простыми словами, "
+           "используй ударения в примерах, называй правило и приводи короткие примеры."),
+}
+
+
+def t(key: str, lang: str = "tr") -> str:
+    """Anahtari secili dile cevir; bulunamazsa anahtari dondur."""
+    row = S.get(key)
+    if not row:
+        return key
+    return row.get(lang) or row.get("tr") or key
+
+
+def ui(text: str, lang: str = "tr") -> str:
+    """Gorunen bir arayuz metnini, mevcut dili ne olursa olsun cevir."""
+    if not text:
+        return text
+    # Anahtarli metinler bazen widget'a zaten cevrilmis olarak verilir. Ters
+    # arama, uygulama English -> Русский -> Türkçe sirasi ile degisse de calisir.
+    for values in S.values():
+        if text in values.values():
+            return values.get(lang) or values["tr"]
+    row = _UI.get(text)
+    if row:
+        return text if lang == "tr" else row.get(lang, text)
+    for source, values in _UI.items():
+        if text in values.values():
+            return source if lang == "tr" else values.get(lang, text)
+    return text

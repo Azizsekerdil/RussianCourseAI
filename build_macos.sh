@@ -10,12 +10,16 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
 fi
 
 PYTHON_BIN="${PYTHON_BIN:-python3}"
-"$PYTHON_BIN" -m pip install --upgrade pip
-"$PYTHON_BIN" -m pip install -r requirements.txt
-"$PYTHON_BIN" -m pip install pyinstaller
 
 rm -rf build/macos "dist/RussianCourseAI.app"
 mkdir -p build/macos
+
+# vosk==0.3.45'in macOS (arm64) icin PyPI dagitimi yok; macOS'ta 0.3.44 kullanilir.
+sed 's/^vosk==0\.3\.45$/vosk==0.3.44/' requirements.txt > build/macos/requirements-macos.txt
+
+"$PYTHON_BIN" -m pip install --upgrade pip
+"$PYTHON_BIN" -m pip install -r build/macos/requirements-macos.txt
+"$PYTHON_BIN" -m pip install pyinstaller
 
 ICON_ARGS=()
 if command -v sips >/dev/null && command -v iconutil >/dev/null && [[ -f assets/app.png ]]; then

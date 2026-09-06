@@ -189,6 +189,28 @@ _WORD_RE = re.compile(r"[a-zа-яё'\-]+", re.IGNORECASE)
 _TURKISH_CHARS = "çğıöşü"
 
 
+# Turkce sorgu ASCII klavyeyle ya da buyuk harfle yazilabilir: karsilastirma anahtari Turkce
+# harfleri ASCII karsiliklarina katlar ("sinav" = "SINAV" = "sınav", "cok" = "çok"). Yalnizca
+# Turkce taraf bu anahtari kullanir; gosterilen metin hicbir zaman degismez.
+_TR_FOLD = str.maketrans({"ı": "i", "İ": "i", "ş": "s", "Ş": "s", "ğ": "g", "Ğ": "g", "ç": "c",
+                          "Ç": "c", "ö": "o", "Ö": "o", "ü": "u", "Ü": "u", "â": "a", "î": "i", "û": "u"})
+
+
+def tr_fold(normalised: str) -> str:
+    """_norm'dan gecmis metni Turkce karsilastirma anahtarina katla."""
+    return (normalised or "").translate(_TR_FOLD)
+
+
+# Katlanarak bulunan eslesme dogrudan eslesmenin altinda kalir: "ask" yazan kullanici Ingilizce
+# "to ask" bekler, Turkce "aşk" degil; ama "sinav" gibi karsiligi olmayan sorgu yine bulunur.
+FOLD_MAX = 59        # katlanmis puanlar bu tavana oranlanir: tam eslesme 59, onek 35, icerme 5
+
+
+def _tr_norm(text: str) -> str:
+    """Turkce taraf icin karsilastirma anahtari (yalnizca eslestirmede kullanilir)."""
+    return tr_fold(_norm(text))
+
+
 def looks_turkish(text: str) -> bool:
     """Metinde Turkceye ozgu harf var mi? (yalnizca ipucu; sonuc yoksa yon tahmini icin)"""
     return any(ch in _TURKISH_CHARS for ch in _norm(text))
@@ -352,8 +374,13 @@ class Dictionary:
                 field = _norm(e.headword)
                 score = _score(q, field, [field])
             elif side == "tr":
-                field = _norm(e.tr)
-                score = _score(q, field, _senses(field)) if field else 0
+                score = 0
+                if e.tr:
+                    plain = _norm(e.tr)                                     # once dogrudan eslesme
+                    score = _score(q, plain, _senses(plain))
+                    if not score:                                           # sonra ASCII/buyuk harf katlamasi
+                        folded = _tr_norm(e.tr)
+                        score = _score(_tr_norm(q), folded, _senses(folded)) * FOLD_MAX // 100
             else:
                 field = _norm(e.translation)
                 score = _score(q, field, _senses(field))

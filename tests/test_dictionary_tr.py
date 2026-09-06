@@ -153,14 +153,14 @@ def test_dict_entries_tr_column_is_added_to_old_databases(tmp_path):
     assert row["tr"] == "semaver; çay kazanı" and row["source"] == "user"
     assert repos.dictionary.count() == 2
     # dolu alan varsayilan olarak ezilmez
-    assert repos.dictionary.set_tr("самова'р", "samovar", "baska") == 0
-    assert repos.dictionary.set_tr("самова'р", "samovar", "baska", overwrite=True) == 1
+    assert repos.dictionary.set_tr("самова'р", "samovar", "zzsemaver") == 0
+    assert repos.dictionary.set_tr("самова'р", "samovar", "zzsemaver", overwrite=True) == 1
     assert repos.dictionary.set_tr("самова'р", "samovar", "") == 0
     # build_dictionary tr'yi Entry.tr'ye tasir
     d = D.build_dictionary(repos.dictionary.all())
     hit = d.lookup("kitap", "tr2ru")
     assert hit and hit[0].headword == "книга" and hit[0].tr == "kitap" and hit.direction == "tr2ru"
-    assert d.lookup("baska", "tr2ru")[0].headword == "самовар"
+    assert d.lookup("zzsemaver", "tr2ru")[0].headword == "самовар"
     db.close()
 
     db2 = Database(path)                       # goc yeniden calisir, sutun ikinci kez eklenmez
@@ -193,8 +193,8 @@ def test_dict_repo_matches_rows_stress_and_case_insensitively(tmp_path):
     assert rows["самовар"]["tr"] == "semaver" and rows["самовар"]["source"] == "user"
     assert rows["кни'га"]["tr"] == "kitap" and rows["кни'га"]["en"] == "Book" and rows["кни'га"]["source"] == "user"
     # set_tr ayni anahtarla bulur; dolu alan varsayilan olarak ezilmez, satir yoksa 0
-    assert repos.dictionary.set_tr("САМОВА'Р", "SAMOVAR", "baska") == 0
-    assert repos.dictionary.set_tr("самова'р", "Samovar", "baska", overwrite=True) == 1
+    assert repos.dictionary.set_tr("САМОВА'Р", "SAMOVAR", "zzsemaver") == 0
+    assert repos.dictionary.set_tr("самова'р", "Samovar", "zzsemaver", overwrite=True) == 1
     assert repos.dictionary.set_tr("нет", "none", "x") == 0
     # ayni toplu istekteki tekrarlar: tek satir (ilk bicim), tr ilk dolu degerden
     assert repos.dictionary.add_many([("до'м", "house", "n", "m"), ("дом", "House", "n", "m", "", "", "ev"),
@@ -204,7 +204,7 @@ def test_dict_repo_matches_rows_stress_and_case_insensitively(tmp_path):
     # yeniden kurulan sozluk: tek madde, kullanici kaynakli ve Turkce'li (golgelenen satir yok)
     d = D.build_dictionary(repos.dictionary.all())
     hit = d.lookup("самовар", "ru2tr")
-    assert len(hit) == 1 and hit[0].source == D.SOURCE_USER and hit[0].tr == "baska" and hit[0].stress == -1
+    assert len(hit) == 1 and hit[0].source == D.SOURCE_USER and hit[0].tr == "zzsemaver" and hit[0].stress == -1
     assert d.lookup("kitap", "tr2ru")[0].headword == "книга"
     db.close()
 
@@ -350,7 +350,7 @@ def test_parse_ai_entries_reads_english_and_turkish_glosses():
     # tekillik anahtari Turkce'yi icermez: (baslik, tur, Ingilizce)
     assert D.Dictionary.key(out[0]) == ("дом", "n", "house; home")
     d = D.Dictionary([out[0]])
-    assert d.contains(D.Entry("дом", -1, "n", "m", "House; Home", D.SOURCE_USER, tr="baska"))
+    assert d.contains(D.Entry("дом", -1, "n", "m", "House; Home", D.SOURCE_USER, tr="zzsemaver"))
     assert D.parse_ai_entries('[{"headword": "стол", "translation": "table", "tr": "masa; masa"}]')[0].tr == "masa"
 
 
@@ -404,3 +404,24 @@ def test_settings_dict_direction_default_and_validation(tmp_path, monkeypatch):
     data["dict_direction"] = "tr2ru"
     C.save_settings(data)
     assert C.load_settings()["dict_direction"] == "tr2ru"
+
+
+def test_turkish_queries_match_without_turkish_letters_or_in_capitals():
+    """ASCII klavyeyle ya da buyuk harfle yazilan Turkce sorgu da bulunur; gosterim degismez."""
+    d = D.Dictionary(D.builtin_entries())
+    for query in ("sınav", "sinav", "SINAV", "Sinav"):
+        rows = d.lookup(query, "tr2ru")
+        assert rows and rows[0].headword == "экзамен", query
+        assert rows[0].tr == "sınav"                       # ekranda her zaman dogru yazim
+    assert d.lookup("cok", "tr2ru")[0].tr.startswith("çok")
+    assert d.lookup("ogrenci", "tr2ru")[0].tr.startswith("öğrenci")
+    assert D._tr_norm("ÖĞRENCİ") == "ogrenci" and D._tr_norm("Işık") == D._tr_norm("ISIK") == "isik"
+
+
+def test_folded_match_ranks_below_a_direct_match():
+    """"ask" yazan kullanici Ingilizce 'to ask' bekler; Turkce "aşk" katlanmis eslesme olarak geride kalir."""
+    d = D.Dictionary(D.builtin_entries())
+    assert d.lookup("ask").direction == "en2ru"
+    assert d.lookup("sinav").direction == "tr2ru"          # dogrudan karsiligi olmayan sorgu Turkce sayilir
+    rows = d.lookup("ask", "tr2ru")                        # sabit yonde katlanmis eslesme yine bulunur
+    assert rows and any(e.tr.startswith("aşk") for e in rows[:3])

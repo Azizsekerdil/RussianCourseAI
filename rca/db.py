@@ -166,6 +166,16 @@ CREATE TABLE IF NOT EXISTS study_log (
     seconds INTEGER DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_study_day ON study_log(profile_id, day);
+
+CREATE TABLE IF NOT EXISTS dict_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ru TEXT NOT NULL,
+    en TEXT NOT NULL,
+    pos TEXT DEFAULT '',
+    extra TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    UNIQUE(ru, en)
+);
 """
 
 
@@ -741,6 +751,38 @@ def _parse_date(value) -> Optional[date]:
         return None
 
 
+class DictRepo:
+    """Kullanicinin sozluge ekledigi / ice aktardigi maddeler (gomulu sozlugun ustune)."""
+
+    def __init__(self, db: Database) -> None:
+        self.db = db
+
+    def all(self) -> List[Dict[str, Any]]:
+        return [dict(r) for r in self.db.query("SELECT * FROM dict_entries ORDER BY ru")]
+
+    def count(self) -> int:
+        row = self.db.one("SELECT COUNT(*) AS n FROM dict_entries")
+        return int(row["n"]) if row else 0
+
+    def add_many(self, rows: Sequence[Sequence]) -> int:
+        """(ru, en[, pos[, extra]]) dizisini ekle; tekrarlari atla. Eklenen sayiyi dondur."""
+        now = datetime.now().isoformat(timespec="seconds")
+        before = self.count()
+        with self.db._lock:
+            self.db.conn.executemany(
+                "INSERT OR IGNORE INTO dict_entries(ru,en,pos,extra,created_at) VALUES(?,?,?,?,?)",
+                [(r[0], r[1], r[2] if len(r) > 2 else "", r[3] if len(r) > 3 else "", now)
+                 for r in rows if r and r[0] and r[1]])
+            self.db.conn.commit()
+        return self.count() - before
+
+    def add(self, ru: str, en: str, pos: str = "", extra: str = "") -> int:
+        return self.add_many([(ru, en, pos, extra)])
+
+    def clear(self) -> None:
+        self.db.execute("DELETE FROM dict_entries")
+
+
 class Repos:
     """Tum repositoryleri tek yerden tasiyan kolaylik kabi."""
 
@@ -755,3 +797,4 @@ class Repos:
         self.notes = NoteRepo(db)
         self.resources = ResourceRepo(db)
         self.topics = TopicRepo(db)
+        self.dictionary = DictRepo(db)

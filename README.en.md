@@ -17,6 +17,7 @@ immediately and are remembered for the next launch.
 
 - Spaced review with SM-2/Leitner scheduling and five practice modes
 - Turkish-Russian-English word bank with CSV import and export
+- Bidirectional Russian-English dictionary: 1,360 stressed built-in entries, 45,000+ with the downloadable OpenRussian data, TTS, AI lookup, CSV/TSV import
 - Cyrillic, pronunciation, stress, grammar, speaking, and handwriting labs
 - PDF reader with notes, annotations, selected-text lookup, and AI explanation
 - Exams, weak-topic analysis, learning streaks, and weekly progress summaries
@@ -82,6 +83,7 @@ The rest of the application remains available when no AI model is running.
 |---|---|
 | Spaced Review | Daily dashboard, flashcards, typing, listening, matching, and multiple choice |
 | Word Bank | TR/RU/EN vocabulary, frequency lists, examples, favorites, and CSV tools |
+| Dictionary RU-EN | Cyrillic input searches RU->EN, Latin input EN->RU; built-in core plus OpenRussian layer; listen, add to word bank, ask the AI, import/export |
 | Exam | Multiple question types, automatic scoring, and mistake tracking |
 | Cyrillic Lab | All 33 letters, handwriting forms, stroke practice, and confusion drills |
 | Pronunciation | Stress, reduction rules, rough IPA, TTS, and optional microphone comparison |
@@ -96,7 +98,7 @@ The rest of the application remains available when no AI model is running.
 python -m pytest -q
 ```
 
-The test suite covers the database, spaced-repetition calculations, quiz engine,
+The test suite (103 tests) covers the database, spaced-repetition calculations, quiz engine, the RU-EN dictionary engine,
 content packages, multilingual text integrity, and UI smoke flows.
 
 ## Project structure

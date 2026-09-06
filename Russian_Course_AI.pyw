@@ -22,6 +22,7 @@ from rca.ui_util import Pill, Sidebar, Worker, apply_theme
 TAB_SPECS = [
     ("tab.srs",       "rca.tabs.srs_tab",       "SRSTab",       "🔁", "grp.learn"),
     ("tab.vocab",     "rca.tabs.vocab_tab",     "VocabTab",     "📚", "grp.learn"),
+    ("tab.dictionary", "rca.tabs.dictionary_tab", "DictionaryTab", "📖", "grp.learn"),
     ("tab.exam",      "rca.tabs.exam_tab",      "ExamTab",      "📝", "grp.learn"),
     ("tab.cyrillic",  "rca.tabs.cyrillic_tab",  "CyrillicTab",  "Аа", "grp.lab"),
     ("tab.pron",      "rca.tabs.pron_tab",      "PronTab",      "🔊", "grp.lab"),

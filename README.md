@@ -11,7 +11,8 @@ icin tasarlanmis masaustu dil ogrenme istasyonu.
 Tek pencerede: PDF ders kitabi okuyucu + not alma, yerel yapay zeka ogretmen,
 Kiril yazi laboratuvari, dilbilgisi laboratuvarlari (hal / gorunus / hareket fiilleri),
 telaffuz & vurgu studyosu, kelime bankasi + aralikli tekrar, sinav motoru,
-el yazisi cizim tahtasi ve cift yonlu TR<->RU sozluk.
+el yazisi cizim tahtasi, cift yonlu TR<->RU kelime bankasi ve **Rusca<->Ingilizce sozluk**
+(1.360 gomulu madde + OpenRussian ile 45.000+ madde).
 
 **Hicbir veri makineden cikmaz.** Yapay zeka yerelde LM Studio ile calisir; program
 dosyalari kendisi okur ve modele yalnizca sectiginiz metni gonderir.
@@ -130,6 +131,7 @@ acarsaniz ag cagrisi yapilir.
 | Sekme | Ne yapar |
 |---|---|
 | **Kelime Bankasi** | TR<->RU<->EN sozluk, frekans listeleri, gorunus ciftleri, CSV ice/disa aktarim |
+| **Sozluk RU-EN** | Cift yonlu Rusca<->Ingilizce sozluk: Kiril yazinca RU->EN, Latin yazinca EN->RU; 1.360 gomulu vurgulu madde, indirilen OpenRussian verisiyle 45.000+ madde; dinle, kelime bankasina ekle, AI'a sor, CSV/TSV ice/disa aktar |
 | **Aralikli Tekrar** | "Bugun" panosu + SM-2/Leitner kart oturumu, 5 calisma modu |
 | **Sinav** | 9 soru tipi, otomatik puanlama, esdeger cevap toleransi |
 | **Kiril Lab** | 33 harf, basili/el yazisi formlari, yazim animasyonu, karisan ciftler |
@@ -207,7 +209,9 @@ rca/
   i18n.py                 TR / EN / RU arayuz metinleri + AI sistem yonergeleri
   library.py              acik lisansli kaynak katalogu + indirici + ice aktarici
   ui_util.py              tema, kenar cubugu, yuvarlak kartlar, grafikler, thread kuyrugu
-  tabs/                   17 sayfa, her biri tek bir LazyTab sinifi
+  tabs/                   18 sayfa, her biri tek bir LazyTab sinifi
+  dictionary.py           RU<->EN sozluk motoru (gomulu + kullanici + OpenRussian katmanlari)
+  dict_data.py            1.360 maddelik gomulu cekirdek sozluk
 grammar/*.md              markdown dilbilgisi notlari
 assets/app.ico            uygulama simgesi
 tools/                    simge ureteci + masaustu kisayolu betigi
@@ -276,7 +280,7 @@ Ingilizce ile doldurulur ki kartlar hemen calissin; sonradan duzenleyebilirsiniz
 python -m pytest tests -q
 ```
 
-90 test: SM-2 aralik hesabi, cevap dogrulama ve harf-harf karsilastirma, veritabani
+103 test: SM-2 aralik hesabi, RU<->EN sozluk motoru (veri butunlugu, iki yonlu arama, ice/disa aktarim), cevap dogrulama ve harf-harf karsilastirma, veritabani
 repositoryleri, metin normalizasyonu (ё / vurgu), gomulu icerik tutarliligi,
 uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi ve pencere/sayfa duman testi.
 

@@ -169,7 +169,7 @@ async function main() {
     text(slide, "loop-subtitle", "Her gün küçük bir döngü.  •  A small loop every day.  •  Небольшой цикл каждый день.", 42, 112, 1120, 30, 18, { color: C.muted });
     line(slide, "loop-track", 110, 330, 1060, C.rule, 2);
     const steps = [
-      { x: 84, n: "01", en: "LEARN", tr: "ÖĞREN", ru: "УЧИТЬ", detail: "Words • Cyrillic • Grammar" },
+      { x: 84, n: "01", en: "LEARN", tr: "ÖĞREN", ru: "УЧИТЬ", detail: "Words • Dictionary • Cyrillic • Grammar" },
       { x: 456, n: "02", en: "PRACTICE", tr: "PRATİK", ru: "ПРАКТИКА", detail: "Speaking • Writing • Pronunciation" },
       { x: 828, n: "03", en: "REVIEW", tr: "TEKRAR", ru: "ПОВТОРЕНИЕ", detail: "Spaced review • Exams • Progress" },
     ];
@@ -194,12 +194,12 @@ async function main() {
     slide.background.fill = C.faint;
     text(slide, "breadth-title", "More than flashcards", 42, 36, 800, 60, 46, { bold: true });
     text(slide, "breadth-triple", "Kelime kartlarından fazlası  •  Больше, чем карточки", 42, 108, 900, 28, 18, { color: C.muted });
-    text(slide, "breadth-number", "17", 50, 206, 360, 220, 150, { bold: true, color: C.blue });
+    text(slide, "breadth-number", "18", 50, 206, 360, 220, 150, { bold: true, color: C.blue });
     text(slide, "breadth-caption", "focused workspaces\nodaklı çalışma alanı\nспециализированных разделов", 54, 446, 420, 126, 25, { bold: true });
     line(slide, "breadth-divider", 500, 188, 0, C.rule, 1).position = { left: 500, top: 188, width: 0, height: 414 };
     const items = [
-      "Word bank · Kelime bankası · Словарь",
-      "Grammar labs · Dilbilgisi laboratuvarı · Грамматика",
+      "RU-EN dictionary · Sözlük · Словарь RU-EN",
+      "Word bank & grammar · Kelime bankası · Грамматика",
       "PDF reader · PDF okuyucu · PDF-читалка",
       "AI tutor · AI öğretmen · ИИ-преподаватель",
       "Speaking, handwriting, exams, progress",
@@ -216,7 +216,8 @@ async function main() {
     });
     footer(slide, 5);
     notes(slide, [
-      "D:/Russian/Russian_Course_AI.pyw (17 entries in TAB_SPECS)",
+      "D:/Russian/Russian_Course_AI.pyw (18 entries in TAB_SPECS)",
+      "D:/Russian/rca/dictionary.py + rca/dict_data.py (bidirectional RU-EN dictionary, 1,360 built-in entries, OpenRussian layer)",
       "D:/Russian/README.md (feature descriptions)",
     ]);
   }

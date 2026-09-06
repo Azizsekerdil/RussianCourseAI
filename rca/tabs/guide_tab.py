@@ -19,6 +19,17 @@ SECTIONS = [
      "ekleyin veya AI'a sorun. CSV ile toplu ice/disa aktarim yapabilirsiniz.",
      "Aradiginiz kelimeyi 2 saniyede bulur, ogrenme dongusunun tum sekmeleri bu bankadan beslenir."),
 
+    ("Sozluk RU-EN",
+     "Kelime bankasi yalnizca ogrendiginiz kelimeleri tutar; okurken karsilastiginiz her "
+     "kelime icin ayri bir sozluk gerekir.",
+     "Kutuya Kiril yazarsaniz Rusca->Ingilizce, Latin yazarsaniz Ingilizce->Rusca arar; "
+     "yon otomatik secilir. Gomulu ~1.400 maddelik cekirdek sozluk aninda calisir. Kaynak "
+     "Merkezi'nden OpenRussian dosyalarini indirdiyseniz 'OpenRussian'i yukle' ile on binlerce "
+     "madde eklenir. Sagdaki panelden dinleyin, kelime bankasina ekleyin, AI'a sorun; kendi "
+     "CSV/TSV listelerinizi ice aktarin.",
+     "Programdan cikmadan vurgulu, turu ve cinsiyeti belli bir karsilik bulur; bir tikla "
+     "tekrar dongusune alirsiniz."),
+
     ("Aralikli Tekrar",
      "Insan beyni unutur; bir kelimeyi tam unutmadan hemen once tekrar etmek en verimli andir.",
      "'Bugun' panosundaki sayilara bakin, ardindan Tekrar / Yanlis Drill / Yeni Kelime "

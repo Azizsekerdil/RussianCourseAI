@@ -19,20 +19,28 @@ SECTIONS = [
      "ekleyin veya AI'a sorun. CSV ile toplu ice/disa aktarim yapabilirsiniz.",
      "Aradiginiz kelimeyi 2 saniyede bulur, ogrenme dongusunun tum sekmeleri bu bankadan beslenir."),
 
-    ("Sozluk RU-EN",
+    ("Sozluk RU-EN-TR",
      "Kelime bankasi yalnizca ogrendiginiz kelimeleri tutar; okurken karsilastiginiz her "
-     "kelime icin ayri bir sozluk gerekir.",
-     "Kutuya Kiril yazarsaniz Rusca->Ingilizce, Latin yazarsaniz Ingilizce->Rusca arar; "
-     "yon otomatik secilir. Gomulu ~1.400 maddelik cekirdek sozluk aninda calisir. Kaynak "
-     "Merkezi'nden OpenRussian dosyalarini indirdiyseniz 'OpenRussian'i yukle' ile on binlerce "
-     "madde eklenir. Sozlukte olmayan bir kelime otomatik olarak AI'a sorulur (LM Studio ya da "
-     "Ayarlar'daki alternatif uc); gelen madde 'AI' etiketiyle listelenir, ornek cumle ve notuyla "
-     "gosterilir ve varsayilan olarak yerel sozluge kaydedilir - bir sonraki arama cevrimdisi "
-     "calisir. Arac cubugundaki AI secicisiyle otomatik / yerel / alternatif / kapali secin. "
-     "Sagdaki panelden dinleyin, kelime bankasina ekleyin, AI'a sorun; kendi CSV/TSV "
-     "listelerinizi ice aktarin.",
-     "Programdan cikmadan vurgulu, turu ve cinsiyeti belli bir karsilik bulur; bir tikla "
-     "tekrar dongusune alirsiniz."),
+     "kelime icin ayri, uc dilli bir sozluk gerekir.",
+     "Yon secici 'Otomatik' iken Kiril yazarsaniz Rusca->Ingilizce arar; Latin yazarsaniz "
+     "Ingilizce ve Turkce taraflari puanlanir, en iyi eslesen taraf yonu belirler (kutunun yanindaki "
+     "etiket etkin yonu gosterir). RU→EN, EN→RU, RU→TR ve TR→RU secenekleri yalnizca o yonun kaynak "
+     "tarafinda arar; secim ayarlarda saklanir ve sorgu hemen yeniden calisir. Listede Rusca, "
+     "Ingilizce ve Türkçe sutunlari vardir; Turkce hedefli yonde Türkçe sutunu basligin hemen "
+     "yanina gelir, detay panelinde iki karsilik da ayri satirlarda gorunur. Gomulu ~1.400 maddelik "
+     "cekirdek sozluk aninda calisir. Kaynak Merkezi'nden OpenRussian dosyalarini indirdiyseniz "
+     "'OpenRussian'i yukle' ile on binlerce madde eklenir. Sozlukte olmayan bir kelime otomatik "
+     "olarak AI'a sorulur (LM Studio ya da Ayarlar'daki alternatif uc); AI hem Ingilizce hem Turkce "
+     "karsilik verir, madde 'AI' etiketiyle listelenir, ornek cumle ve notuyla gosterilir ve "
+     "varsayilan olarak yerel sozluge kaydedilir - bir sonraki arama cevrimdisi calisir. RU→TR "
+     "yonunde bulunan maddenin Turkce karsiligi eksikse AI ayni politikayla otomatik sorulur ve "
+     "gelen Turkce gloss kopya olusturmadan mevcut maddeye islenir. Arac cubugundaki AI "
+     "secicisiyle otomatik / yerel / alternatif / kapali secin. Sagdaki panelden dinleyin, kelime "
+     "bankasina ekleyin (Turkce karsilik varsa bankanin TR alanina o yazilir), AI'a sorun; kendi "
+     "CSV/TSV listelerinizi ice aktarin. CSV sutunlari: ru, en, tr, pos, extra, source - baslik "
+     "satiri varsa sutunlar adiyla eslenir, eski 'ru, en, pos, extra' duzeni de okunur.",
+     "Programdan cikmadan vurgulu, turu ve cinsiyeti belli, Ingilizce ve Turkce karsiligi olan bir "
+     "madde bulur; bir tikla tekrar dongusune alirsiniz."),
 
     ("Aralikli Tekrar",
      "Insan beyni unutur; bir kelimeyi tam unutmadan hemen once tekrar etmek en verimli andir.",

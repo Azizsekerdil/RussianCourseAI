@@ -20,7 +20,7 @@ from typing import Any, Dict
 # --------------------------------------------------------------------------
 APP_NAME = "Russian Course AI"
 APP_SLUG = "RussianCourseAI"
-VERSION = "1.1.2"
+VERSION = "1.2.0"
 TARGET_LANG = "ru"          # hedef dil kodu (baska dile uyarlamak icin tek nokta)
 TARGET_LANG_NAME = "Rusca"
 
@@ -141,6 +141,12 @@ ALT_DEFAULT_MODEL = "meta/llama-3.1-8b-instruct"
 #   off   -> sozlukte AI kullanilmaz
 DICT_AI_POLICIES = ("auto", "local", "alt", "off")
 
+# Sozluk sekmesinin arama yonu (dict_direction ayari):
+#   auto  -> sorgunun yazisina / en iyi eslesen tarafa gore (Kiril => hedef dil)
+#   ru2en / en2ru / ru2tr / tr2ru -> yalnizca kaynak taraf aranir
+DICT_DIRECTIONS = ("auto", f"{TARGET_LANG}2en", f"en2{TARGET_LANG}",
+                   f"{TARGET_LANG}2tr", f"tr2{TARGET_LANG}")
+
 # gorev -> tercih edilen model listesi (ilk kurulu olan secilir)
 MODEL_PROFILES: Dict[str, list] = {
     "chat":      ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct", "llama-3.1-8b-instruct", "gemma-4-12b-qat", "qwen3.6-35b-a3b"],
@@ -174,6 +180,7 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "alt_model": ALT_DEFAULT_MODEL,
     "dict_ai": "auto",            # sozluk AI politikasi: auto | local | alt | off
     "dict_ai_autosave": True,     # AI'dan gelen sozluk maddeleri yerel sozluge kaydedilsin mi
+    "dict_direction": "auto",     # sozluk arama yonu: auto | ru2en | en2ru | ru2tr | tr2ru
     "cefr": "A1",
     "last_pdf": "",
 }
@@ -196,6 +203,8 @@ def load_settings() -> Dict[str, Any]:
         pass  # bozuk ayar dosyasi programi durdurmaz
     if data.get("dict_ai") not in DICT_AI_POLICIES:
         data["dict_ai"] = "auto"
+    if data.get("dict_direction") not in DICT_DIRECTIONS:
+        data["dict_direction"] = "auto"
     return data
 
 

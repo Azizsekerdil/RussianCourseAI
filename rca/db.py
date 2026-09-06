@@ -177,6 +177,7 @@ CREATE TABLE IF NOT EXISTS dict_entries (
     source TEXT NOT NULL DEFAULT 'user',
     example TEXT NOT NULL DEFAULT '',
     note TEXT NOT NULL DEFAULT '',
+    tr TEXT NOT NULL DEFAULT '',
     UNIQUE(ru, en)
 );
 """
@@ -188,6 +189,7 @@ COLUMN_MIGRATIONS = {
         ("source", "TEXT NOT NULL DEFAULT 'user'"),
         ("example", "TEXT NOT NULL DEFAULT ''"),
         ("note", "TEXT NOT NULL DEFAULT ''"),
+        ("tr", "TEXT NOT NULL DEFAULT ''"),          # Turkce karsilik (v1.2)
     ],
 }
 
@@ -790,6 +792,7 @@ class DictRepo:
     """Kullanicinin sozluge ekledigi / ice aktardigi ve AI'dan kaydedilen maddeler.
 
     `source` sutunu maddenin kokenini tutar: 'user' (ekleme / ice aktarim) ya da 'ai'.
+    `tr` sutunu istege bagli Turkce karsiligi tutar ('' = henuz yok).
     """
 
     SOURCE_USER = "user"
@@ -817,30 +820,87 @@ class DictRepo:
         return {str(r["source"]): int(r["n"]) for r in self.db.query(
             "SELECT source, COUNT(*) AS n FROM dict_entries GROUP BY source")}
 
+    @staticmethod
+    def entry_key(ru: str, en: str) -> tuple:
+        """Satir kimligi: vurgu isaretsiz + kucuk harf baslik, kucuk harf Ingilizce.
+
+        Bellekteki `Dictionary.key` ile ayni esdegerlik (tur haric): "дом"/"до'м" ve
+        "Book"/"book" AYNI satirdir. Tablodaki UNIQUE(ru, en) ise bire bir metin
+        karsilastirir; kopya ve doldurma kararlari bu anahtarla verilir.
+        """
+        from rca.dictionary import norm_query, split_stress
+        return norm_query(split_stress(ru or "")[0]), norm_query(en or "")
+
+    def _key_map(self) -> Dict[tuple, list]:
+        """{entry_key: [id, tr]} - tum satirlar (ayni anahtarli birden cok satirda ilki)."""
+        out: Dict[tuple, list] = {}
+        for r in self.db.query("SELECT id, ru, en, tr FROM dict_entries ORDER BY id"):
+            out.setdefault(self.entry_key(r["ru"], r["en"]), [int(r["id"]), r["tr"] or ""])
+        return out
+
+    def _matching_ids(self, ru: str, en: str) -> List[int]:
+        key = self.entry_key(ru, en)
+        return [int(r["id"]) for r in self.db.query("SELECT id, ru, en FROM dict_entries ORDER BY id")
+                if self.entry_key(r["ru"], r["en"]) == key]
+
     def add_many(self, rows: Sequence[Sequence], source: str = SOURCE_USER) -> int:
-        """(ru, en[, pos[, extra[, example[, note]]]]) dizisini ekle; tekrarlari atla.
+        """(ru, en[, pos[, extra[, example[, note[, tr]]]]]) dizisini ekle; tekrarlari atla.
 
         Eklenen sayiyi dondurur. `source` tum satirlara uygulanir ('user' | 'ai').
+        Ayni maddenin satiri (`entry_key`: vurgu ve buyuk/kucuk harf farksiz) zaten varsa
+        yeniden eklenmez; ama gelen satir Turkce karsilik tasiyorsa ve saklanan satirin
+        `tr` alani bossa o alan DOLDURULUR (kopya yerine guncelleme - AI'in sonradan
+        buldugu Turkce gloss, saklanan satir vurgusuz ya da farkli buyuk/kucuk harfle
+        yazilmis olsa da boyle islenir). Ayni toplu istekteki tekrarlar da ayni kurala uyar.
         """
         now = datetime.now().isoformat(timespec="seconds")
         src = source or self.SOURCE_USER
-        before = self.count()
 
         def field(r, i):
             return (r[i] if len(r) > i and r[i] is not None else "")
 
+        clean = [r for r in rows if r and r[0] and r[1]]
+        if not clean:
+            return 0
+        added = 0
         with self.db._lock:
-            self.db.conn.executemany(
-                "INSERT OR IGNORE INTO dict_entries(ru,en,pos,extra,created_at,source,example,note) "
-                "VALUES(?,?,?,?,?,?,?,?)",
-                [(r[0], r[1], field(r, 2), field(r, 3), now, src, field(r, 4), field(r, 5))
-                 for r in rows if r and r[0] and r[1]])
+            seen = self._key_map()
+            for r in clean:
+                key, turkish = self.entry_key(r[0], r[1]), field(r, 6)
+                hit = seen.get(key)
+                if hit is None:
+                    cur = self.db.conn.execute(
+                        "INSERT OR IGNORE INTO dict_entries(ru,en,pos,extra,created_at,source,example,note,tr) "
+                        "VALUES(?,?,?,?,?,?,?,?,?)",
+                        (r[0], r[1], field(r, 2), field(r, 3), now, src, field(r, 4), field(r, 5), turkish))
+                    if cur.rowcount:
+                        seen[key] = [int(cur.lastrowid), turkish]
+                        added += 1
+                elif turkish and not hit[1]:
+                    self.db.conn.execute("UPDATE dict_entries SET tr=? WHERE id=? AND tr=''", (turkish, hit[0]))
+                    hit[1] = turkish
             self.db.conn.commit()
-        return self.count() - before
+        return added
 
     def add(self, ru: str, en: str, pos: str = "", extra: str = "",
-            source: str = SOURCE_USER, example: str = "", note: str = "") -> int:
-        return self.add_many([(ru, en, pos, extra, example, note)], source=source)
+            source: str = SOURCE_USER, example: str = "", note: str = "", tr: str = "") -> int:
+        return self.add_many([(ru, en, pos, extra, example, note, tr)], source=source)
+
+    def set_tr(self, ru: str, en: str, tr: str, overwrite: bool = False) -> int:
+        """Saklanan maddenin Turkce karsiligini yaz; guncellenen satir sayisini dondur.
+
+        Satir `entry_key` ile bulunur (vurgu ve buyuk/kucuk harf farksiz). Varsayilan olarak
+        yalnizca BOS tr alani doldurulur (kullanicinin yazdigi gloss ezilmez). 0 = satir yok
+        (gomulu / OpenRussian maddesi) ya da alan zaten dolu.
+        """
+        if not tr:
+            return 0
+        ids = self._matching_ids(ru, en)
+        if not ids:
+            return 0
+        marks = ",".join("?" * len(ids))
+        sql = f"UPDATE dict_entries SET tr=? WHERE id IN ({marks})" + ("" if overwrite else " AND tr=''")
+        return int(self.db.execute(sql, (tr, *ids)).rowcount or 0)
 
     def clear(self, source: str = None) -> None:
         """Tum maddeleri (ya da yalnizca verilen kaynagi) sil."""

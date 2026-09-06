@@ -17,8 +17,8 @@ immediately and are remembered for the next launch.
 
 - Spaced review with SM-2/Leitner scheduling and five practice modes
 - Turkish-Russian-English word bank with CSV import and export
-- Bidirectional Russian-English dictionary: 1,360 stressed built-in entries, 45,000+ with the downloadable OpenRussian data, TTS, CSV/TSV import
-- AI dictionary lookup for missing words through LM Studio or an alternative OpenAI-compatible endpoint (NVIDIA NIM by default, or any URL + API key); results are cached into the local dictionary
+- Trilingual Russian-English-Turkish dictionary with a direction selector (Auto / RU→EN / EN→RU / RU→TR / TR→RU): 1,360 stressed built-in entries, 45,000+ with the downloadable OpenRussian data, TTS, CSV/TSV import
+- AI dictionary lookup for missing words (and missing Turkish glosses) through LM Studio or an alternative OpenAI-compatible endpoint (NVIDIA NIM by default, or any URL + API key); results are cached into the local dictionary
 - Cyrillic, pronunciation, stress, grammar, speaking, and handwriting labs
 - PDF reader with notes, annotations, selected-text lookup, and AI explanation
 - Exams, weak-topic analysis, learning streaks, and weekly progress summaries
@@ -85,9 +85,12 @@ The rest of the application remains available when no AI model is running.
 
 ### Alternative endpoint for the dictionary (optional, internet)
 
-When a word is missing from the local dictionary, the RU-EN Dictionary asks an
+When a word is missing from the local dictionary, the RU-EN-TR Dictionary asks an
 AI model and receives a structured entry (headword with stress, part of speech,
-gender/aspect, translation, example sentence, note). Two providers are available:
+gender/aspect, English and Turkish translations, example sentence, note). In the
+RU→TR direction an entry without a Turkish gloss triggers the same lookup and the
+returned gloss is merged into the existing entry instead of creating a duplicate.
+Two providers are available:
 
 | Provider | Address | Key |
 |---|---|---|
@@ -106,7 +109,7 @@ with autosave disabled, a selected AI entry can be saved with one click.
 |---|---|
 | Spaced Review | Daily dashboard, flashcards, typing, listening, matching, and multiple choice |
 | Word Bank | TR/RU/EN vocabulary, frequency lists, examples, favorites, and CSV tools |
-| Dictionary RU-EN | Cyrillic input searches RU->EN, Latin input EN->RU; built-in core plus OpenRussian layer; listen, add to word bank, ask the AI, import/export |
+| Dictionary RU-EN-TR | Direction selector (`dict_direction`): Auto (Cyrillic searches RU->EN, Latin picks EN->RU or TR->RU by best match), RU→EN, EN→RU, RU→TR, TR→RU - a fixed direction searches only its source side; Russian / English / Turkish columns (Turkish first in Turkish directions); built-in core plus OpenRussian layer; listen, add to word bank (Turkish gloss becomes the bank's TR field), ask the AI, CSV import/export (`ru, en, tr, pos, extra, source`, legacy `ru, en, pos, extra` accepted) |
 | Exam | Multiple question types, automatic scoring, and mistake tracking |
 | Cyrillic Lab | All 33 letters, handwriting forms, stroke practice, and confusion drills |
 | Pronunciation | Stress, reduction rules, rough IPA, TTS, and optional microphone comparison |
@@ -121,8 +124,9 @@ with autosave disabled, a selected AI entry can be saved with one click.
 python -m pytest -q
 ```
 
-The test suite (137 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN dictionary engine,
-the AI dictionary layer (a mock OpenAI-compatible server, provider resolution, the secrets store),
+The test suite (156 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN-TR dictionary engine
+(direction selector, auto direction with Turkish queries, CSV with the `tr` column), the AI dictionary layer (a mock OpenAI-compatible server,
+English + Turkish glosses, provider resolution, the secrets store),
 content packages, multilingual text integrity, and UI smoke flows. No test touches the network,
 LM Studio, or Windows Credential Manager.
 

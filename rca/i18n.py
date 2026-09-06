@@ -26,7 +26,7 @@ S: Dict[str, Dict[str, str]] = {
     "tab.guide":      {"tr": "Kilavuz", "en": "Guide", "ru": "Руководство"},
     "tab.settings":   {"tr": "Ayarlar", "en": "Settings", "ru": "Настройки"},
     "tab.library":    {"tr": "Kaynak Merkezi", "en": "Library", "ru": "Библиотека"},
-    "tab.dictionary": {"tr": "Sozluk RU-EN", "en": "Dictionary RU-EN", "ru": "Словарь RU-EN"},
+    "tab.dictionary": {"tr": "Sozluk RU-EN-TR", "en": "Dictionary RU-EN-TR", "ru": "Словарь RU-EN-TR"},
 
     # --- kenar cubugu gruplari ---
     "grp.learn":    {"tr": "Ogren", "en": "Learn", "ru": "Учить"},
@@ -152,9 +152,12 @@ S: Dict[str, Dict[str, str]] = {
     "ai.thinking": {"tr": "Dusunuyor...", "en": "Thinking...", "ru": "Думает..."},
 
     # --- sozluk ---
-    "d.subtitle":  {"tr": "Cift yonlu Rusca <-> Ingilizce sozluk. Kiril yazin: RU->EN, Latin yazin: EN->RU.",
-                    "en": "Bidirectional Russian <-> English dictionary. Type Cyrillic for RU->EN, Latin for EN->RU.",
-                    "ru": "Двусторонний русско-английский словарь. Кириллица: RU->EN, латиница: EN->RU."},
+    "d.subtitle":  {"tr": "Uc dilli Rusca <-> Ingilizce / Turkce sozluk. Yon 'Otomatik' iken Kiril: RU->EN, "
+                          "Latin: en iyi eslesen tarafa gore EN->RU ya da TR->RU; sabit yon yalnizca kaynak tarafi arar.",
+                    "en": "Trilingual Russian <-> English / Turkish dictionary. With direction 'Auto', Cyrillic searches "
+                          "RU->EN and Latin picks EN->RU or TR->RU by best match; a fixed direction searches only its source side.",
+                    "ru": "Трёхъязычный русско-английско-турецкий словарь. В режиме «Авто» кириллица ищет RU->EN, "
+                          "латиница выбирает EN->RU или TR->RU по лучшему совпадению; фиксированное направление ищет только исходную сторону."},
     "d.hint":      {"tr": "Bir kelime yazin ve Enter'a basin", "en": "Type a word and press Enter",
                     "ru": "Введите слово и нажмите Enter"},
     "d.headword":  {"tr": "Rusca", "en": "Russian", "ru": "Русский"},
@@ -225,6 +228,19 @@ S: Dict[str, Dict[str, str]] = {
     "d.ai_provider":   {"tr": "Yanitlayan", "en": "Answered by", "ru": "Ответил"},
     "d.ai_autosave":   {"tr": "AI sonuclarini sozluge kaydet", "en": "Save AI results to the dictionary",
                         "ru": "Сохранять результаты ИИ в словарь"},
+
+    # --- sozluk: yon secici + Turkce ---
+    "d.direction":     {"tr": "Yon:", "en": "Direction:", "ru": "Направление:"},
+    "d.dir_auto":      {"tr": "Otomatik", "en": "Auto", "ru": "Авто"},
+    "d.dir_ru2en":     {"tr": "RU → EN", "en": "RU → EN", "ru": "RU → EN"},
+    "d.dir_en2ru":     {"tr": "EN → RU", "en": "EN → RU", "ru": "EN → RU"},
+    "d.dir_ru2tr":     {"tr": "RU → TR", "en": "RU → TR", "ru": "RU → TR"},
+    "d.dir_tr2ru":     {"tr": "TR → RU", "en": "TR → RU", "ru": "TR → RU"},
+    "d.turkish":       {"tr": "Türkçe", "en": "Turkish", "ru": "Турецкий"},
+    "d.ai_fill_tr":    {"tr": "Turkce karsilik icin AI'a soruluyor...", "en": "Asking the AI for the Turkish gloss...",
+                        "ru": "Запрос турецкого перевода у ИИ..."},
+    "d.tr_filled":     {"tr": "Turkce karsilik eklendi", "en": "Turkish gloss added",
+                        "ru": "Турецкий перевод добавлен"},
 
     # --- ayarlar: alternatif uc ---
     "set.alt_group":   {"tr": "Alternatif uc (OpenAI uyumlu - INTERNET)",

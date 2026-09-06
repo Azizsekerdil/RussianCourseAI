@@ -1,1397 +1,1400 @@
 # -*- coding: utf-8 -*-
-"""Gomulu Rusca <-> Ingilizce cekirdek sozluk (A1-B1, ~1000 madde).
+"""Gomulu Rusca <-> Ingilizce / Turkce cekirdek sozluk (A1-B1, ~1000 madde).
 
-Satir bicimi:  vurgulu_kelime|tur [ek]|ingilizce karsilik; karsilik 2
+Satir bicimi:  vurgulu_kelime|tur [ek]|ingilizce karsilik; karsilik 2[|turkce karsilik; karsilik 2]
+Dorduncu alan (Turkce) ISTEGE BAGLIDIR: yoksa madde Turkce karsiliksiz yuklenir (Entry.tr = "")
+ve sozluk sekmesi RU->TR aramasinda eksik glossu AI'dan tamamlayabilir. Turkce alanda
+ç ğ ı ö ş ü harfleri oldugu gibi yazilir; anlamlar '; ' ile ayrilir.
 Vurgu, vurgulu sesli harften hemen SONRA gelen tek tirnakla gosterilir (OpenRussian bicimi).
 Tur: n v adj adv pron prep conj num part int phr - ek: m f n pl (cinsiyet) / ipf pf (gorunus).
 """
 
 DATA = r"""
 # ---- selamlasma / nezaket ----
-приве'т|int|hi; hello (informal)
-здра'вствуйте|int|hello (formal)
-здра'вствуй|int|hello (informal, singular)
-до свида'ния|phr|goodbye
-пока'|int|bye (informal)
-до'брое у'тро|phr|good morning
-до'брый день|phr|good afternoon
-до'брый ве'чер|phr|good evening
-споко'йной но'чи|phr|good night
-спаси'бо|int|thank you; thanks
-пожа'луйста|int|please; you are welcome
-извини'те|int|excuse me; sorry (formal)
-прости'те|int|forgive me; sorry
-да|part|yes
-нет|part|no
-хорошо'|adv|well; OK; fine
-ла'дно|part|all right; okay
-коне'чно|adv|of course
-мо'жет быть|phr|maybe; perhaps
-как дела'|phr|how are you
-ничего'|pron|nothing; not bad
-ниче'го стра'шного|phr|no problem; never mind
-добро' пожа'ловать|phr|welcome
-всего' хоро'шего|phr|all the best
-уда'чи|int|good luck
-поздравля'ю|int|congratulations
-с днём рожде'ния|phr|happy birthday
-бу'дьте здоро'вы|phr|bless you; take care
-прия'тного аппети'та|phr|enjoy your meal
+приве'т|int|hi; hello (informal)|selam; merhaba
+здра'вствуйте|int|hello (formal)|merhaba (resmî)
+здра'вствуй|int|hello (informal, singular)|merhaba
+до свида'ния|phr|goodbye|hoşça kalın; güle güle
+пока'|int|bye (informal)|hoşça kal; görüşürüz
+до'брое у'тро|phr|good morning|günaydın
+до'брый день|phr|good afternoon|iyi günler
+до'брый ве'чер|phr|good evening|iyi akşamlar
+споко'йной но'чи|phr|good night|iyi geceler
+спаси'бо|int|thank you; thanks|teşekkür ederim; sağ ol
+пожа'луйста|int|please; you are welcome|lütfen; rica ederim
+извини'те|int|excuse me; sorry (formal)|affedersiniz; özür dilerim
+прости'те|int|forgive me; sorry|kusura bakmayın; özür dilerim
+да|part|yes|evet
+нет|part|no|hayır
+хорошо'|adv|well; OK; fine|iyi; tamam; peki
+ла'дно|part|all right; okay|tamam; peki
+коне'чно|adv|of course|tabii; elbette
+мо'жет быть|phr|maybe; perhaps|belki
+как дела'|phr|how are you|nasılsın; nasıl gidiyor
+ничего'|pron|nothing; not bad|hiçbir şey; fena değil
+ниче'го стра'шного|phr|no problem; never mind|önemli değil; sorun değil
+добро' пожа'ловать|phr|welcome|hoş geldiniz
+всего' хоро'шего|phr|all the best|iyi günler; her şey gönlünce olsun
+уда'чи|int|good luck|bol şans; kolay gelsin
+поздравля'ю|int|congratulations|tebrikler; tebrik ederim
+с днём рожде'ния|phr|happy birthday|doğum günün kutlu olsun
+бу'дьте здоро'вы|phr|bless you; take care|çok yaşa; sağlıcakla kalın
+прия'тного аппети'та|phr|enjoy your meal|afiyet olsun
 # ---- soru kelimeleri ----
-кто|pron|who
-что|pron|what
-где|adv|where
-куда'|adv|where to
-отку'да|adv|where from
-когда'|adv|when
-почему'|adv|why
-заче'м|adv|what for; why
-как|adv|how
-како'й|pron|which; what kind of
-чей|pron|whose
-ско'лько|adv|how much; how many
+кто|pron|who|kim
+что|pron|what|ne
+где|adv|where|nerede
+куда'|adv|where to|nereye
+отку'да|adv|where from|nereden
+когда'|adv|when|ne zaman
+почему'|adv|why|neden; niçin
+заче'м|adv|what for; why|ne için; niye
+как|adv|how|nasıl
+како'й|pron|which; what kind of|hangi; nasıl bir
+чей|pron|whose|kimin
+ско'лько|adv|how much; how many|ne kadar; kaç
 # ---- zamirler ----
-я|pron|I
-ты|pron|you (singular, informal)
-он|pron|he
-она'|pron|she
-оно'|pron|it
-мы|pron|we
-вы|pron|you (plural or formal)
-они'|pron|they
-мой|pron|my; mine
-твой|pron|your; yours (informal)
-его'|pron|his; its
-её|pron|her; hers
-наш|pron|our; ours
-ваш|pron|your; yours (formal or plural)
-их|pron|their; theirs
-свой|pron|one's own
-э'тот|pron|this
-тот|pron|that
-э'то|pron|this; this is
-всё|pron|everything; all
-все|pron|everyone; all
-ка'ждый|pron|each; every
-никто'|pron|nobody
-ничто'|pron|nothing
-кто'-то|pron|someone
-что'-то|pron|something
-кто'-нибудь|pron|anyone; anybody
-что'-нибудь|pron|anything
-сам|pron|oneself; myself; himself
-себя'|pron|oneself (reflexive)
-друг дру'га|phr|each other
+я|pron|I|ben
+ты|pron|you (singular, informal)|sen
+он|pron|he|o (erkek)
+она'|pron|she|o (kadın)
+оно'|pron|it|o (nesne)
+мы|pron|we|biz
+вы|pron|you (plural or formal)|siz
+они'|pron|they|onlar
+мой|pron|my; mine|benim
+твой|pron|your; yours (informal)|senin
+его'|pron|his; its|onun (erkek)
+её|pron|her; hers|onun (kadın)
+наш|pron|our; ours|bizim
+ваш|pron|your; yours (formal or plural)|sizin
+их|pron|their; theirs|onların
+свой|pron|one's own|kendi
+э'тот|pron|this|bu
+тот|pron|that|o; şu
+э'то|pron|this; this is|bu; bu ...
+всё|pron|everything; all|her şey; hepsi
+все|pron|everyone; all|herkes; hepsi
+ка'ждый|pron|each; every|her; her bir
+никто'|pron|nobody|hiç kimse
+ничто'|pron|nothing|hiçbir şey
+кто'-то|pron|someone|biri; birisi
+что'-то|pron|something|bir şey
+кто'-нибудь|pron|anyone; anybody|herhangi biri; kimse
+что'-нибудь|pron|anything|herhangi bir şey; bir şey
+сам|pron|oneself; myself; himself|kendi; kendisi
+себя'|pron|oneself (reflexive)|kendini; kendi
+друг дру'га|phr|each other|birbirini
 # ---- sayilar ----
-ноль|num|zero
-оди'н|num|one
-два|num|two
-три|num|three
-четы'ре|num|four
-пять|num|five
-шесть|num|six
-семь|num|seven
-во'семь|num|eight
-де'вять|num|nine
-де'сять|num|ten
-оди'ннадцать|num|eleven
-двена'дцать|num|twelve
-трина'дцать|num|thirteen
-четы'рнадцать|num|fourteen
-пятна'дцать|num|fifteen
-шестна'дцать|num|sixteen
-семна'дцать|num|seventeen
-восемна'дцать|num|eighteen
-девятна'дцать|num|nineteen
-два'дцать|num|twenty
-три'дцать|num|thirty
-со'рок|num|forty
-пятьдеся'т|num|fifty
-шестьдеся'т|num|sixty
-се'мьдесят|num|seventy
-во'семьдесят|num|eighty
-девяно'сто|num|ninety
-сто|num|hundred
-ты'сяча|num|thousand
-миллио'н|num|million
-пе'рвый|num|first
-второ'й|num|second
-тре'тий|num|third
-четвёртый|num|fourth
-пя'тый|num|fifth
-после'дний|adj|last; latest
-полови'на|n f|half
-раз|n m|time; once
-мно'го|adv|much; many; a lot
-ма'ло|adv|little; few
-не'сколько|num|several; a few
-немно'го|adv|a little; a bit
+ноль|num|zero|sıfır
+оди'н|num|one|bir
+два|num|two|iki
+три|num|three|üç
+четы'ре|num|four|dört
+пять|num|five|beş
+шесть|num|six|altı
+семь|num|seven|yedi
+во'семь|num|eight|sekiz
+де'вять|num|nine|dokuz
+де'сять|num|ten|on
+оди'ннадцать|num|eleven|on bir
+двена'дцать|num|twelve|on iki
+трина'дцать|num|thirteen|on üç
+четы'рнадцать|num|fourteen|on dört
+пятна'дцать|num|fifteen|on beş
+шестна'дцать|num|sixteen|on altı
+семна'дцать|num|seventeen|on yedi
+восемна'дцать|num|eighteen|on sekiz
+девятна'дцать|num|nineteen|on dokuz
+два'дцать|num|twenty|yirmi
+три'дцать|num|thirty|otuz
+со'рок|num|forty|kırk
+пятьдеся'т|num|fifty|elli
+шестьдеся'т|num|sixty|altmış
+се'мьдесят|num|seventy|yetmiş
+во'семьдесят|num|eighty|seksen
+девяно'сто|num|ninety|doksan
+сто|num|hundred|yüz
+ты'сяча|num|thousand|bin
+миллио'н|num|million|milyon
+пе'рвый|num|first|birinci; ilk
+второ'й|num|second|ikinci
+тре'тий|num|third|üçüncü
+четвёртый|num|fourth|dördüncü
+пя'тый|num|fifth|beşinci
+после'дний|adj|last; latest|son; sonuncu
+полови'на|n f|half|yarım; yarı
+раз|n m|time; once|kez; defa; bir kere
+мно'го|adv|much; many; a lot|çok
+ма'ло|adv|little; few|az
+не'сколько|num|several; a few|birkaç
+немно'го|adv|a little; a bit|biraz
 # ---- zaman ----
-вре'мя|n n|time
-час|n m|hour; o'clock
-мину'та|n f|minute
-секу'нда|n f|second (time)
-день|n m|day
-ночь|n f|night
-у'тро|n n|morning
-ве'чер|n m|evening
-неде'ля|n f|week
-ме'сяц|n m|month; moon
-год|n m|year
-сего'дня|adv|today
-за'втра|adv|tomorrow
-вчера'|adv|yesterday
-послеза'втра|adv|the day after tomorrow
-позавчера'|adv|the day before yesterday
-сейча'с|adv|now; right now
-тепе'рь|adv|now (as opposed to before)
-пото'м|adv|then; later
-ра'ньше|adv|earlier; before
-по'здно|adv|late
-ра'но|adv|early
-всегда'|adv|always
-никогда'|adv|never
-иногда'|adv|sometimes
-ча'сто|adv|often
-ре'дко|adv|rarely; seldom
-обы'чно|adv|usually
-уже'|adv|already
-ещё|adv|still; yet; more
-давно'|adv|long ago; for a long time
-неда'вно|adv|recently
-ско'ро|adv|soon
-до'лго|adv|for a long time
-снача'ла|adv|at first; first
-зате'м|adv|then; after that
-наконе'ц|adv|finally; at last
-понеде'льник|n m|Monday
-вто'рник|n m|Tuesday
-среда'|n f|Wednesday
-четве'рг|n m|Thursday
-пя'тница|n f|Friday
-суббо'та|n f|Saturday
-воскресе'нье|n n|Sunday
-янва'рь|n m|January
-февра'ль|n m|February
-март|n m|March
-апре'ль|n m|April
-май|n m|May
-ию'нь|n m|June
-ию'ль|n m|July
-а'вгуст|n m|August
-сентя'брь|n m|September
-октя'брь|n m|October
-ноя'брь|n m|November
-дека'брь|n m|December
-весна'|n f|spring
-ле'то|n n|summer
-о'сень|n f|autumn; fall
-зима'|n f|winter
-пра'здник|n m|holiday; celebration
-выходно'й|n m|day off; weekend day
-кани'кулы|n pl|school holidays; vacation
-о'тпуск|n m|vacation; leave
+вре'мя|n n|time|zaman; vakit
+час|n m|hour; o'clock|saat
+мину'та|n f|minute|dakika
+секу'нда|n f|second (time)|saniye
+день|n m|day|gün
+ночь|n f|night|gece
+у'тро|n n|morning|sabah
+ве'чер|n m|evening|akşam
+неде'ля|n f|week|hafta
+ме'сяц|n m|month; moon|ay
+год|n m|year|yıl; sene
+сего'дня|adv|today|bugün
+за'втра|adv|tomorrow|yarın
+вчера'|adv|yesterday|dün
+послеза'втра|adv|the day after tomorrow|öbür gün
+позавчера'|adv|the day before yesterday|evvelsi gün
+сейча'с|adv|now; right now|şimdi; hemen
+тепе'рь|adv|now (as opposed to before)|şimdi; artık
+пото'м|adv|then; later|sonra; daha sonra
+ра'ньше|adv|earlier; before|daha önce; eskiden
+по'здно|adv|late|geç
+ра'но|adv|early|erken
+всегда'|adv|always|her zaman; daima
+никогда'|adv|never|asla; hiçbir zaman
+иногда'|adv|sometimes|bazen
+ча'сто|adv|often|sık sık
+ре'дко|adv|rarely; seldom|nadiren; seyrek
+обы'чно|adv|usually|genellikle
+уже'|adv|already|artık; çoktan; zaten
+ещё|adv|still; yet; more|hâlâ; daha; henüz
+давно'|adv|long ago; for a long time|uzun zaman önce; çoktandır
+неда'вно|adv|recently|geçenlerde; yakın zamanda
+ско'ро|adv|soon|yakında
+до'лго|adv|for a long time|uzun süre
+снача'ла|adv|at first; first|önce; ilk başta
+зате'м|adv|then; after that|sonra; ardından
+наконе'ц|adv|finally; at last|nihayet; sonunda
+понеде'льник|n m|Monday|pazartesi
+вто'рник|n m|Tuesday|salı
+среда'|n f|Wednesday|çarşamba
+четве'рг|n m|Thursday|perşembe
+пя'тница|n f|Friday|cuma
+суббо'та|n f|Saturday|cumartesi
+воскресе'нье|n n|Sunday|pazar
+янва'рь|n m|January|ocak
+февра'ль|n m|February|şubat
+март|n m|March|mart
+апре'ль|n m|April|nisan
+май|n m|May|mayıs
+ию'нь|n m|June|haziran
+ию'ль|n m|July|temmuz
+а'вгуст|n m|August|ağustos
+сентя'брь|n m|September|eylül
+октя'брь|n m|October|ekim
+ноя'брь|n m|November|kasım
+дека'брь|n m|December|aralık
+весна'|n f|spring|ilkbahar; bahar
+ле'то|n n|summer|yaz
+о'сень|n f|autumn; fall|sonbahar; güz
+зима'|n f|winter|kış
+пра'здник|n m|holiday; celebration|bayram; tatil; kutlama
+выходно'й|n m|day off; weekend day|tatil günü; izin günü
+кани'кулы|n pl|school holidays; vacation|okul tatili; tatil
+о'тпуск|n m|vacation; leave|izin; yıllık izin; tatil
 # ---- aile / insanlar ----
-челове'к|n m|person; human
-лю'ди|n pl|people
-мужчи'на|n m|man
-же'нщина|n f|woman
-ма'льчик|n m|boy
-де'вочка|n f|girl (child)
-де'вушка|n f|girl; young woman
-па'рень|n m|guy; young man; boyfriend
-ребёнок|n m|child
-де'ти|n pl|children
-семья'|n f|family
-роди'тели|n pl|parents
-мать|n f|mother
-ма'ма|n f|mom
-оте'ц|n m|father
-па'па|n m|dad
-сын|n m|son
-дочь|n f|daughter
-брат|n m|brother
-сестра'|n f|sister
-ба'бушка|n f|grandmother
-де'душка|n m|grandfather
-внук|n m|grandson
-вну'чка|n f|granddaughter
-дя'дя|n m|uncle
-тётя|n f|aunt
-муж|n m|husband
-жена'|n f|wife
-друг|n m|friend (male)
-подру'га|n f|friend (female)
-сосе'д|n m|neighbour
-гость|n m|guest
-колле'га|n m|colleague
-знако'мый|n m|acquaintance
-и'мя|n n|first name
-фами'лия|n f|surname; last name
-во'зраст|n m|age
-взро'слый|adj|adult; grown-up
-ста'рый|adj|old
-молодо'й|adj|young
+челове'к|n m|person; human|insan; kişi
+лю'ди|n pl|people|insanlar; halk
+мужчи'на|n m|man|erkek; adam
+же'нщина|n f|woman|kadın
+ма'льчик|n m|boy|oğlan; erkek çocuk
+де'вочка|n f|girl (child)|kız çocuğu; kız
+де'вушка|n f|girl; young woman|genç kız; kız
+па'рень|n m|guy; young man; boyfriend|delikanlı; genç adam; erkek arkadaş
+ребёнок|n m|child|çocuk
+де'ти|n pl|children|çocuklar
+семья'|n f|family|aile
+роди'тели|n pl|parents|anne baba; ebeveynler
+мать|n f|mother|anne; ana
+ма'ма|n f|mom|anne; anneciğim
+оте'ц|n m|father|baba
+па'па|n m|dad|baba; babacığım
+сын|n m|son|oğul
+дочь|n f|daughter|kız (evlat)
+брат|n m|brother|erkek kardeş; ağabey
+сестра'|n f|sister|kız kardeş; abla
+ба'бушка|n f|grandmother|büyükanne; nine
+де'душка|n m|grandfather|dede; büyükbaba
+внук|n m|grandson|torun (erkek)
+вну'чка|n f|granddaughter|torun (kız)
+дя'дя|n m|uncle|amca; dayı
+тётя|n f|aunt|teyze; hala
+муж|n m|husband|koca; eş
+жена'|n f|wife|karı; eş
+друг|n m|friend (male)|arkadaş (erkek); dost
+подру'га|n f|friend (female)|arkadaş (kadın); kız arkadaş
+сосе'д|n m|neighbour|komşu
+гость|n m|guest|misafir; konuk
+колле'га|n m|colleague|meslektaş; iş arkadaşı
+знако'мый|n m|acquaintance|tanıdık
+и'мя|n n|first name|ad; isim
+фами'лия|n f|surname; last name|soyadı
+во'зраст|n m|age|yaş
+взро'слый|adj|adult; grown-up|yetişkin; ergin
+ста'рый|adj|old|yaşlı; eski
+молодо'й|adj|young|genç
 # ---- meslekler ----
-рабо'та|n f|work; job
-профе'ссия|n f|profession
-врач|n m|doctor; physician
-учи'тель|n m|teacher
-студе'нт|n m|student (university)
-учени'к|n m|pupil; student (school)
-инжене'р|n m|engineer
-программи'ст|n m|programmer
-води'тель|n m|driver
-продаве'ц|n m|shop assistant; seller
-по'вар|n m|cook; chef
-официа'нт|n m|waiter
-полице'йский|n m|police officer
-журнали'ст|n m|journalist
-худо'жник|n m|artist; painter
-музыка'нт|n m|musician
-актёр|n m|actor
-писа'тель|n m|writer
-юри'ст|n m|lawyer
-бизнесме'н|n m|businessman
-дире'ктор|n m|director; manager
-нача'льник|n m|boss; chief
-секрета'рь|n m|secretary
-рабо'чий|n m|worker
-строи'тель|n m|builder
-медсестра'|n f|nurse
-перево'дчик|n m|translator; interpreter
-учёный|n m|scientist; scholar
-солда'т|n m|soldier
+рабо'та|n f|work; job|iş; çalışma
+профе'ссия|n f|profession|meslek
+врач|n m|doctor; physician|doktor; hekim
+учи'тель|n m|teacher|öğretmen
+студе'нт|n m|student (university)|öğrenci (üniversite)
+учени'к|n m|pupil; student (school)|öğrenci (okul); talebe
+инжене'р|n m|engineer|mühendis
+программи'ст|n m|programmer|programcı; yazılımcı
+води'тель|n m|driver|sürücü; şoför
+продаве'ц|n m|shop assistant; seller|satıcı; tezgâhtar
+по'вар|n m|cook; chef|aşçı
+официа'нт|n m|waiter|garson
+полице'йский|n m|police officer|polis; polis memuru
+журнали'ст|n m|journalist|gazeteci
+худо'жник|n m|artist; painter|ressam; sanatçı
+музыка'нт|n m|musician|müzisyen
+актёр|n m|actor|aktör; oyuncu
+писа'тель|n m|writer|yazar
+юри'ст|n m|lawyer|hukukçu; avukat
+бизнесме'н|n m|businessman|iş adamı
+дире'ктор|n m|director; manager|müdür; yönetici
+нача'льник|n m|boss; chief|patron; şef; amir
+секрета'рь|n m|secretary|sekreter
+рабо'чий|n m|worker|işçi
+строи'тель|n m|builder|inşaatçı; yapı ustası
+медсестра'|n f|nurse|hemşire
+перево'дчик|n m|translator; interpreter|çevirmen; tercüman
+учёный|n m|scientist; scholar|bilim insanı; âlim
+солда'т|n m|soldier|asker
 # ---- ev ----
-дом|n m|house; home
-кварти'ра|n f|flat; apartment
-ко'мната|n f|room
-ку'хня|n f|kitchen
-спа'льня|n f|bedroom
-ва'нная|n f|bathroom
-туале'т|n m|toilet
-коридо'р|n m|corridor; hallway
-балко'н|n m|balcony
-эта'ж|n m|floor; storey
-лифт|n m|lift; elevator
-ле'стница|n f|stairs; ladder
-дверь|n f|door
-окно'|n n|window
-стена'|n f|wall
-пол|n m|floor
-потоло'к|n m|ceiling
-кры'ша|n f|roof
-ме'бель|n f|furniture
-стол|n m|table; desk
-стул|n m|chair
-кре'сло|n n|armchair
-дива'н|n m|sofa; couch
-крова'ть|n f|bed
-шкаф|n m|wardrobe; cupboard
-по'лка|n f|shelf
-зе'ркало|n n|mirror
-ла'мпа|n f|lamp
-свет|n m|light
-ковёр|n m|carpet; rug
-карти'на|n f|picture; painting
-холоди'льник|n m|fridge; refrigerator
-плита'|n f|stove; cooker
-духо'вка|n f|oven
-микроволно'вка|n f|microwave
-стира'льная маши'на|phr|washing machine
-телеви'зор|n m|television set
-ключ|n m|key
-замо'к|n m|lock
-му'сор|n m|rubbish; garbage
-убира'ть|v ipf|to clean; to tidy up
-убра'ть|v pf|to clean; to tidy up
-мыть|v ipf|to wash
-помы'ть|v pf|to wash
-гото'вить|v ipf|to cook; to prepare
-пригото'вить|v pf|to cook; to prepare
+дом|n m|house; home|ev
+кварти'ра|n f|flat; apartment|daire; apartman dairesi
+ко'мната|n f|room|oda
+ку'хня|n f|kitchen|mutfak
+спа'льня|n f|bedroom|yatak odası
+ва'нная|n f|bathroom|banyo
+туале'т|n m|toilet|tuvalet
+коридо'р|n m|corridor; hallway|koridor
+балко'н|n m|balcony|balkon
+эта'ж|n m|floor; storey|kat
+лифт|n m|lift; elevator|asansör
+ле'стница|n f|stairs; ladder|merdiven
+дверь|n f|door|kapı
+окно'|n n|window|pencere
+стена'|n f|wall|duvar
+пол|n m|floor|zemin; yer; döşeme
+потоло'к|n m|ceiling|tavan
+кры'ша|n f|roof|çatı
+ме'бель|n f|furniture|mobilya
+стол|n m|table; desk|masa
+стул|n m|chair|sandalye
+кре'сло|n n|armchair|koltuk
+дива'н|n m|sofa; couch|kanepe; divan
+крова'ть|n f|bed|yatak
+шкаф|n m|wardrobe; cupboard|dolap; gardırop
+по'лка|n f|shelf|raf
+зе'ркало|n n|mirror|ayna
+ла'мпа|n f|lamp|lamba
+свет|n m|light|ışık
+ковёр|n m|carpet; rug|halı; kilim
+карти'на|n f|picture; painting|tablo; resim
+холоди'льник|n m|fridge; refrigerator|buzdolabı
+плита'|n f|stove; cooker|ocak; fırın
+духо'вка|n f|oven|fırın
+микроволно'вка|n f|microwave|mikrodalga
+стира'льная маши'на|phr|washing machine|çamaşır makinesi
+телеви'зор|n m|television set|televizyon
+ключ|n m|key|anahtar
+замо'к|n m|lock|kilit
+му'сор|n m|rubbish; garbage|çöp
+убира'ть|v ipf|to clean; to tidy up|temizlemek; toplamak
+убра'ть|v pf|to clean; to tidy up|temizlemek; toplamak
+мыть|v ipf|to wash|yıkamak
+помы'ть|v pf|to wash|yıkamak
+гото'вить|v ipf|to cook; to prepare|pişirmek; hazırlamak
+пригото'вить|v pf|to cook; to prepare|pişirmek; hazırlamak
 # ---- gunluk esyalar ----
-вещь|n f|thing; item
-су'мка|n f|bag; handbag
-рюкза'к|n m|backpack
-чемода'н|n m|suitcase
-кошелёк|n m|wallet; purse
-де'ньги|n pl|money
-телефо'н|n m|phone
-компью'тер|n m|computer
-ноутбу'к|n m|laptop
-часы'|n pl|clock; watch
-очки'|n pl|glasses; spectacles
-зо'нт|n m|umbrella
-кни'га|n f|book
-тетра'дь|n f|notebook; exercise book
-ру'чка|n f|pen; handle
-каранда'ш|n m|pencil
-бума'га|n f|paper
-письмо'|n n|letter (mail)
-газе'та|n f|newspaper
-журна'л|n m|magazine
-карти'нка|n f|small picture; image
-фотогра'фия|n f|photograph
-пода'рок|n m|gift; present
-игру'шка|n f|toy
-мяч|n m|ball
-сигаре'та|n f|cigarette
-спи'чки|n pl|matches
+вещь|n f|thing; item|şey; eşya
+су'мка|n f|bag; handbag|çanta; el çantası
+рюкза'к|n m|backpack|sırt çantası
+чемода'н|n m|suitcase|bavul; valiz
+кошелёк|n m|wallet; purse|cüzdan
+де'ньги|n pl|money|para
+телефо'н|n m|phone|telefon
+компью'тер|n m|computer|bilgisayar
+ноутбу'к|n m|laptop|dizüstü bilgisayar; laptop
+часы'|n pl|clock; watch|saat
+очки'|n pl|glasses; spectacles|gözlük
+зо'нт|n m|umbrella|şemsiye
+кни'га|n f|book|kitap
+тетра'дь|n f|notebook; exercise book|defter
+ру'чка|n f|pen; handle|kalem; kulp; sap
+каранда'ш|n m|pencil|kurşun kalem
+бума'га|n f|paper|kâğıt
+письмо'|n n|letter (mail)|mektup
+газе'та|n f|newspaper|gazete
+журна'л|n m|magazine|dergi
+карти'нка|n f|small picture; image|küçük resim; görsel
+фотогра'фия|n f|photograph|fotoğraf
+пода'рок|n m|gift; present|hediye; armağan
+игру'шка|n f|toy|oyuncak
+мяч|n m|ball|top
+сигаре'та|n f|cigarette|sigara
+спи'чки|n pl|matches|kibrit
 # ---- kiyafet ----
-оде'жда|n f|clothes; clothing
-руба'шка|n f|shirt
-футбо'лка|n f|T-shirt
-брю'ки|n pl|trousers; pants
-джи'нсы|n pl|jeans
-ю'бка|n f|skirt
-пла'тье|n n|dress
-пальто'|n n|coat
-ку'ртка|n f|jacket
-костю'м|n m|suit; costume
-сви'тер|n m|sweater
-ша'пка|n f|hat; cap (warm)
-шля'па|n f|hat (with brim)
-шарф|n m|scarf
-перча'тки|n pl|gloves
-носки'|n pl|socks
-о'бувь|n f|footwear
-боти'нки|n pl|boots; shoes
-ту'фли|n pl|shoes (dress)
-кроссо'вки|n pl|sneakers; trainers
-разме'р|n m|size
-надева'ть|v ipf|to put on (clothes)
-наде'ть|v pf|to put on (clothes)
-снима'ть|v ipf|to take off; to rent; to film
-снять|v pf|to take off; to rent; to film
-носи'ть|v ipf|to wear; to carry
+оде'жда|n f|clothes; clothing|giysi; kıyafet; elbise
+руба'шка|n f|shirt|gömlek
+футбо'лка|n f|T-shirt|tişört
+брю'ки|n pl|trousers; pants|pantolon
+джи'нсы|n pl|jeans|kot pantolon
+ю'бка|n f|skirt|etek
+пла'тье|n n|dress|elbise
+пальто'|n n|coat|palto; manto
+ку'ртка|n f|jacket|ceket; mont
+костю'м|n m|suit; costume|takım elbise; kostüm
+сви'тер|n m|sweater|kazak
+ша'пка|n f|hat; cap (warm)|bere; şapka
+шля'па|n f|hat (with brim)|şapka
+шарф|n m|scarf|atkı; eşarp
+перча'тки|n pl|gloves|eldiven
+носки'|n pl|socks|çorap
+о'бувь|n f|footwear|ayakkabı
+боти'нки|n pl|boots; shoes|bot; ayakkabı
+ту'фли|n pl|shoes (dress)|ayakkabı; iskarpin
+кроссо'вки|n pl|sneakers; trainers|spor ayakkabı
+разме'р|n m|size|beden; boyut; numara
+надева'ть|v ipf|to put on (clothes)|giymek
+наде'ть|v pf|to put on (clothes)|giymek
+снима'ть|v ipf|to take off; to rent; to film|çıkarmak; kiralamak; çekmek (film)
+снять|v pf|to take off; to rent; to film|çıkarmak; kiralamak; çekmek (film)
+носи'ть|v ipf|to wear; to carry|giymek; taşımak
 # ---- vucut / saglik ----
-те'ло|n n|body
-голова'|n f|head
-лицо'|n n|face
-глаз|n m|eye
-у'хо|n n|ear
-нос|n m|nose
-рот|n m|mouth
-зуб|n m|tooth
-губа'|n f|lip
-во'лосы|n pl|hair
-ше'я|n f|neck
-плечо'|n n|shoulder
-рука'|n f|hand; arm
-па'лец|n m|finger; toe
-нога'|n f|leg; foot
-коле'но|n n|knee
-спина'|n f|back (body)
-живо'т|n m|stomach; belly
-се'рдце|n n|heart
-кровь|n f|blood
-кость|n f|bone
-ко'жа|n f|skin; leather
-здоро'вье|n n|health
-здоро'вый|adj|healthy
-больно'й|adj|sick; ill; patient
-боле'знь|n f|illness; disease
-боль|n f|pain; ache
-боле'ть|v ipf|to be ill; to hurt
-температу'ра|n f|temperature; fever
-просту'да|n f|cold (illness)
-ка'шель|n m|cough
-лека'рство|n n|medicine; drug
-табле'тка|n f|pill; tablet
-апте'ка|n f|pharmacy; chemist
-больни'ца|n f|hospital
-поликли'ника|n f|clinic
-ско'рая по'мощь|phr|ambulance
-уста'лый|adj|tired
-устава'ть|v ipf|to get tired
-уста'ть|v pf|to get tired
-спать|v ipf|to sleep
-засыпа'ть|v ipf|to fall asleep
-засну'ть|v pf|to fall asleep
-просыпа'ться|v ipf|to wake up
-просну'ться|v pf|to wake up
-отдыха'ть|v ipf|to rest; to relax
-отдохну'ть|v pf|to rest; to relax
+те'ло|n n|body|vücut; beden
+голова'|n f|head|baş; kafa
+лицо'|n n|face|yüz
+глаз|n m|eye|göz
+у'хо|n n|ear|kulak
+нос|n m|nose|burun
+рот|n m|mouth|ağız
+зуб|n m|tooth|diş
+губа'|n f|lip|dudak
+во'лосы|n pl|hair|saç
+ше'я|n f|neck|boyun
+плечо'|n n|shoulder|omuz
+рука'|n f|hand; arm|el; kol
+па'лец|n m|finger; toe|parmak
+нога'|n f|leg; foot|bacak; ayak
+коле'но|n n|knee|diz
+спина'|n f|back (body)|sırt
+живо'т|n m|stomach; belly|karın; mide
+се'рдце|n n|heart|kalp; yürek
+кровь|n f|blood|kan
+кость|n f|bone|kemik
+ко'жа|n f|skin; leather|deri; cilt
+здоро'вье|n n|health|sağlık
+здоро'вый|adj|healthy|sağlıklı
+больно'й|adj|sick; ill; patient|hasta
+боле'знь|n f|illness; disease|hastalık
+боль|n f|pain; ache|ağrı; acı
+боле'ть|v ipf|to be ill; to hurt|hasta olmak; ağrımak
+температу'ра|n f|temperature; fever|sıcaklık; ateş
+просту'да|n f|cold (illness)|soğuk algınlığı; nezle
+ка'шель|n m|cough|öksürük
+лека'рство|n n|medicine; drug|ilaç
+табле'тка|n f|pill; tablet|hap; tablet
+апте'ка|n f|pharmacy; chemist|eczane
+больни'ца|n f|hospital|hastane
+поликли'ника|n f|clinic|poliklinik
+ско'рая по'мощь|phr|ambulance|ambulans; acil yardım
+уста'лый|adj|tired|yorgun
+устава'ть|v ipf|to get tired|yorulmak
+уста'ть|v pf|to get tired|yorulmak
+спать|v ipf|to sleep|uyumak
+засыпа'ть|v ipf|to fall asleep|uykuya dalmak
+засну'ть|v pf|to fall asleep|uykuya dalmak
+просыпа'ться|v ipf|to wake up|uyanmak
+просну'ться|v pf|to wake up|uyanmak
+отдыха'ть|v ipf|to rest; to relax|dinlenmek
+отдохну'ть|v pf|to rest; to relax|dinlenmek
 # ---- yiyecek / icecek ----
-еда'|n f|food
-за'втрак|n m|breakfast
-обе'д|n m|lunch; dinner (midday meal)
-у'жин|n m|supper; dinner (evening)
-хлеб|n m|bread
-ма'сло|n n|butter; oil
-сыр|n m|cheese
-молоко'|n n|milk
-яйцо'|n n|egg
-мя'со|n n|meat
-ку'рица|n f|chicken; hen
-ры'ба|n f|fish
-колбаса'|n f|sausage
-суп|n m|soup
-ка'ша|n f|porridge; kasha
-рис|n m|rice
-макаро'ны|n pl|pasta
-карто'фель|n m|potatoes
-карто'шка|n f|potato (colloquial)
-о'вощи|n pl|vegetables
-фру'кты|n pl|fruit
-я'блоко|n n|apple
-гру'ша|n f|pear
-бана'н|n m|banana
-апельси'н|n m|orange
-лимо'н|n m|lemon
-виногра'д|n m|grapes
-я'года|n f|berry
-клубни'ка|n f|strawberry
-помидо'р|n m|tomato
-огуре'ц|n m|cucumber
-лук|n m|onion
-чесно'к|n m|garlic
-капу'ста|n f|cabbage
-морко'вь|n f|carrot
-гриб|n m|mushroom
-соль|n f|salt
-са'хар|n m|sugar
-пе'рец|n m|pepper
-мёд|n m|honey
-сла'дкий|adj|sweet
-солёный|adj|salty
-о'стрый|adj|spicy; sharp
-вку'сный|adj|tasty; delicious
-све'жий|adj|fresh
-торт|n m|cake
-пиро'г|n m|pie
-пече'нье|n n|cookies; biscuits
-шокола'д|n m|chocolate
-конфе'та|n f|candy; sweet
-моро'женое|n n|ice cream
-вода'|n f|water
-чай|n m|tea
-ко'фе|n m|coffee
-сок|n m|juice
-пи'во|n n|beer
-вино'|n n|wine
-во'дка|n f|vodka
-буты'лка|n f|bottle
-стака'н|n m|glass (drinking)
-ча'шка|n f|cup
-таре'лка|n f|plate
-ло'жка|n f|spoon
-ви'лка|n f|fork
-нож|n m|knife
-кастрю'ля|n f|saucepan; pot
-сковорода'|n f|frying pan
-магази'н|n m|shop; store
-ры'нок|n m|market
-рестора'н|n m|restaurant
-кафе'|n n|cafe
-столо'вая|n f|canteen; dining room
-меню'|n n|menu
-счёт|n m|bill; account; score
-есть|v ipf|to eat; there is
-съесть|v pf|to eat (up)
-пить|v ipf|to drink
-вы'пить|v pf|to drink (up)
-за'втракать|v ipf|to have breakfast
-обе'дать|v ipf|to have lunch
-у'жинать|v ipf|to have dinner
-голо'дный|adj|hungry
+еда'|n f|food|yemek; yiyecek
+за'втрак|n m|breakfast|kahvaltı
+обе'д|n m|lunch; dinner (midday meal)|öğle yemeği
+у'жин|n m|supper; dinner (evening)|akşam yemeği
+хлеб|n m|bread|ekmek
+ма'сло|n n|butter; oil|tereyağı; yağ
+сыр|n m|cheese|peynir
+молоко'|n n|milk|süt
+яйцо'|n n|egg|yumurta
+мя'со|n n|meat|et
+ку'рица|n f|chicken; hen|tavuk
+ры'ба|n f|fish|balık
+колбаса'|n f|sausage|sucuk; sosis
+суп|n m|soup|çorba
+ка'ша|n f|porridge; kasha|lapa; kaşa
+рис|n m|rice|pirinç
+макаро'ны|n pl|pasta|makarna
+карто'фель|n m|potatoes|patates
+карто'шка|n f|potato (colloquial)|patates (konuşma dili)
+о'вощи|n pl|vegetables|sebzeler
+фру'кты|n pl|fruit|meyveler
+я'блоко|n n|apple|elma
+гру'ша|n f|pear|armut
+бана'н|n m|banana|muz
+апельси'н|n m|orange|portakal
+лимо'н|n m|lemon|limon
+виногра'д|n m|grapes|üzüm
+я'года|n f|berry|meyve (küçük, yumuşak); yemiş
+клубни'ка|n f|strawberry|çilek
+помидо'р|n m|tomato|domates
+огуре'ц|n m|cucumber|salatalık
+лук|n m|onion|soğan
+чесно'к|n m|garlic|sarımsak
+капу'ста|n f|cabbage|lahana
+морко'вь|n f|carrot|havuç
+гриб|n m|mushroom|mantar
+соль|n f|salt|tuz
+са'хар|n m|sugar|şeker
+пе'рец|n m|pepper|biber
+мёд|n m|honey|bal
+сла'дкий|adj|sweet|tatlı
+солёный|adj|salty|tuzlu
+о'стрый|adj|spicy; sharp|acı; keskin
+вку'сный|adj|tasty; delicious|lezzetli
+све'жий|adj|fresh|taze
+торт|n m|cake|pasta
+пиро'г|n m|pie|börek; turta
+пече'нье|n n|cookies; biscuits|kurabiye; bisküvi
+шокола'д|n m|chocolate|çikolata
+конфе'та|n f|candy; sweet|şekerleme; bonbon
+моро'женое|n n|ice cream|dondurma
+вода'|n f|water|su
+чай|n m|tea|çay
+ко'фе|n m|coffee|kahve
+сок|n m|juice|meyve suyu
+пи'во|n n|beer|bira
+вино'|n n|wine|şarap
+во'дка|n f|vodka|votka
+буты'лка|n f|bottle|şişe
+стака'н|n m|glass (drinking)|bardak
+ча'шка|n f|cup|fincan
+таре'лка|n f|plate|tabak
+ло'жка|n f|spoon|kaşık
+ви'лка|n f|fork|çatal
+нож|n m|knife|bıçak
+кастрю'ля|n f|saucepan; pot|tencere
+сковорода'|n f|frying pan|tava
+магази'н|n m|shop; store|mağaza; dükkân
+ры'нок|n m|market|pazar
+рестора'н|n m|restaurant|restoran; lokanta
+кафе'|n n|cafe|kafe
+столо'вая|n f|canteen; dining room|yemekhane; yemek odası
+меню'|n n|menu|menü
+счёт|n m|bill; account; score|hesap; skor
+есть|v ipf|to eat; there is|yemek; var
+съесть|v pf|to eat (up)|yemek (bitirmek)
+пить|v ipf|to drink|içmek
+вы'пить|v pf|to drink (up)|içmek (bitirmek)
+за'втракать|v ipf|to have breakfast|kahvaltı etmek
+обе'дать|v ipf|to have lunch|öğle yemeği yemek
+у'жинать|v ipf|to have dinner|akşam yemeği yemek
+голо'дный|adj|hungry|aç
 # ---- sehir / ulasim ----
-го'род|n m|city; town
-дере'вня|n f|village; countryside
-страна'|n f|country
-столи'ца|n f|capital city
-у'лица|n f|street
-пло'щадь|n f|square; area
-доро'га|n f|road; way
-мост|n m|bridge
-парк|n m|park
-сад|n m|garden
-центр|n m|centre
-райо'н|n m|district; area
-зда'ние|n n|building
-це'рковь|n f|church
-музе'й|n m|museum
-теа'тр|n m|theatre
-кино'|n n|cinema; movies
-библиоте'ка|n f|library
-шко'ла|n f|school
-университе'т|n m|university
-банк|n m|bank
-по'чта|n f|post office; mail
-гости'ница|n f|hotel
-вокза'л|n m|railway station
-ста'нция|n f|station
-остано'вка|n f|stop (bus, tram)
-аэропо'рт|n m|airport
-метро'|n n|metro; underground
-авто'бус|n m|bus
-трамва'й|n m|tram
-тролле'йбус|n m|trolleybus
-маши'на|n f|car; machine
-такси'|n n|taxi
-по'езд|n m|train
-самолёт|n m|plane
-кора'бль|n m|ship
-велосипе'д|n m|bicycle
-биле'т|n m|ticket
-па'спорт|n m|passport
-ви'за|n f|visa
-грани'ца|n f|border
-путеше'ствие|n n|journey; travel
-пое'здка|n f|trip
-тури'ст|n m|tourist
-ка'рта|n f|map; card
-а'дрес|n m|address
-напра'во|adv|to the right
-нале'во|adv|to the left
-пря'мо|adv|straight ahead; directly
-далеко'|adv|far
-бли'зко|adv|near; close
-здесь|adv|here
-тут|adv|here (colloquial)
-там|adv|there
-туда'|adv|to there
-сюда'|adv|to here
-до'ма|adv|at home
-домо'й|adv|homeward; (to) home
-сле'ва|adv|on the left
-спра'ва|adv|on the right
+го'род|n m|city; town|şehir; kent
+дере'вня|n f|village; countryside|köy; kırsal
+страна'|n f|country|ülke
+столи'ца|n f|capital city|başkent
+у'лица|n f|street|sokak; cadde
+пло'щадь|n f|square; area|meydan; alan
+доро'га|n f|road; way|yol
+мост|n m|bridge|köprü
+парк|n m|park|park
+сад|n m|garden|bahçe
+центр|n m|centre|merkez
+райо'н|n m|district; area|semt; bölge; ilçe
+зда'ние|n n|building|bina
+це'рковь|n f|church|kilise
+музе'й|n m|museum|müze
+теа'тр|n m|theatre|tiyatro
+кино'|n n|cinema; movies|sinema
+библиоте'ка|n f|library|kütüphane
+шко'ла|n f|school|okul
+университе'т|n m|university|üniversite
+банк|n m|bank|banka
+по'чта|n f|post office; mail|postane; posta
+гости'ница|n f|hotel|otel
+вокза'л|n m|railway station|gar; tren istasyonu
+ста'нция|n f|station|istasyon
+остано'вка|n f|stop (bus, tram)|durak
+аэропо'рт|n m|airport|havalimanı
+метро'|n n|metro; underground|metro
+авто'бус|n m|bus|otobüs
+трамва'й|n m|tram|tramvay
+тролле'йбус|n m|trolleybus|troleybüs
+маши'на|n f|car; machine|araba; makine
+такси'|n n|taxi|taksi
+по'езд|n m|train|tren
+самолёт|n m|plane|uçak
+кора'бль|n m|ship|gemi
+велосипе'д|n m|bicycle|bisiklet
+биле'т|n m|ticket|bilet
+па'спорт|n m|passport|pasaport
+ви'за|n f|visa|vize
+грани'ца|n f|border|sınır
+путеше'ствие|n n|journey; travel|seyahat; yolculuk
+пое'здка|n f|trip|gezi; yolculuk
+тури'ст|n m|tourist|turist
+ка'рта|n f|map; card|harita; kart
+а'дрес|n m|address|adres
+напра'во|adv|to the right|sağa
+нале'во|adv|to the left|sola
+пря'мо|adv|straight ahead; directly|dümdüz; doğrudan
+далеко'|adv|far|uzak; uzakta
+бли'зко|adv|near; close|yakın; yakında
+здесь|adv|here|burada
+тут|adv|here (colloquial)|burada (konuşma dili)
+там|adv|there|orada
+туда'|adv|to there|oraya
+сюда'|adv|to here|buraya
+до'ма|adv|at home|evde
+домо'й|adv|homeward; (to) home|eve
+сле'ва|adv|on the left|solda
+спра'ва|adv|on the right|sağda
 # ---- hareket fiilleri ----
-идти'|v ipf|to go (on foot, one direction)
-ходи'ть|v ipf|to go (on foot, habitually)
-пойти'|v pf|to go; to set off (on foot)
-е'хать|v ipf|to go (by vehicle, one direction)
-е'здить|v ipf|to go (by vehicle, habitually)
-пое'хать|v pf|to go; to set off (by vehicle)
-бежа'ть|v ipf|to run (one direction)
-бе'гать|v ipf|to run (habitually)
-лете'ть|v ipf|to fly (one direction)
-лета'ть|v ipf|to fly (habitually)
-плыть|v ipf|to swim; to sail (one direction)
-пла'вать|v ipf|to swim (habitually)
-нести'|v ipf|to carry (on foot)
-везти'|v ipf|to carry (by vehicle); to be lucky
-вести'|v ipf|to lead; to drive
-приходи'ть|v ipf|to come; to arrive (on foot)
-прийти'|v pf|to come; to arrive (on foot)
-уходи'ть|v ipf|to leave; to go away
-уйти'|v pf|to leave; to go away
-входи'ть|v ipf|to enter
-войти'|v pf|to enter
-выходи'ть|v ipf|to go out; to exit
-вы'йти|v pf|to go out; to exit
-приезжа'ть|v ipf|to arrive (by vehicle)
-прие'хать|v pf|to arrive (by vehicle)
-уезжа'ть|v ipf|to leave (by vehicle)
-уе'хать|v pf|to leave (by vehicle)
-переходи'ть|v ipf|to cross; to move over
-перейти'|v pf|to cross; to move over
-возвраща'ться|v ipf|to return; to come back
-верну'ться|v pf|to return; to come back
-подходи'ть|v ipf|to approach; to suit
-подойти'|v pf|to approach; to suit
+идти'|v ipf|to go (on foot, one direction)|gitmek (yürüyerek, tek yön)
+ходи'ть|v ipf|to go (on foot, habitually)|gitmek (yürüyerek, düzenli olarak)
+пойти'|v pf|to go; to set off (on foot)|gitmek; yola çıkmak (yürüyerek)
+е'хать|v ipf|to go (by vehicle, one direction)|gitmek (araçla, tek yön)
+е'здить|v ipf|to go (by vehicle, habitually)|gitmek (araçla, düzenli olarak)
+пое'хать|v pf|to go; to set off (by vehicle)|gitmek; yola çıkmak (araçla)
+бежа'ть|v ipf|to run (one direction)|koşmak (tek yön)
+бе'гать|v ipf|to run (habitually)|koşmak (düzenli olarak)
+лете'ть|v ipf|to fly (one direction)|uçmak (tek yön)
+лета'ть|v ipf|to fly (habitually)|uçmak (düzenli olarak)
+плыть|v ipf|to swim; to sail (one direction)|yüzmek; gemiyle gitmek (tek yön)
+пла'вать|v ipf|to swim (habitually)|yüzmek (düzenli olarak)
+нести'|v ipf|to carry (on foot)|taşımak (yürüyerek)
+везти'|v ipf|to carry (by vehicle); to be lucky|taşımak (araçla); şanslı olmak
+вести'|v ipf|to lead; to drive|götürmek; yönetmek; sürmek
+приходи'ть|v ipf|to come; to arrive (on foot)|gelmek; varmak (yürüyerek)
+прийти'|v pf|to come; to arrive (on foot)|gelmek; varmak (yürüyerek)
+уходи'ть|v ipf|to leave; to go away|ayrılmak; gitmek
+уйти'|v pf|to leave; to go away|ayrılmak; gitmek
+входи'ть|v ipf|to enter|girmek
+войти'|v pf|to enter|girmek
+выходи'ть|v ipf|to go out; to exit|çıkmak; dışarı çıkmak
+вы'йти|v pf|to go out; to exit|çıkmak; dışarı çıkmak
+приезжа'ть|v ipf|to arrive (by vehicle)|gelmek; varmak (araçla)
+прие'хать|v pf|to arrive (by vehicle)|gelmek; varmak (araçla)
+уезжа'ть|v ipf|to leave (by vehicle)|ayrılmak; gitmek (araçla)
+уе'хать|v pf|to leave (by vehicle)|ayrılmak; gitmek (araçla)
+переходи'ть|v ipf|to cross; to move over|karşıya geçmek; geçmek
+перейти'|v pf|to cross; to move over|karşıya geçmek; geçmek
+возвраща'ться|v ipf|to return; to come back|dönmek; geri dönmek
+верну'ться|v pf|to return; to come back|dönmek; geri dönmek
+подходи'ть|v ipf|to approach; to suit|yaklaşmak; uymak
+подойти'|v pf|to approach; to suit|yaklaşmak; uymak
 # ---- temel fiiller ----
-быть|v ipf|to be
-стать|v pf|to become; to start
-станови'ться|v ipf|to become
-де'лать|v ipf|to do; to make
-сде'лать|v pf|to do; to make
-говори'ть|v ipf|to speak; to say; to talk
-сказа'ть|v pf|to say; to tell
-разгова'ривать|v ipf|to talk; to converse
-знать|v ipf|to know
-узнава'ть|v ipf|to find out; to recognize
-узна'ть|v pf|to find out; to recognize
-ду'мать|v ipf|to think
-поду'мать|v pf|to think (for a while)
-понима'ть|v ipf|to understand
-поня'ть|v pf|to understand
-хоте'ть|v ipf|to want
-мочь|v ipf|to be able; can
-смочь|v pf|to be able; to manage
-уме'ть|v ipf|to know how; to be able
-люби'ть|v ipf|to love; to like
-нра'виться|v ipf|to be liked; to please
-понра'виться|v pf|to be liked; to please
-ви'деть|v ipf|to see
-уви'деть|v pf|to see; to catch sight of
-смотре'ть|v ipf|to look; to watch
-посмотре'ть|v pf|to look; to watch
-слы'шать|v ipf|to hear
-услы'шать|v pf|to hear
-слу'шать|v ipf|to listen
-послу'шать|v pf|to listen (for a while)
-чита'ть|v ipf|to read
-прочита'ть|v pf|to read (through)
-писа'ть|v ipf|to write
-написа'ть|v pf|to write
-жить|v ipf|to live
-рабо'тать|v ipf|to work
-учи'ться|v ipf|to study; to learn (at a school)
-учи'ть|v ipf|to learn; to teach
-вы'учить|v pf|to learn (by heart)
-научи'ться|v pf|to learn (how to do)
-изуча'ть|v ipf|to study (a subject)
-игра'ть|v ipf|to play
-сыгра'ть|v pf|to play (once)
-дава'ть|v ipf|to give
-дать|v pf|to give
-брать|v ipf|to take
-взять|v pf|to take
-получа'ть|v ipf|to receive; to get
-получи'ть|v pf|to receive; to get
-покупа'ть|v ipf|to buy
-купи'ть|v pf|to buy
-продава'ть|v ipf|to sell
-прода'ть|v pf|to sell
-плати'ть|v ipf|to pay
-заплати'ть|v pf|to pay
-сто'ить|v ipf|to cost; to be worth
-открыва'ть|v ipf|to open
-откры'ть|v pf|to open
-закрыва'ть|v ipf|to close
-закры'ть|v pf|to close
-начина'ть|v ipf|to begin; to start
-нача'ть|v pf|to begin; to start
-конча'ть|v ipf|to finish
-ко'нчить|v pf|to finish
-зака'нчивать|v ipf|to finish; to complete
-зако'нчить|v pf|to finish; to complete
-продолжа'ть|v ipf|to continue
-продо'лжить|v pf|to continue
-жда'ть|v ipf|to wait
-подожда'ть|v pf|to wait (a while)
-иска'ть|v ipf|to look for; to search
-найти'|v pf|to find
-находи'ть|v ipf|to find
-теря'ть|v ipf|to lose
-потеря'ть|v pf|to lose
-по'мнить|v ipf|to remember
-запомина'ть|v ipf|to memorize
-запо'мнить|v pf|to memorize
-забыва'ть|v ipf|to forget
-забы'ть|v pf|to forget
-спра'шивать|v ipf|to ask (a question)
-спроси'ть|v pf|to ask (a question)
-проси'ть|v ipf|to ask for; to request
-попроси'ть|v pf|to ask for; to request
-отвеча'ть|v ipf|to answer; to reply
-отве'тить|v pf|to answer; to reply
-помога'ть|v ipf|to help
-помо'чь|v pf|to help
-звони'ть|v ipf|to call (phone); to ring
-позвони'ть|v pf|to call (phone); to ring
-встреча'ть|v ipf|to meet; to greet
-встре'тить|v pf|to meet; to greet
-встреча'ться|v ipf|to meet (each other); to date
-пока'зывать|v ipf|to show
-показа'ть|v pf|to show
-расска'зывать|v ipf|to tell; to narrate
-рассказа'ть|v pf|to tell; to narrate
-объясня'ть|v ipf|to explain
-объясни'ть|v pf|to explain
-переводи'ть|v ipf|to translate; to transfer
-перевести'|v pf|to translate; to transfer
-повторя'ть|v ipf|to repeat
-повтори'ть|v pf|to repeat
-отправля'ть|v ipf|to send
-отпра'вить|v pf|to send
-посыла'ть|v ipf|to send
-посла'ть|v pf|to send
-приноси'ть|v ipf|to bring (on foot)
-принести'|v pf|to bring (on foot)
-класть|v ipf|to put (lying)
-положи'ть|v pf|to put (lying)
-ста'вить|v ipf|to put (standing); to set
-поста'вить|v pf|to put (standing); to set
-держа'ть|v ipf|to hold; to keep
-сиде'ть|v ipf|to sit; to be sitting
-сади'ться|v ipf|to sit down
-сесть|v pf|to sit down
-стоя'ть|v ipf|to stand
-встава'ть|v ipf|to get up; to stand up
-встать|v pf|to get up; to stand up
-лежа'ть|v ipf|to lie; to be lying
-ложи'ться|v ipf|to lie down; to go to bed
-лечь|v pf|to lie down; to go to bed
-висе'ть|v ipf|to hang; to be hanging
-чу'вствовать|v ipf|to feel
-почу'вствовать|v pf|to feel
-боя'ться|v ipf|to be afraid; to fear
-ве'рить|v ipf|to believe; to trust
-наде'яться|v ipf|to hope
-реша'ть|v ipf|to decide; to solve
-реши'ть|v pf|to decide; to solve
-про'бовать|v ipf|to try; to taste
-попро'бовать|v pf|to try; to taste
-стара'ться|v ipf|to try hard; to make an effort
-мечта'ть|v ipf|to dream (of)
-смея'ться|v ipf|to laugh
-улыба'ться|v ipf|to smile
-пла'кать|v ipf|to cry; to weep
-крича'ть|v ipf|to shout; to scream
-петь|v ipf|to sing
-спеть|v pf|to sing
-танцева'ть|v ipf|to dance
-рисова'ть|v ipf|to draw; to paint
-нарисова'ть|v pf|to draw; to paint
-гуля'ть|v ipf|to walk; to stroll
-погуля'ть|v pf|to take a walk
-путеше'ствовать|v ipf|to travel
-занима'ться|v ipf|to be engaged in; to study
-интересова'ться|v ipf|to be interested in
-зва'ть|v ipf|to call (by name)
-называ'ться|v ipf|to be called (thing)
-жени'ться|v ipf|to marry (of a man)
-выходи'ть за'муж|phr|to marry (of a woman)
-роди'ться|v pf|to be born
-умира'ть|v ipf|to die
-умере'ть|v pf|to die
-расти'|v ipf|to grow
-меня'ть|v ipf|to change; to exchange
-измени'ть|v pf|to change
-изменя'ться|v ipf|to change (oneself)
-стро'ить|v ipf|to build
-постро'ить|v pf|to build
-лома'ть|v ipf|to break
-слома'ть|v pf|to break
-ремонти'ровать|v ipf|to repair
-па'дать|v ipf|to fall
-упа'сть|v pf|to fall
-броса'ть|v ipf|to throw; to quit
-бро'сить|v pf|to throw; to quit
-поднима'ть|v ipf|to lift; to raise
-подня'ть|v pf|to lift; to raise
-дви'гаться|v ipf|to move
-остана'вливаться|v ipf|to stop (oneself)
-останови'ться|v pf|to stop (oneself)
-опа'здывать|v ipf|to be late
-опозда'ть|v pf|to be late
-спеши'ть|v ipf|to hurry
-успева'ть|v ipf|to have time; to manage
-успе'ть|v pf|to have time; to manage
-пригласи'ть|v pf|to invite
-приглаша'ть|v ipf|to invite
-предлага'ть|v ipf|to offer; to suggest
-предложи'ть|v pf|to offer; to suggest
-сове'товать|v ipf|to advise
-посове'товать|v pf|to advise
-обеща'ть|v ipf|to promise
-разреша'ть|v ipf|to allow; to permit
-разреши'ть|v pf|to allow; to permit
-запреща'ть|v ipf|to forbid
-запрети'ть|v pf|to forbid
-проверя'ть|v ipf|to check
-прове'рить|v pf|to check
-выбира'ть|v ipf|to choose; to elect
-вы'брать|v pf|to choose; to elect
-сравни'вать|v ipf|to compare
-сравни'ть|v pf|to compare
-счита'ть|v ipf|to count; to consider
-посчита'ть|v pf|to count; to calculate
-испо'льзовать|v ipf|to use
-по'льзоваться|v ipf|to use; to make use of
-принима'ть|v ipf|to accept; to take (medicine)
-приня'ть|v pf|to accept; to take (medicine)
-пла'нировать|v ipf|to plan
-организо'вывать|v ipf|to organize
-уча'ствовать|v ipf|to take part; to participate
-побежда'ть|v ipf|to win; to defeat
-победи'ть|v pf|to win; to defeat
-прои'грывать|v ipf|to lose (a game)
-проигра'ть|v pf|to lose (a game)
-случа'ться|v ipf|to happen
-случи'ться|v pf|to happen
-происходи'ть|v ipf|to happen; to take place
-произойти'|v pf|to happen; to take place
-каза'ться|v ipf|to seem
-означа'ть|v ipf|to mean; to signify
-зна'чить|v ipf|to mean
-существова'ть|v ipf|to exist
-хвата'ть|v ipf|to be enough; to grab
-хвати'ть|v pf|to be enough
-явля'ться|v ipf|to be (formal); to appear
-называ'ть|v ipf|to call; to name
-назва'ть|v pf|to call; to name
+быть|v ipf|to be|olmak
+стать|v pf|to become; to start|olmak; başlamak
+станови'ться|v ipf|to become|olmak; haline gelmek
+де'лать|v ipf|to do; to make|yapmak
+сде'лать|v pf|to do; to make|yapmak
+говори'ть|v ipf|to speak; to say; to talk|konuşmak; söylemek
+сказа'ть|v pf|to say; to tell|söylemek; demek
+разгова'ривать|v ipf|to talk; to converse|konuşmak; sohbet etmek
+знать|v ipf|to know|bilmek
+узнава'ть|v ipf|to find out; to recognize|öğrenmek; tanımak
+узна'ть|v pf|to find out; to recognize|öğrenmek; tanımak
+ду'мать|v ipf|to think|düşünmek
+поду'мать|v pf|to think (for a while)|düşünmek (bir süre)
+понима'ть|v ipf|to understand|anlamak
+поня'ть|v pf|to understand|anlamak
+хоте'ть|v ipf|to want|istemek
+мочь|v ipf|to be able; can|yapabilmek; -ebilmek
+смочь|v pf|to be able; to manage|yapabilmek; başarmak
+уме'ть|v ipf|to know how; to be able|yapmayı bilmek; -ebilmek
+люби'ть|v ipf|to love; to like|sevmek
+нра'виться|v ipf|to be liked; to please|hoşuna gitmek; beğenilmek
+понра'виться|v pf|to be liked; to please|hoşuna gitmek; beğenilmek
+ви'деть|v ipf|to see|görmek
+уви'деть|v pf|to see; to catch sight of|görmek; fark etmek
+смотре'ть|v ipf|to look; to watch|bakmak; izlemek
+посмотре'ть|v pf|to look; to watch|bakmak; izlemek
+слы'шать|v ipf|to hear|duymak
+услы'шать|v pf|to hear|duymak
+слу'шать|v ipf|to listen|dinlemek
+послу'шать|v pf|to listen (for a while)|dinlemek (bir süre)
+чита'ть|v ipf|to read|okumak
+прочита'ть|v pf|to read (through)|okumak; okuyup bitirmek
+писа'ть|v ipf|to write|yazmak
+написа'ть|v pf|to write|yazmak
+жить|v ipf|to live|yaşamak; oturmak
+рабо'тать|v ipf|to work|çalışmak
+учи'ться|v ipf|to study; to learn (at a school)|okumak; öğrenim görmek
+учи'ть|v ipf|to learn; to teach|öğrenmek; öğretmek
+вы'учить|v pf|to learn (by heart)|öğrenmek; ezberlemek
+научи'ться|v pf|to learn (how to do)|öğrenmek
+изуча'ть|v ipf|to study (a subject)|incelemek; öğrenmek
+игра'ть|v ipf|to play|oynamak; çalmak
+сыгра'ть|v pf|to play (once)|oynamak; çalmak
+дава'ть|v ipf|to give|vermek
+дать|v pf|to give|vermek
+брать|v ipf|to take|almak
+взять|v pf|to take|almak
+получа'ть|v ipf|to receive; to get|almak; elde etmek
+получи'ть|v pf|to receive; to get|almak; elde etmek
+покупа'ть|v ipf|to buy|satın almak
+купи'ть|v pf|to buy|satın almak
+продава'ть|v ipf|to sell|satmak
+прода'ть|v pf|to sell|satmak
+плати'ть|v ipf|to pay|ödemek
+заплати'ть|v pf|to pay|ödemek
+сто'ить|v ipf|to cost; to be worth|etmek (fiyat); değmek
+открыва'ть|v ipf|to open|açmak
+откры'ть|v pf|to open|açmak
+закрыва'ть|v ipf|to close|kapatmak
+закры'ть|v pf|to close|kapatmak
+начина'ть|v ipf|to begin; to start|başlamak
+нача'ть|v pf|to begin; to start|başlamak
+конча'ть|v ipf|to finish|bitirmek
+ко'нчить|v pf|to finish|bitirmek
+зака'нчивать|v ipf|to finish; to complete|bitirmek; tamamlamak
+зако'нчить|v pf|to finish; to complete|bitirmek; tamamlamak
+продолжа'ть|v ipf|to continue|devam etmek
+продо'лжить|v pf|to continue|devam etmek
+жда'ть|v ipf|to wait|beklemek
+подожда'ть|v pf|to wait (a while)|beklemek; biraz beklemek
+иска'ть|v ipf|to look for; to search|aramak
+найти'|v pf|to find|bulmak
+находи'ть|v ipf|to find|bulmak
+теря'ть|v ipf|to lose|kaybetmek
+потеря'ть|v pf|to lose|kaybetmek
+по'мнить|v ipf|to remember|hatırlamak
+запомина'ть|v ipf|to memorize|ezberlemek; aklında tutmak
+запо'мнить|v pf|to memorize|ezberlemek; aklında tutmak
+забыва'ть|v ipf|to forget|unutmak
+забы'ть|v pf|to forget|unutmak
+спра'шивать|v ipf|to ask (a question)|sormak
+спроси'ть|v pf|to ask (a question)|sormak
+проси'ть|v ipf|to ask for; to request|rica etmek; istemek
+попроси'ть|v pf|to ask for; to request|rica etmek; istemek
+отвеча'ть|v ipf|to answer; to reply|cevap vermek; yanıtlamak
+отве'тить|v pf|to answer; to reply|cevap vermek; yanıtlamak
+помога'ть|v ipf|to help|yardım etmek
+помо'чь|v pf|to help|yardım etmek
+звони'ть|v ipf|to call (phone); to ring|telefon etmek; aramak
+позвони'ть|v pf|to call (phone); to ring|telefon etmek; aramak
+встреча'ть|v ipf|to meet; to greet|karşılamak; buluşmak
+встре'тить|v pf|to meet; to greet|karşılamak; buluşmak
+встреча'ться|v ipf|to meet (each other); to date|buluşmak; görüşmek; çıkmak
+пока'зывать|v ipf|to show|göstermek
+показа'ть|v pf|to show|göstermek
+расска'зывать|v ipf|to tell; to narrate|anlatmak
+рассказа'ть|v pf|to tell; to narrate|anlatmak
+объясня'ть|v ipf|to explain|açıklamak
+объясни'ть|v pf|to explain|açıklamak
+переводи'ть|v ipf|to translate; to transfer|çevirmek; tercüme etmek; aktarmak
+перевести'|v pf|to translate; to transfer|çevirmek; tercüme etmek; aktarmak
+повторя'ть|v ipf|to repeat|tekrarlamak
+повтори'ть|v pf|to repeat|tekrarlamak
+отправля'ть|v ipf|to send|göndermek
+отпра'вить|v pf|to send|göndermek
+посыла'ть|v ipf|to send|göndermek; yollamak
+посла'ть|v pf|to send|göndermek; yollamak
+приноси'ть|v ipf|to bring (on foot)|getirmek
+принести'|v pf|to bring (on foot)|getirmek
+класть|v ipf|to put (lying)|koymak (yatay)
+положи'ть|v pf|to put (lying)|koymak (yatay)
+ста'вить|v ipf|to put (standing); to set|koymak (dikey); yerleştirmek
+поста'вить|v pf|to put (standing); to set|koymak (dikey); yerleştirmek
+держа'ть|v ipf|to hold; to keep|tutmak
+сиде'ть|v ipf|to sit; to be sitting|oturmak
+сади'ться|v ipf|to sit down|oturmak (yerine)
+сесть|v pf|to sit down|oturmak (yerine)
+стоя'ть|v ipf|to stand|ayakta durmak
+встава'ть|v ipf|to get up; to stand up|kalkmak; ayağa kalkmak
+встать|v pf|to get up; to stand up|kalkmak; ayağa kalkmak
+лежа'ть|v ipf|to lie; to be lying|yatmak; uzanmış olmak
+ложи'ться|v ipf|to lie down; to go to bed|yatmak; uzanmak
+лечь|v pf|to lie down; to go to bed|yatmak; uzanmak
+висе'ть|v ipf|to hang; to be hanging|asılı olmak
+чу'вствовать|v ipf|to feel|hissetmek
+почу'вствовать|v pf|to feel|hissetmek
+боя'ться|v ipf|to be afraid; to fear|korkmak
+ве'рить|v ipf|to believe; to trust|inanmak; güvenmek
+наде'яться|v ipf|to hope|ummak; umut etmek
+реша'ть|v ipf|to decide; to solve|karar vermek; çözmek
+реши'ть|v pf|to decide; to solve|karar vermek; çözmek
+про'бовать|v ipf|to try; to taste|denemek; tatmak
+попро'бовать|v pf|to try; to taste|denemek; tatmak
+стара'ться|v ipf|to try hard; to make an effort|çabalamak; gayret etmek
+мечта'ть|v ipf|to dream (of)|hayal etmek; hayal kurmak
+смея'ться|v ipf|to laugh|gülmek
+улыба'ться|v ipf|to smile|gülümsemek
+пла'кать|v ipf|to cry; to weep|ağlamak
+крича'ть|v ipf|to shout; to scream|bağırmak
+петь|v ipf|to sing|şarkı söylemek
+спеть|v pf|to sing|şarkı söylemek
+танцева'ть|v ipf|to dance|dans etmek
+рисова'ть|v ipf|to draw; to paint|çizmek; resim yapmak
+нарисова'ть|v pf|to draw; to paint|çizmek; resim yapmak
+гуля'ть|v ipf|to walk; to stroll|gezmek; dolaşmak
+погуля'ть|v pf|to take a walk|gezmek; biraz dolaşmak
+путеше'ствовать|v ipf|to travel|seyahat etmek
+занима'ться|v ipf|to be engaged in; to study|uğraşmak; ders çalışmak
+интересова'ться|v ipf|to be interested in|ilgilenmek
+зва'ть|v ipf|to call (by name)|çağırmak; adı olmak
+называ'ться|v ipf|to be called (thing)|adlandırılmak; adı olmak
+жени'ться|v ipf|to marry (of a man)|evlenmek (erkek)
+выходи'ть за'муж|phr|to marry (of a woman)|evlenmek (kadın); kocaya varmak
+роди'ться|v pf|to be born|doğmak
+умира'ть|v ipf|to die|ölmek
+умере'ть|v pf|to die|ölmek
+расти'|v ipf|to grow|büyümek; yetişmek
+меня'ть|v ipf|to change; to exchange|değiştirmek; bozdurmak
+измени'ть|v pf|to change|değiştirmek
+изменя'ться|v ipf|to change (oneself)|değişmek
+стро'ить|v ipf|to build|inşa etmek; yapmak
+постро'ить|v pf|to build|inşa etmek; yapmak
+лома'ть|v ipf|to break|kırmak; bozmak
+слома'ть|v pf|to break|kırmak; bozmak
+ремонти'ровать|v ipf|to repair|tamir etmek; onarmak
+па'дать|v ipf|to fall|düşmek
+упа'сть|v pf|to fall|düşmek
+броса'ть|v ipf|to throw; to quit|atmak; bırakmak
+бро'сить|v pf|to throw; to quit|atmak; bırakmak
+поднима'ть|v ipf|to lift; to raise|kaldırmak; yükseltmek
+подня'ть|v pf|to lift; to raise|kaldırmak; yükseltmek
+дви'гаться|v ipf|to move|hareket etmek; kımıldamak
+остана'вливаться|v ipf|to stop (oneself)|durmak; konaklamak
+останови'ться|v pf|to stop (oneself)|durmak; konaklamak
+опа'здывать|v ipf|to be late|geç kalmak
+опозда'ть|v pf|to be late|geç kalmak
+спеши'ть|v ipf|to hurry|acele etmek
+успева'ть|v ipf|to have time; to manage|yetişmek; vakit bulmak
+успе'ть|v pf|to have time; to manage|yetişmek; vakit bulmak
+пригласи'ть|v pf|to invite|davet etmek
+приглаша'ть|v ipf|to invite|davet etmek
+предлага'ть|v ipf|to offer; to suggest|teklif etmek; önermek
+предложи'ть|v pf|to offer; to suggest|teklif etmek; önermek
+сове'товать|v ipf|to advise|tavsiye etmek; öğüt vermek
+посове'товать|v pf|to advise|tavsiye etmek; öğüt vermek
+обеща'ть|v ipf|to promise|söz vermek
+разреша'ть|v ipf|to allow; to permit|izin vermek
+разреши'ть|v pf|to allow; to permit|izin vermek
+запреща'ть|v ipf|to forbid|yasaklamak
+запрети'ть|v pf|to forbid|yasaklamak
+проверя'ть|v ipf|to check|kontrol etmek; denetlemek
+прове'рить|v pf|to check|kontrol etmek; denetlemek
+выбира'ть|v ipf|to choose; to elect|seçmek
+вы'брать|v pf|to choose; to elect|seçmek
+сравни'вать|v ipf|to compare|karşılaştırmak
+сравни'ть|v pf|to compare|karşılaştırmak
+счита'ть|v ipf|to count; to consider|saymak; saymak (bir şey olarak); düşünmek
+посчита'ть|v pf|to count; to calculate|saymak; hesaplamak
+испо'льзовать|v ipf|to use|kullanmak
+по'льзоваться|v ipf|to use; to make use of|kullanmak; yararlanmak
+принима'ть|v ipf|to accept; to take (medicine)|kabul etmek; almak (ilaç)
+приня'ть|v pf|to accept; to take (medicine)|kabul etmek; almak (ilaç)
+пла'нировать|v ipf|to plan|planlamak
+организо'вывать|v ipf|to organize|düzenlemek; organize etmek
+уча'ствовать|v ipf|to take part; to participate|katılmak
+побежда'ть|v ipf|to win; to defeat|kazanmak; yenmek
+победи'ть|v pf|to win; to defeat|kazanmak; yenmek
+прои'грывать|v ipf|to lose (a game)|kaybetmek (oyun); yenilmek
+проигра'ть|v pf|to lose (a game)|kaybetmek (oyun); yenilmek
+случа'ться|v ipf|to happen|olmak; meydana gelmek
+случи'ться|v pf|to happen|olmak; meydana gelmek
+происходи'ть|v ipf|to happen; to take place|olmak; gerçekleşmek
+произойти'|v pf|to happen; to take place|olmak; gerçekleşmek
+каза'ться|v ipf|to seem|görünmek; gibi gelmek
+означа'ть|v ipf|to mean; to signify|anlamına gelmek; ifade etmek
+зна'чить|v ipf|to mean|anlamına gelmek; demek olmak
+существова'ть|v ipf|to exist|var olmak; mevcut olmak
+хвата'ть|v ipf|to be enough; to grab|yetmek; kapmak
+хвати'ть|v pf|to be enough|yetmek
+явля'ться|v ipf|to be (formal); to appear|olmak (resmi); görünmek
+называ'ть|v ipf|to call; to name|adlandırmak; ad vermek
+назва'ть|v pf|to call; to name|adlandırmak; ad vermek
 # ---- sifatlar ----
-большо'й|adj|big; large
-ма'ленький|adj|small; little
-хоро'ший|adj|good
-плохо'й|adj|bad
-но'вый|adj|new
-краси'вый|adj|beautiful; handsome
-у'мный|adj|clever; smart
-глу'пый|adj|stupid; silly
-до'брый|adj|kind; good
-злой|adj|angry; evil
-весёлый|adj|cheerful; merry
-гру'стный|adj|sad
-счастли'вый|adj|happy
-интере'сный|adj|interesting
-ску'чный|adj|boring
-ва'жный|adj|important
-тру'дный|adj|difficult; hard
-лёгкий|adj|easy; light (weight)
-сло'жный|adj|complicated; complex
-просто'й|adj|simple; plain
-дорого'й|adj|expensive; dear
-дешёвый|adj|cheap
-бога'тый|adj|rich
-бе'дный|adj|poor
-си'льный|adj|strong
-сла'бый|adj|weak
-высо'кий|adj|tall; high
-ни'зкий|adj|low; short (height)
-дли'нный|adj|long
-коро'ткий|adj|short
-широ'кий|adj|wide; broad
-у'зкий|adj|narrow
-то'лстый|adj|thick; fat
-то'нкий|adj|thin; fine
-тяжёлый|adj|heavy; hard
-горя'чий|adj|hot (to the touch)
-жа'ркий|adj|hot (weather)
-холо'дный|adj|cold
-тёплый|adj|warm
-прохла'дный|adj|cool
-бы'стрый|adj|fast; quick
-ме'дленный|adj|slow
-гро'мкий|adj|loud
-ти'хий|adj|quiet
-чи'стый|adj|clean; pure
-гря'зный|adj|dirty
-све'тлый|adj|light; bright
-тёмный|adj|dark
-я'ркий|adj|bright; vivid
-по'лный|adj|full; plump
-пусто'й|adj|empty
-откры'тый|adj|open
-закры'тый|adj|closed
-свобо'дный|adj|free; vacant
-за'нятый|adj|busy; occupied
-гото'вый|adj|ready
-пра'вильный|adj|correct; right
-непра'вильный|adj|wrong; incorrect
-настоя'щий|adj|real; genuine; present
-глава'|n f|chapter; head (of)
-гла'вный|adj|main; chief
-о'бщий|adj|common; general
-осо'бенный|adj|special; particular
-обы'чный|adj|usual; ordinary
-стра'нный|adj|strange
-изве'стный|adj|famous; well-known
-популя'рный|adj|popular
-совреме'нный|adj|modern
-дре'вний|adj|ancient
-родно'й|adj|native; own (family)
-иностра'нный|adj|foreign
-ру'сский|adj|Russian
-англи'йский|adj|English
-туре'цкий|adj|Turkish
-неме'цкий|adj|German
-францу'зский|adj|French
-похо'жий|adj|similar; alike
-ра'зный|adj|different; various
-одина'ковый|adj|identical; the same
-друго'й|adj|other; another
-сле'дующий|adj|next; following
-про'шлый|adj|last; past
-бу'дущий|adj|future; next
-ли'чный|adj|personal; private
-удо'бный|adj|comfortable; convenient
-опа'сный|adj|dangerous
-безопа'сный|adj|safe
-ве'рный|adj|faithful; correct
-че'стный|adj|honest
-ве'жливый|adj|polite
-серьёзный|adj|serious
-смешно'й|adj|funny
-мо'крый|adj|wet
-сухо'й|adj|dry
-мя'гкий|adj|soft
-твёрдый|adj|hard; firm
-кру'глый|adj|round
-живо'й|adj|alive; lively
-мёртвый|adj|dead
-уве'ренный|adj|confident; sure
-дово'льный|adj|satisfied; pleased
+большо'й|adj|big; large|büyük
+ма'ленький|adj|small; little|küçük
+хоро'ший|adj|good|iyi
+плохо'й|adj|bad|kötü
+но'вый|adj|new|yeni
+краси'вый|adj|beautiful; handsome|güzel; yakışıklı
+у'мный|adj|clever; smart|akıllı; zeki
+глу'пый|adj|stupid; silly|aptal; saçma
+до'брый|adj|kind; good|iyi kalpli; iyi
+злой|adj|angry; evil|kızgın; kötü
+весёлый|adj|cheerful; merry|neşeli; şen
+гру'стный|adj|sad|üzgün; hüzünlü
+счастли'вый|adj|happy|mutlu
+интере'сный|adj|interesting|ilginç
+ску'чный|adj|boring|sıkıcı
+ва'жный|adj|important|önemli
+тру'дный|adj|difficult; hard|zor; güç
+лёгкий|adj|easy; light (weight)|kolay; hafif
+сло'жный|adj|complicated; complex|karmaşık; zor
+просто'й|adj|simple; plain|basit; sade
+дорого'й|adj|expensive; dear|pahalı; değerli
+дешёвый|adj|cheap|ucuz
+бога'тый|adj|rich|zengin
+бе'дный|adj|poor|fakir; yoksul
+си'льный|adj|strong|güçlü; kuvvetli
+сла'бый|adj|weak|zayıf; güçsüz
+высо'кий|adj|tall; high|yüksek; uzun boylu
+ни'зкий|adj|low; short (height)|alçak; kısa boylu
+дли'нный|adj|long|uzun
+коро'ткий|adj|short|kısa
+широ'кий|adj|wide; broad|geniş
+у'зкий|adj|narrow|dar
+то'лстый|adj|thick; fat|kalın; şişman
+то'нкий|adj|thin; fine|ince
+тяжёлый|adj|heavy; hard|ağır; zor
+горя'чий|adj|hot (to the touch)|sıcak (dokunulan şey)
+жа'ркий|adj|hot (weather)|sıcak (hava)
+холо'дный|adj|cold|soğuk
+тёплый|adj|warm|ılık; sıcak
+прохла'дный|adj|cool|serin
+бы'стрый|adj|fast; quick|hızlı; çabuk
+ме'дленный|adj|slow|yavaş
+гро'мкий|adj|loud|gürültülü; yüksek sesli
+ти'хий|adj|quiet|sessiz; sakin
+чи'стый|adj|clean; pure|temiz; saf
+гря'зный|adj|dirty|kirli; pis
+све'тлый|adj|light; bright|açık (renk); aydınlık
+тёмный|adj|dark|karanlık; koyu
+я'ркий|adj|bright; vivid|parlak; canlı
+по'лный|adj|full; plump|dolu; tam; tombul
+пусто'й|adj|empty|boş
+откры'тый|adj|open|açık
+закры'тый|adj|closed|kapalı
+свобо'дный|adj|free; vacant|özgür; serbest; boş
+за'нятый|adj|busy; occupied|meşgul; dolu
+гото'вый|adj|ready|hazır
+пра'вильный|adj|correct; right|doğru
+непра'вильный|adj|wrong; incorrect|yanlış
+настоя'щий|adj|real; genuine; present|gerçek; hakiki; şimdiki
+глава'|n f|chapter; head (of)|bölüm; başkan
+гла'вный|adj|main; chief|ana; baş; en önemli
+о'бщий|adj|common; general|ortak; genel
+осо'бенный|adj|special; particular|özel; olağandışı
+обы'чный|adj|usual; ordinary|olağan; sıradan
+стра'нный|adj|strange|garip; tuhaf
+изве'стный|adj|famous; well-known|ünlü; tanınmış
+популя'рный|adj|popular|popüler
+совреме'нный|adj|modern|modern; çağdaş
+дре'вний|adj|ancient|eski; antik
+родно'й|adj|native; own (family)|öz; ana (dil); yakın akraba
+иностра'нный|adj|foreign|yabancı
+ру'сский|adj|Russian|Rus; Rusça
+англи'йский|adj|English|İngiliz; İngilizce
+туре'цкий|adj|Turkish|Türk; Türkçe
+неме'цкий|adj|German|Alman; Almanca
+францу'зский|adj|French|Fransız; Fransızca
+похо'жий|adj|similar; alike|benzer
+ра'зный|adj|different; various|farklı; çeşitli
+одина'ковый|adj|identical; the same|aynı; özdeş
+друго'й|adj|other; another|başka; diğer
+сле'дующий|adj|next; following|sonraki; gelecek
+про'шлый|adj|last; past|geçen; geçmiş
+бу'дущий|adj|future; next|gelecek; gelecekteki
+ли'чный|adj|personal; private|kişisel; özel
+удо'бный|adj|comfortable; convenient|rahat; uygun
+опа'сный|adj|dangerous|tehlikeli
+безопа'сный|adj|safe|güvenli; emniyetli
+ве'рный|adj|faithful; correct|sadık; doğru
+че'стный|adj|honest|dürüst
+ве'жливый|adj|polite|kibar; nazik
+серьёзный|adj|serious|ciddi
+смешно'й|adj|funny|komik; gülünç
+мо'крый|adj|wet|ıslak
+сухо'й|adj|dry|kuru
+мя'гкий|adj|soft|yumuşak
+твёрдый|adj|hard; firm|sert; katı
+кру'глый|adj|round|yuvarlak
+живо'й|adj|alive; lively|canlı; hayatta
+мёртвый|adj|dead|ölü
+уве'ренный|adj|confident; sure|emin; kendinden emin
+дово'льный|adj|satisfied; pleased|memnun; hoşnut
 # ---- renkler ----
-цвет|n m|colour
-бе'лый|adj|white
-чёрный|adj|black
-кра'сный|adj|red
-си'ний|adj|blue (dark)
-голубо'й|adj|light blue
-зелёный|adj|green
-жёлтый|adj|yellow
-ора'нжевый|adj|orange (colour)
-кори'чневый|adj|brown
-се'рый|adj|grey
-ро'зовый|adj|pink
-фиоле'товый|adj|purple; violet
+цвет|n m|colour|renk
+бе'лый|adj|white|beyaz
+чёрный|adj|black|siyah; kara
+кра'сный|adj|red|kırmızı
+си'ний|adj|blue (dark)|mavi; lacivert
+голубо'й|adj|light blue|açık mavi
+зелёный|adj|green|yeşil
+жёлтый|adj|yellow|sarı
+ора'нжевый|adj|orange (colour)|turuncu
+кори'чневый|adj|brown|kahverengi
+се'рый|adj|grey|gri
+ро'зовый|adj|pink|pembe
+фиоле'товый|adj|purple; violet|mor
 # ---- zarflar / baglaclar / edatlar ----
-о'чень|adv|very
-сли'шком|adv|too (excessively)
-почти'|adv|almost
-то'лько|adv|only; just
-то'же|adv|also; too
-та'кже|adv|also; as well
-ещё раз|phr|once more; again
-опя'ть|adv|again
-сно'ва|adv|again; anew
-вме'сте|adv|together
-отде'льно|adv|separately
-бы'стро|adv|quickly; fast
-ме'дленно|adv|slowly
-гро'мко|adv|loudly
-ти'хо|adv|quietly
-пло'хо|adv|badly
-пра'вильно|adv|correctly
-непра'вильно|adv|incorrectly
-легко'|adv|easily
-тру'дно|adv|difficult; hard (to do)
-интере'сно|adv|interesting; interestingly
-ско'лько сто'ит|phr|how much does it cost
-наве'рное|adv|probably
-обяза'тельно|adv|definitely; without fail
-вообще'|adv|in general; at all
-осо'бенно|adv|especially
-совсе'м|adv|completely; quite
-совсе'м не|phr|not at all
-дово'льно|adv|rather; quite; enough
-доста'точно|adv|enough; sufficiently
-приме'рно|adv|approximately
-ро'вно|adv|exactly; evenly
-вдруг|adv|suddenly
-сра'зу|adv|at once; immediately
-пока'|conj|while; for now
-и|conj|and
-а|conj|and; but (contrast)
-но|conj|but
-и'ли|conj|or
-что|conj|that (conjunction)
-что'бы|conj|in order to; so that
-потому' что|conj|because
-поэ'тому|adv|therefore; that is why
-е'сли|conj|if
-хотя'|conj|although
-когда'|conj|when
-как то'лько|phr|as soon as
-не|part|not
-ни|part|neither; nor; not a
-ли|part|whether; question particle
-же|part|emphatic particle
-ведь|part|after all; you know
-да'же|part|even
-вот|part|here is; there
-в|prep|in; at; to
-на|prep|on; at; to
-с|prep|with; from
-у|prep|at; by; near; (have)
-к|prep|to; towards
-о|prep|about
-от|prep|from
-до|prep|until; up to
-для|prep|for
-без|prep|without
-по|prep|along; by; according to
-за|prep|behind; for; beyond
-под|prep|under
-над|prep|above; over
-пе'ред|prep|in front of; before
-ме'жду|prep|between
-о'коло|prep|near; about
-че'рез|prep|across; through; in (time)
-из|prep|from; out of
-про|prep|about (colloquial)
-по'сле|prep|after
-во вре'мя|prep|during
-вме'сто|prep|instead of
-кро'ме|prep|except; besides
-благодаря'|prep|thanks to
-и'з-за|prep|because of; from behind
+о'чень|adv|very|çok
+сли'шком|adv|too (excessively)|fazla; aşırı
+почти'|adv|almost|neredeyse; hemen hemen
+то'лько|adv|only; just|sadece; yalnız; ancak
+то'же|adv|also; too|de/da; ayrıca
+та'кже|adv|also; as well|ayrıca; de/da
+ещё раз|phr|once more; again|bir kez daha; tekrar
+опя'ть|adv|again|yine; tekrar
+сно'ва|adv|again; anew|yeniden; tekrar
+вме'сте|adv|together|birlikte; beraber
+отде'льно|adv|separately|ayrı ayrı; ayrı olarak
+бы'стро|adv|quickly; fast|hızlı; çabuk
+ме'дленно|adv|slowly|yavaş; yavaşça
+гро'мко|adv|loudly|yüksek sesle; gürültülü
+ти'хо|adv|quietly|sessizce; yavaşça
+пло'хо|adv|badly|kötü
+пра'вильно|adv|correctly|doğru; doğru bir şekilde
+непра'вильно|adv|incorrectly|yanlış; yanlış bir şekilde
+легко'|adv|easily|kolayca; kolay
+тру'дно|adv|difficult; hard (to do)|zor; güç
+интере'сно|adv|interesting; interestingly|ilginç; ilginç bir şekilde
+ско'лько сто'ит|phr|how much does it cost|ne kadar; kaç para
+наве'рное|adv|probably|herhalde; muhtemelen
+обяза'тельно|adv|definitely; without fail|mutlaka; kesinlikle
+вообще'|adv|in general; at all|genel olarak; hiç
+осо'бенно|adv|especially|özellikle
+совсе'м|adv|completely; quite|tamamen; büsbütün
+совсе'м не|phr|not at all|hiç; hiç de
+дово'льно|adv|rather; quite; enough|oldukça; epey; yeter
+доста'точно|adv|enough; sufficiently|yeterince; yeter
+приме'рно|adv|approximately|yaklaşık; aşağı yukarı
+ро'вно|adv|exactly; evenly|tam; tam olarak; düzgün
+вдруг|adv|suddenly|birden; aniden
+сра'зу|adv|at once; immediately|hemen; derhal
+пока'|conj|while; for now|-ken; şimdilik; hoşça kal
+и|conj|and|ve
+а|conj|and; but (contrast)|ve; ama; ise
+но|conj|but|ama; fakat
+и'ли|conj|or|veya; ya da
+что|conj|that (conjunction)|ki; -diğini
+что'бы|conj|in order to; so that|-mek için; diye
+потому' что|conj|because|çünkü
+поэ'тому|adv|therefore; that is why|bu yüzden; bundan dolayı
+е'сли|conj|if|eğer; -se/-sa
+хотя'|conj|although|gerçi; -e rağmen
+когда'|conj|when|-diğinde; -ince
+как то'лько|phr|as soon as|-ir -mez; hemen
+не|part|not|değil; -me/-ma
+ни|part|neither; nor; not a|ne; ne de; hiç
+ли|part|whether; question particle|mı/mi (soru eki); acaba
+же|part|emphatic particle|ise; ya (pekiştirme)
+ведь|part|after all; you know|ya; ki; ne de olsa
+да'же|part|even|bile; hatta
+вот|part|here is; there|işte
+в|prep|in; at; to|-de/-da; -e/-a
+на|prep|on; at; to|üstünde; -de/-da; -e/-a
+с|prep|with; from|ile; -den/-dan
+у|prep|at; by; near; (have)|yanında; -de/-da; (-in var)
+к|prep|to; towards|-e/-a doğru; -e/-a
+о|prep|about|hakkında
+от|prep|from|-den/-dan
+до|prep|until; up to|-e kadar
+для|prep|for|için
+без|prep|without|-sız/-siz; olmadan
+по|prep|along; by; according to|boyunca; -e göre
+за|prep|behind; for; beyond|arkasında; için; ötesinde
+под|prep|under|altında
+над|prep|above; over|üstünde; üzerinde
+пе'ред|prep|in front of; before|önünde; önce
+ме'жду|prep|between|arasında
+о'коло|prep|near; about|yakınında; yaklaşık
+че'рез|prep|across; through; in (time)|karşıya; içinden; sonra (süre)
+из|prep|from; out of|-den/-dan; içinden
+про|prep|about (colloquial)|hakkında
+по'сле|prep|after|sonra; -den sonra
+во вре'мя|prep|during|sırasında; esnasında
+вме'сто|prep|instead of|yerine
+кро'ме|prep|except; besides|dışında; hariç; -den başka
+благодаря'|prep|thanks to|sayesinde
+и'з-за|prep|because of; from behind|yüzünden; arkasından
 # ---- egitim / dil ----
-язы'к|n m|language; tongue
-сло'во|n n|word
-предложе'ние|n n|sentence; offer; proposal
-бу'ква|n f|letter (alphabet)
-звук|n m|sound
-алфави'т|n m|alphabet
-грамма'тика|n f|grammar
-слова'рь|n m|dictionary; vocabulary
-уро'к|n m|lesson
-кла'сс|n m|class; classroom; grade
-заня'тие|n n|class; lesson; occupation
-ле'кция|n f|lecture
-экза'мен|n m|exam
-зачёт|n m|pass/fail test
-оце'нка|n f|grade; mark; assessment
-оши'бка|n f|mistake; error
-вопро'с|n m|question
-отве'т|n m|answer
-пра'вило|n n|rule
-приме'р|n m|example
-зада'ние|n n|task; assignment
-дома'шнее зада'ние|phr|homework
-упражне'ние|n n|exercise
-текст|n m|text
-расска'з|n m|story; short story
-исто'рия|n f|history; story
-литерату'ра|n f|literature
-матема'тика|n f|mathematics
-фи'зика|n f|physics
-хи'мия|n f|chemistry
-биоло'гия|n f|biology
-геогра'фия|n f|geography
-нау'ка|n f|science
-учи'лище|n n|vocational school
-факульте'т|n m|faculty; department
-курс|n m|course; year (of study)
-гру'ппа|n f|group
-доска'|n f|board; blackboard
-па'рта|n f|school desk
-переме'на|n f|break (school); change
-зна'ние|n n|knowledge
-о'пыт|n m|experience; experiment
-зна'чение|n n|meaning; significance
-перево'д|n m|translation; transfer
-произноше'ние|n n|pronunciation
-ударе'ние|n n|stress (word)
-па'мять|n f|memory
-внима'ние|n n|attention
-понима'ть по-ру'сски|phr|to understand Russian
-говори'ть по-англи'йски|phr|to speak English
+язы'к|n m|language; tongue|dil
+сло'во|n n|word|kelime; sözcük
+предложе'ние|n n|sentence; offer; proposal|cümle; teklif; öneri
+бу'ква|n f|letter (alphabet)|harf
+звук|n m|sound|ses
+алфави'т|n m|alphabet|alfabe
+грамма'тика|n f|grammar|dil bilgisi; gramer
+слова'рь|n m|dictionary; vocabulary|sözlük; kelime hazinesi
+уро'к|n m|lesson|ders
+кла'сс|n m|class; classroom; grade|sınıf
+заня'тие|n n|class; lesson; occupation|ders; meşguliyet; uğraş
+ле'кция|n f|lecture|konferans; ders (üniversite)
+экза'мен|n m|exam|sınav
+зачёт|n m|pass/fail test|geçti-kaldı sınavı; notsuz dönem sonu sınavı
+оце'нка|n f|grade; mark; assessment|not; değerlendirme
+оши'бка|n f|mistake; error|hata; yanlış
+вопро'с|n m|question|soru
+отве'т|n m|answer|cevap; yanıt
+пра'вило|n n|rule|kural
+приме'р|n m|example|örnek
+зада'ние|n n|task; assignment|görev; ödev
+дома'шнее зада'ние|phr|homework|ev ödevi
+упражне'ние|n n|exercise|alıştırma
+текст|n m|text|metin
+расска'з|n m|story; short story|hikâye; öykü
+исто'рия|n f|history; story|tarih; hikâye
+литерату'ра|n f|literature|edebiyat
+матема'тика|n f|mathematics|matematik
+фи'зика|n f|physics|fizik
+хи'мия|n f|chemistry|kimya
+биоло'гия|n f|biology|biyoloji
+геогра'фия|n f|geography|coğrafya
+нау'ка|n f|science|bilim
+учи'лище|n n|vocational school|meslek okulu
+факульте'т|n m|faculty; department|fakülte; bölüm
+курс|n m|course; year (of study)|kurs; sınıf (üniversite yılı)
+гру'ппа|n f|group|grup
+доска'|n f|board; blackboard|tahta; yazı tahtası
+па'рта|n f|school desk|okul sırası
+переме'на|n f|break (school); change|teneffüs; değişiklik
+зна'ние|n n|knowledge|bilgi
+о'пыт|n m|experience; experiment|deneyim; deney
+зна'чение|n n|meaning; significance|anlam; önem
+перево'д|n m|translation; transfer|çeviri; havale
+произноше'ние|n n|pronunciation|telaffuz
+ударе'ние|n n|stress (word)|vurgu
+па'мять|n f|memory|hafıza; bellek
+внима'ние|n n|attention|dikkat
+понима'ть по-ру'сски|phr|to understand Russian|Rusça anlamak
+говори'ть по-англи'йски|phr|to speak English|İngilizce konuşmak
 # ---- is / para ----
-де'ло|n n|matter; business; affair
-би'знес|n m|business
-фи'рма|n f|firm; company
-компа'ния|n f|company
-о'фис|n m|office
-заво'д|n m|factory; plant
-фа'брика|n f|factory
-рабо'чий день|phr|working day
-зарпла'та|n f|salary; wages
-цена'|n f|price
-сто'имость|n f|cost; value
-рубль|n m|rouble
-копе'йка|n f|kopeck
-до'ллар|n m|dollar
-е'вро|n n|euro
-креди'т|n m|credit; loan
-ка'рточка|n f|card (bank)
-нали'чные|n pl|cash
-сда'ча|n f|change (money)
-ски'дка|n f|discount
-беспла'тно|adv|free of charge
-пода'ть|v pf|to submit; to serve
-догово'р|n m|contract; agreement
-докуме'нт|n m|document
-по'дпись|n f|signature
-собра'ние|n n|meeting
-встре'ча|n f|meeting; encounter
-клие'нт|n m|client; customer
-това'р|n m|goods; product
-проду'кт|n m|product; food item
-услу'га|n f|service
-о'чередь|n f|queue; turn
-рекла'ма|n f|advertising
-успе'х|n m|success
-неуда'ча|n f|failure; bad luck
-пробле'ма|n f|problem
-план|n m|plan
-цель|n f|goal; aim
-результа'т|n m|result
-прое'кт|n m|project
+де'ло|n n|matter; business; affair|iş; mesele
+би'знес|n m|business|iş; ticaret
+фи'рма|n f|firm; company|firma; şirket
+компа'ния|n f|company|şirket
+о'фис|n m|office|ofis
+заво'д|n m|factory; plant|fabrika
+фа'брика|n f|factory|fabrika
+рабо'чий день|phr|working day|iş günü
+зарпла'та|n f|salary; wages|maaş; ücret
+цена'|n f|price|fiyat
+сто'имость|n f|cost; value|maliyet; değer
+рубль|n m|rouble|ruble
+копе'йка|n f|kopeck|kopek
+до'ллар|n m|dollar|dolar
+е'вро|n n|euro|euro
+креди'т|n m|credit; loan|kredi
+ка'рточка|n f|card (bank)|kart (banka)
+нали'чные|n pl|cash|nakit
+сда'ча|n f|change (money)|para üstü
+ски'дка|n f|discount|indirim
+беспла'тно|adv|free of charge|ücretsiz; bedava
+пода'ть|v pf|to submit; to serve|vermek; sunmak
+догово'р|n m|contract; agreement|sözleşme; anlaşma
+докуме'нт|n m|document|belge
+по'дпись|n f|signature|imza
+собра'ние|n n|meeting|toplantı
+встре'ча|n f|meeting; encounter|buluşma; karşılaşma
+клие'нт|n m|client; customer|müşteri
+това'р|n m|goods; product|mal; ürün
+проду'кт|n m|product; food item|ürün; gıda maddesi
+услу'га|n f|service|hizmet
+о'чередь|n f|queue; turn|sıra; kuyruk
+рекла'ма|n f|advertising|reklam
+успе'х|n m|success|başarı
+неуда'ча|n f|failure; bad luck|başarısızlık; şanssızlık
+пробле'ма|n f|problem|sorun; problem
+план|n m|plan|plan
+цель|n f|goal; aim|amaç; hedef
+результа'т|n m|result|sonuç
+прое'кт|n m|project|proje
 # ---- iletisim / teknoloji ----
-интерне'т|n m|internet
-сайт|n m|website
-электро'нная по'чта|phr|e-mail
-сообще'ние|n n|message
-но'мер|n m|number; room (hotel)
-звоно'к|n m|call; bell; ring
-свя'зь|n f|connection; communication
-но'вости|n pl|news
-информа'ция|n f|information
-програ'мма|n f|programme; program
-приложе'ние|n n|application; app
-экра'н|n m|screen
-кно'пка|n f|button
-клавиату'ра|n f|keyboard
-мы'шка|n f|mouse (computer)
-файл|n m|file
-па'пка|n f|folder
-паро'ль|n m|password
-ра'дио|n n|radio
-му'зыка|n f|music
-пе'сня|n f|song
-фильм|n m|film; movie
-сериа'л|n m|TV series
-игра'|n f|game; play
-фо'то|n n|photo
-ка'мера|n f|camera
-батаре'я|n f|battery; radiator
-заряжа'ть|v ipf|to charge (battery)
-включа'ть|v ipf|to switch on; to include
-включи'ть|v pf|to switch on; to include
-выключа'ть|v ipf|to switch off
-вы'ключить|v pf|to switch off
-ска'чивать|v ipf|to download
-скача'ть|v pf|to download
+интерне'т|n m|internet|internet
+сайт|n m|website|web sitesi
+электро'нная по'чта|phr|e-mail|e-posta
+сообще'ние|n n|message|mesaj; ileti
+но'мер|n m|number; room (hotel)|numara; oda (otel)
+звоно'к|n m|call; bell; ring|arama (telefon); zil
+свя'зь|n f|connection; communication|bağlantı; iletişim
+но'вости|n pl|news|haberler
+информа'ция|n f|information|bilgi
+програ'мма|n f|programme; program|program
+приложе'ние|n n|application; app|uygulama
+экра'н|n m|screen|ekran
+кно'пка|n f|button|düğme; tuş
+клавиату'ра|n f|keyboard|klavye
+мы'шка|n f|mouse (computer)|fare (bilgisayar)
+файл|n m|file|dosya
+па'пка|n f|folder|klasör
+паро'ль|n m|password|şifre; parola
+ра'дио|n n|radio|radyo
+му'зыка|n f|music|müzik
+пе'сня|n f|song|şarkı
+фильм|n m|film; movie|film
+сериа'л|n m|TV series|dizi
+игра'|n f|game; play|oyun
+фо'то|n n|photo|fotoğraf
+ка'мера|n f|camera|kamera
+батаре'я|n f|battery; radiator|pil; batarya; kalorifer peteği
+заряжа'ть|v ipf|to charge (battery)|şarj etmek
+включа'ть|v ipf|to switch on; to include|açmak (cihaz); dahil etmek
+включи'ть|v pf|to switch on; to include|açmak (cihaz); dahil etmek
+выключа'ть|v ipf|to switch off|kapatmak (cihaz)
+вы'ключить|v pf|to switch off|kapatmak (cihaz)
+ска'чивать|v ipf|to download|indirmek
+скача'ть|v pf|to download|indirmek
 # ---- doga / hava ----
-приро'да|n f|nature
-пого'да|n f|weather
-со'лнце|n n|sun
-луна'|n f|moon
-звезда'|n f|star
-не'бо|n n|sky; heaven
-о'блако|n n|cloud
-дождь|n m|rain
-снег|n m|snow
-ве'тер|n m|wind
-гроза'|n f|thunderstorm
-тума'н|n m|fog
-лёд|n m|ice
-моро'з|n m|frost
-жара'|n f|heat (weather)
-гра'дус|n m|degree
-земля'|n f|earth; land; ground
-мир|n m|world; peace
-во'здух|n m|air
-ого'нь|n m|fire
-мо'ре|n n|sea
-о'зеро|n n|lake
-река'|n f|river
-бе'рег|n m|shore; bank
-о'стров|n m|island
-гора'|n f|mountain
-лес|n m|forest
-по'ле|n n|field
-де'рево|n n|tree; wood
-цвето'к|n m|flower
-трава'|n f|grass
-лист|n m|leaf; sheet
-ка'мень|n m|stone
-песо'к|n m|sand
-живо'тное|n n|animal
-соба'ка|n f|dog
-ко'шка|n f|cat
-ло'шадь|n f|horse
-коро'ва|n f|cow
-свинья'|n f|pig
-пти'ца|n f|bird
-медве'дь|n m|bear
-волк|n m|wolf
-лиса'|n f|fox
-за'яц|n m|hare
-мышь|n f|mouse
-змея'|n f|snake
-насеко'мое|n n|insect
-идёт дождь|phr|it is raining
-идёт снег|phr|it is snowing
-хо'лодно|adv|it is cold
-жа'рко|adv|it is hot
-тепло'|adv|it is warm
-со'лнечно|adv|sunny
+приро'да|n f|nature|doğa
+пого'да|n f|weather|hava (durumu)
+со'лнце|n n|sun|güneş
+луна'|n f|moon|ay (gökcismi)
+звезда'|n f|star|yıldız
+не'бо|n n|sky; heaven|gökyüzü; gök
+о'блако|n n|cloud|bulut
+дождь|n m|rain|yağmur
+снег|n m|snow|kar
+ве'тер|n m|wind|rüzgâr
+гроза'|n f|thunderstorm|fırtına; gök gürültülü fırtına
+тума'н|n m|fog|sis
+лёд|n m|ice|buz
+моро'з|n m|frost|don; ayaz
+жара'|n f|heat (weather)|sıcak (hava); sıcaklık
+гра'дус|n m|degree|derece
+земля'|n f|earth; land; ground|yer; toprak; dünya
+мир|n m|world; peace|dünya; barış
+во'здух|n m|air|hava
+ого'нь|n m|fire|ateş
+мо'ре|n n|sea|deniz
+о'зеро|n n|lake|göl
+река'|n f|river|nehir; ırmak
+бе'рег|n m|shore; bank|kıyı; sahil
+о'стров|n m|island|ada
+гора'|n f|mountain|dağ
+лес|n m|forest|orman
+по'ле|n n|field|tarla; alan
+де'рево|n n|tree; wood|ağaç; tahta
+цвето'к|n m|flower|çiçek
+трава'|n f|grass|ot; çimen
+лист|n m|leaf; sheet|yaprak; sayfa
+ка'мень|n m|stone|taş
+песо'к|n m|sand|kum
+живо'тное|n n|animal|hayvan
+соба'ка|n f|dog|köpek
+ко'шка|n f|cat|kedi
+ло'шадь|n f|horse|at
+коро'ва|n f|cow|inek
+свинья'|n f|pig|domuz
+пти'ца|n f|bird|kuş
+медве'дь|n m|bear|ayı
+волк|n m|wolf|kurt
+лиса'|n f|fox|tilki
+за'яц|n m|hare|tavşan (yabani)
+мышь|n f|mouse|fare
+змея'|n f|snake|yılan
+насеко'мое|n n|insect|böcek
+идёт дождь|phr|it is raining|yağmur yağıyor
+идёт снег|phr|it is snowing|kar yağıyor
+хо'лодно|adv|it is cold|soğuk; hava soğuk
+жа'рко|adv|it is hot|sıcak; hava sıcak
+тепло'|adv|it is warm|ılık; hava ılık
+со'лнечно|adv|sunny|güneşli
 # ---- spor / bos zaman ----
-спорт|n m|sport
-футбо'л|n m|football; soccer
-хокке'й|n m|hockey
-те'ннис|n m|tennis
-ша'хматы|n pl|chess
-бассе'йн|n m|swimming pool
-стадио'н|n m|stadium
-кома'нда|n f|team; command
-матч|n m|match (sport)
-трениро'вка|n f|training; workout
-чемпиона'т|n m|championship
-побе'да|n f|victory
-хо'бби|n n|hobby
-увлече'ние|n n|hobby; passion
-конце'рт|n m|concert
-вы'ставка|n f|exhibition
-спекта'кль|n m|performance; play (theatre)
-вечери'нка|n f|party
-день рожде'ния|phr|birthday
-пра'здновать|v ipf|to celebrate
-отмеча'ть|v ipf|to celebrate; to note
+спорт|n m|sport|spor
+футбо'л|n m|football; soccer|futbol
+хокке'й|n m|hockey|hokey
+те'ннис|n m|tennis|tenis
+ша'хматы|n pl|chess|satranç
+бассе'йн|n m|swimming pool|havuz; yüzme havuzu
+стадио'н|n m|stadium|stadyum
+кома'нда|n f|team; command|takım; komut
+матч|n m|match (sport)|maç
+трениро'вка|n f|training; workout|antrenman
+чемпиона'т|n m|championship|şampiyona
+побе'да|n f|victory|zafer; galibiyet
+хо'бби|n n|hobby|hobi
+увлече'ние|n n|hobby; passion|hobi; tutku
+конце'рт|n m|concert|konser
+вы'ставка|n f|exhibition|sergi
+спекта'кль|n m|performance; play (theatre)|gösteri; tiyatro oyunu
+вечери'нка|n f|party|parti
+день рожде'ния|phr|birthday|doğum günü
+пра'здновать|v ipf|to celebrate|kutlamak
+отмеча'ть|v ipf|to celebrate; to note|kutlamak; not etmek
 # ---- duygular / soyut ----
-жизнь|n f|life
-смерть|n f|death
-любо'вь|n f|love
-дру'жба|n f|friendship
-сча'стье|n n|happiness
-ра'дость|n f|joy
-го'ре|n n|grief; sorrow
-страх|n m|fear
-наде'жда|n f|hope
-мечта'|n f|dream (aspiration)
-сон|n m|sleep; dream
-пра'вда|n f|truth
-ложь|n f|lie; falsehood
-мысль|n f|thought
-иде'я|n f|idea
-мне'ние|n n|opinion
-чу'вство|n n|feeling; sense
-хара'ктер|n m|character; temper
-настрое'ние|n n|mood
-жела'ние|n n|wish; desire
-интере'с|n m|interest
-свобо'да|n f|freedom
-пра'во|n n|right; law
-зако'н|n m|law
-поря'док|n m|order
-вы'бор|n m|choice
-возмо'жность|n f|opportunity; possibility
-причи'на|n f|reason; cause
-сле'дствие|n n|consequence; investigation
-слу'чай|n m|case; occasion; incident
-спо'соб|n m|way; method
-усло'вие|n n|condition
-разни'ца|n f|difference
-часть|n f|part
-коне'ц|n m|end
-нача'ло|n n|beginning
-середи'на|n f|middle
-ме'сто|n n|place; seat
-сторона'|n f|side
-фо'рма|n f|form; shape; uniform
-вид|n m|view; appearance; kind; aspect
-тип|n m|type
-ро'д|n m|gender; kind; family line
-число'|n n|number; date
-коли'чество|n n|quantity; amount
-ка'чество|n n|quality
-вес|n m|weight
-о'бщество|n n|society
-госуда'рство|n n|state (country)
-прави'тельство|n n|government
-наро'д|n m|people; nation
-война'|n f|war
-а'рмия|n f|army
-поли'ция|n f|police
-культу'ра|n f|culture
-иску'сство|n n|art
-рели'гия|n f|religion
+жизнь|n f|life|hayat; yaşam
+смерть|n f|death|ölüm
+любо'вь|n f|love|aşk; sevgi
+дру'жба|n f|friendship|dostluk; arkadaşlık
+сча'стье|n n|happiness|mutluluk
+ра'дость|n f|joy|sevinç
+го'ре|n n|grief; sorrow|keder; acı
+страх|n m|fear|korku
+наде'жда|n f|hope|umut
+мечта'|n f|dream (aspiration)|hayal; ideal
+сон|n m|sleep; dream|uyku; rüya
+пра'вда|n f|truth|gerçek; doğru
+ложь|n f|lie; falsehood|yalan
+мысль|n f|thought|düşünce
+иде'я|n f|idea|fikir
+мне'ние|n n|opinion|görüş; kanaat
+чу'вство|n n|feeling; sense|duygu; his
+хара'ктер|n m|character; temper|karakter; huy
+настрое'ние|n n|mood|ruh hali; keyif
+жела'ние|n n|wish; desire|istek; arzu
+интере'с|n m|interest|ilgi; merak
+свобо'да|n f|freedom|özgürlük
+пра'во|n n|right; law|hak; hukuk
+зако'н|n m|law|kanun; yasa
+поря'док|n m|order|düzen; sıra
+вы'бор|n m|choice|seçim; seçenek
+возмо'жность|n f|opportunity; possibility|olanak; imkân; fırsat
+причи'на|n f|reason; cause|neden; sebep
+сле'дствие|n n|consequence; investigation|sonuç; soruşturma
+слу'чай|n m|case; occasion; incident|durum; olay; vaka
+спо'соб|n m|way; method|yol; yöntem
+усло'вие|n n|condition|koşul; şart
+разни'ца|n f|difference|fark
+часть|n f|part|parça; kısım
+коне'ц|n m|end|son
+нача'ло|n n|beginning|başlangıç
+середи'на|n f|middle|orta
+ме'сто|n n|place; seat|yer; koltuk
+сторона'|n f|side|taraf; yan
+фо'рма|n f|form; shape; uniform|biçim; şekil; üniforma
+вид|n m|view; appearance; kind; aspect|görünüm; manzara; tür
+тип|n m|type|tip; tür
+ро'д|n m|gender; kind; family line|cins; tür; soy
+число'|n n|number; date|sayı; tarih
+коли'чество|n n|quantity; amount|miktar; nicelik
+ка'чество|n n|quality|kalite; nitelik
+вес|n m|weight|ağırlık
+о'бщество|n n|society|toplum
+госуда'рство|n n|state (country)|devlet
+прави'тельство|n n|government|hükümet
+наро'д|n m|people; nation|halk; millet
+война'|n f|war|savaş
+а'рмия|n f|army|ordu
+поли'ция|n f|police|polis
+культу'ра|n f|culture|kültür
+иску'сство|n n|art|sanat
+рели'гия|n f|religion|din
 # ---- sik fiil kaliplari ----
-меня' зову'т|phr|my name is
-как вас зову'т|phr|what is your name (formal)
-мне ну'жно|phr|I need
-мне нра'вится|phr|I like
-у меня' есть|phr|I have
-у меня' нет|phr|I don't have
-я не понима'ю|phr|I don't understand
-повтори'те, пожа'луйста|phr|please repeat
-говори'те ме'дленнее|phr|speak more slowly
-я не зна'ю|phr|I don't know
-ско'лько вам лет|phr|how old are you
-я из Ту'рции|phr|I am from Turkey
-где нахо'дится|phr|where is (located)
-мо'жно|adv|it is possible; one may
-нельзя'|adv|it is not allowed; one must not
-на'до|adv|it is necessary; must
-ну'жно|adv|it is necessary; need
-жаль|adv|it is a pity; sorry
-пора'|adv|it is time (to)
-ви'дно|adv|evidently; can be seen
-слы'шно|adv|can be heard
-поня'тно|adv|clear; understood
+меня' зову'т|phr|my name is|benim adım
+как вас зову'т|phr|what is your name (formal)|adınız ne
+мне ну'жно|phr|I need|bana lazım; ihtiyacım var
+мне нра'вится|phr|I like|hoşuma gidiyor
+у меня' есть|phr|I have|bende var
+у меня' нет|phr|I don't have|bende yok
+я не понима'ю|phr|I don't understand|anlamıyorum
+повтори'те, пожа'луйста|phr|please repeat|lütfen tekrar edin
+говори'те ме'дленнее|phr|speak more slowly|daha yavaş konuşun
+я не зна'ю|phr|I don't know|bilmiyorum
+ско'лько вам лет|phr|how old are you|kaç yaşındasınız
+я из Ту'рции|phr|I am from Turkey|ben Türkiye'denim
+где нахо'дится|phr|where is (located)|nerede bulunuyor
+мо'жно|adv|it is possible; one may|mümkün; olur; -ebilir
+нельзя'|adv|it is not allowed; one must not|yasak; olmaz
+на'до|adv|it is necessary; must|gerek; lazım
+ну'жно|adv|it is necessary; need|gerek; lazım
+жаль|adv|it is a pity; sorry|yazık; ne yazık ki
+пора'|adv|it is time (to)|vakit geldi; zamanı
+ви'дно|adv|evidently; can be seen|görülüyor; belli
+слы'шно|adv|can be heard|duyuluyor
+поня'тно|adv|clear; understood|anlaşıldı; açık
 # ---- ek isimler ----
-но'вость|n f|piece of news
-откры'тка|n f|postcard
-конве'рт|n m|envelope
-посы'лка|n f|parcel
-ма'рка|n f|stamp; brand
-бага'ж|n m|luggage
-ке'мпинг|n m|camping
-пляж|n m|beach
-экску'рсия|n f|excursion; guided tour
-гид|n m|guide (person)
-сувени'р|n m|souvenir
-фотоаппара'т|n m|camera (photo)
-про'бка|n f|traffic jam; cork
-парко'вка|n f|parking
-бензи'н|n m|petrol; gasoline
-шофёр|n m|chauffeur; driver
-пассажи'р|n m|passenger
-расписа'ние|n n|timetable; schedule
-отправле'ние|n n|departure
-прибы'тие|n n|arrival
-платфо'рма|n f|platform
-ваго'н|n m|carriage; wagon
-ка'сса|n f|ticket office; cash desk
-вход|n m|entrance
-вы'ход|n m|exit
-у'гол|n m|corner; angle
-светофо'р|n m|traffic light
-перехо'д|n m|crossing; transition
-тротуа'р|n m|pavement; sidewalk
-ба'шня|n f|tower
-дворе'ц|n m|palace
-кре'пость|n f|fortress
-па'мятник|n m|monument
-фонта'н|n m|fountain
-река' Москва'|phr|the Moskva River
+но'вость|n f|piece of news|haber
+откры'тка|n f|postcard|kartpostal
+конве'рт|n m|envelope|zarf
+посы'лка|n f|parcel|koli; paket
+ма'рка|n f|stamp; brand|pul; marka
+бага'ж|n m|luggage|bagaj
+ке'мпинг|n m|camping|kamp
+пляж|n m|beach|plaj
+экску'рсия|n f|excursion; guided tour|gezi; tur
+гид|n m|guide (person)|rehber
+сувени'р|n m|souvenir|hediyelik eşya
+фотоаппара'т|n m|camera (photo)|fotoğraf makinesi
+про'бка|n f|traffic jam; cork|trafik sıkışıklığı; tıpa; mantar
+парко'вка|n f|parking|otopark; park yeri
+бензи'н|n m|petrol; gasoline|benzin
+шофёр|n m|chauffeur; driver|şoför
+пассажи'р|n m|passenger|yolcu
+расписа'ние|n n|timetable; schedule|tarife; program
+отправле'ние|n n|departure|kalkış; hareket
+прибы'тие|n n|arrival|varış
+платфо'рма|n f|platform|peron; platform
+ваго'н|n m|carriage; wagon|vagon
+ка'сса|n f|ticket office; cash desk|gişe; kasa
+вход|n m|entrance|giriş
+вы'ход|n m|exit|çıkış
+у'гол|n m|corner; angle|köşe; açı
+светофо'р|n m|traffic light|trafik ışığı
+перехо'д|n m|crossing; transition|geçit; geçiş
+тротуа'р|n m|pavement; sidewalk|kaldırım
+ба'шня|n f|tower|kule
+дворе'ц|n m|palace|saray
+кре'пость|n f|fortress|kale
+па'мятник|n m|monument|anıt
+фонта'н|n m|fountain|çeşme; fıskiye
+река' Москва'|phr|the Moskva River|Moskova Nehri
 # ---- ek fiiller (B1) ----
-добива'ться|v ipf|to achieve; to strive for
-дости'гнуть|v pf|to reach; to achieve
-развива'ть|v ipf|to develop
-разви'ть|v pf|to develop
-создава'ть|v ipf|to create
-созда'ть|v pf|to create
-уничтожа'ть|v ipf|to destroy
-защища'ть|v ipf|to defend; to protect
-защити'ть|v pf|to defend; to protect
-напада'ть|v ipf|to attack
-обсужда'ть|v ipf|to discuss
-обсуди'ть|v pf|to discuss
-спо'рить|v ipf|to argue; to dispute
-соглаша'ться|v ipf|to agree
-согласи'ться|v pf|to agree
-отка'зываться|v ipf|to refuse; to give up
-отказа'ться|v pf|to refuse; to give up
-жа'ловаться|v ipf|to complain
-благодари'ть|v ipf|to thank
-поздравля'ть|v ipf|to congratulate
-жела'ть|v ipf|to wish
-извиня'ться|v ipf|to apologize
-извини'ться|v pf|to apologize
-волнова'ться|v ipf|to worry; to be nervous
-беспоко'иться|v ipf|to worry
-серди'ться|v ipf|to be angry
-ра'доваться|v ipf|to be glad; to rejoice
-удивля'ться|v ipf|to be surprised
-удиви'ться|v pf|to be surprised
-скуча'ть|v ipf|to miss; to be bored
-привыка'ть|v ipf|to get used to
-привы'кнуть|v pf|to get used to
-замеча'ть|v ipf|to notice
-заме'тить|v pf|to notice
-внима'тельно|adv|carefully; attentively
-представля'ть|v ipf|to imagine; to introduce; to present
-предста'вить|v pf|to imagine; to introduce; to present
-опи'сывать|v ipf|to describe
-описа'ть|v pf|to describe
-подчёркивать|v ipf|to underline; to emphasize
-зави'сеть|v ipf|to depend
-влия'ть|v ipf|to influence
-отлича'ться|v ipf|to differ
-соотве'тствовать|v ipf|to correspond; to match
-производи'ть|v ipf|to produce; to make (an impression)
-потребля'ть|v ipf|to consume
-тра'тить|v ipf|to spend (money, time)
-потра'тить|v pf|to spend (money, time)
-эконо'мить|v ipf|to save; to economize
-зараба'тывать|v ipf|to earn
-зарабо'тать|v pf|to earn
-увольня'ть|v ipf|to dismiss; to fire
-нанима'ть|v ipf|to hire
-руководи'ть|v ipf|to manage; to lead
-управля'ть|v ipf|to manage; to drive; to govern
-слу'жить|v ipf|to serve
-лечи'ть|v ipf|to treat (medically)
-вы'лечить|v pf|to cure
-выздора'вливать|v ipf|to recover (health)
-худе'ть|v ipf|to lose weight
-толсте'ть|v ipf|to gain weight
-кури'ть|v ipf|to smoke
+добива'ться|v ipf|to achieve; to strive for|elde etmeye çalışmak; ulaşmak
+дости'гнуть|v pf|to reach; to achieve|ulaşmak; erişmek
+развива'ть|v ipf|to develop|geliştirmek
+разви'ть|v pf|to develop|geliştirmek
+создава'ть|v ipf|to create|yaratmak; oluşturmak
+созда'ть|v pf|to create|yaratmak; oluşturmak
+уничтожа'ть|v ipf|to destroy|yok etmek; imha etmek
+защища'ть|v ipf|to defend; to protect|savunmak; korumak
+защити'ть|v pf|to defend; to protect|savunmak; korumak
+напада'ть|v ipf|to attack|saldırmak
+обсужда'ть|v ipf|to discuss|tartışmak; görüşmek
+обсуди'ть|v pf|to discuss|tartışmak; görüşmek
+спо'рить|v ipf|to argue; to dispute|tartışmak; münakaşa etmek
+соглаша'ться|v ipf|to agree|kabul etmek; razı olmak
+согласи'ться|v pf|to agree|kabul etmek; razı olmak
+отка'зываться|v ipf|to refuse; to give up|reddetmek; vazgeçmek
+отказа'ться|v pf|to refuse; to give up|reddetmek; vazgeçmek
+жа'ловаться|v ipf|to complain|şikâyet etmek
+благодари'ть|v ipf|to thank|teşekkür etmek
+поздравля'ть|v ipf|to congratulate|tebrik etmek; kutlamak
+жела'ть|v ipf|to wish|dilemek; istemek
+извиня'ться|v ipf|to apologize|özür dilemek
+извини'ться|v pf|to apologize|özür dilemek
+волнова'ться|v ipf|to worry; to be nervous|endişelenmek; heyecanlanmak
+беспоко'иться|v ipf|to worry|endişelenmek; kaygılanmak
+серди'ться|v ipf|to be angry|kızmak; sinirlenmek
+ра'доваться|v ipf|to be glad; to rejoice|sevinmek
+удивля'ться|v ipf|to be surprised|şaşırmak
+удиви'ться|v pf|to be surprised|şaşırmak
+скуча'ть|v ipf|to miss; to be bored|özlemek; sıkılmak
+привыка'ть|v ipf|to get used to|alışmak
+привы'кнуть|v pf|to get used to|alışmak
+замеча'ть|v ipf|to notice|fark etmek
+заме'тить|v pf|to notice|fark etmek
+внима'тельно|adv|carefully; attentively|dikkatle; dikkatlice
+представля'ть|v ipf|to imagine; to introduce; to present|hayal etmek; tanıtmak; sunmak
+предста'вить|v pf|to imagine; to introduce; to present|hayal etmek; tanıtmak; sunmak
+опи'сывать|v ipf|to describe|betimlemek; tasvir etmek
+описа'ть|v pf|to describe|betimlemek; tasvir etmek
+подчёркивать|v ipf|to underline; to emphasize|altını çizmek; vurgulamak
+зави'сеть|v ipf|to depend|bağlı olmak
+влия'ть|v ipf|to influence|etkilemek
+отлича'ться|v ipf|to differ|farklı olmak; ayrılmak
+соотве'тствовать|v ipf|to correspond; to match|uymak; karşılık gelmek
+производи'ть|v ipf|to produce; to make (an impression)|üretmek; (izlenim) bırakmak
+потребля'ть|v ipf|to consume|tüketmek
+тра'тить|v ipf|to spend (money, time)|harcamak
+потра'тить|v pf|to spend (money, time)|harcamak
+эконо'мить|v ipf|to save; to economize|tasarruf etmek; idareli kullanmak
+зараба'тывать|v ipf|to earn|kazanmak (para)
+зарабо'тать|v pf|to earn|kazanmak (para)
+увольня'ть|v ipf|to dismiss; to fire|işten çıkarmak; kovmak
+нанима'ть|v ipf|to hire|işe almak; kiralamak
+руководи'ть|v ipf|to manage; to lead|yönetmek; başında olmak
+управля'ть|v ipf|to manage; to drive; to govern|yönetmek; idare etmek; kullanmak (araç)
+слу'жить|v ipf|to serve|hizmet etmek
+лечи'ть|v ipf|to treat (medically)|tedavi etmek
+вы'лечить|v pf|to cure|iyileştirmek; tedavi etmek
+выздора'вливать|v ipf|to recover (health)|iyileşmek
+худе'ть|v ipf|to lose weight|zayıflamak; kilo vermek
+толсте'ть|v ipf|to gain weight|şişmanlamak; kilo almak
+кури'ть|v ipf|to smoke|sigara içmek
 """

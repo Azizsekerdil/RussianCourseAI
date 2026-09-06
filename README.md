@@ -11,8 +11,8 @@ icin tasarlanmis masaustu dil ogrenme istasyonu.
 Tek pencerede: PDF ders kitabi okuyucu + not alma, yerel yapay zeka ogretmen,
 Kiril yazi laboratuvari, dilbilgisi laboratuvarlari (hal / gorunus / hareket fiilleri),
 telaffuz & vurgu studyosu, kelime bankasi + aralikli tekrar, sinav motoru,
-el yazisi cizim tahtasi, cift yonlu TR<->RU kelime bankasi ve **Rusca<->Ingilizce sozluk**
-(1.360 gomulu madde + OpenRussian ile 45.000+ madde).
+el yazisi cizim tahtasi, cift yonlu TR<->RU kelime bankasi ve **uc dilli Rusca<->Ingilizce/Turkce sozluk**
+(yon secici: Otomatik / RU→EN / EN→RU / RU→TR / TR→RU; 1.360 gomulu madde + OpenRussian ile 45.000+ madde).
 
 **Hicbir veri makineden cikmaz.** Yapay zeka yerelde LM Studio ile calisir; program
 dosyalari kendisi okur ve modele yalnizca sectiginiz metni gonderir.
@@ -125,9 +125,11 @@ hicbiri yoksa arayuz sakin bir uyari gosterir ve program calismaya devam eder.
 
 ### Sozluk icin alternatif uc (istege bagli, internet)
 
-Sozluk RU-EN sekmesi, yerel sozlukte bulunmayan bir kelimeyi bir yapay zeka
-modeline sorar ve yapisal madde (baslik + vurgu, tur, cins/gorunus, ceviri, ornek
-cumle, not) olarak alir. Iki saglayici vardir:
+Sozluk RU-EN-TR sekmesi, yerel sozlukte bulunmayan bir kelimeyi bir yapay zeka
+modeline sorar ve yapisal madde (baslik + vurgu, tur, cins/gorunus, Ingilizce ve
+Turkce karsilik, ornek cumle, not) olarak alir. RU→TR yonunde bulunan maddenin
+Turkce karsiligi eksikse de ayni politikayla AI'a sorulur ve gelen gloss mevcut
+maddeye (kopya olusturmadan) islenir. Iki saglayici vardir:
 
 | Saglayici | Adres | Anahtar |
 |---|---|---|
@@ -153,7 +155,7 @@ cumle, not) olarak alir. Iki saglayici vardir:
 | Sekme | Ne yapar |
 |---|---|
 | **Kelime Bankasi** | TR<->RU<->EN sozluk, frekans listeleri, gorunus ciftleri, CSV ice/disa aktarim |
-| **Sozluk RU-EN** | Cift yonlu Rusca<->Ingilizce sozluk: Kiril yazinca RU->EN, Latin yazinca EN->RU; 1.360 gomulu vurgulu madde, indirilen OpenRussian verisiyle 45.000+ madde; bulunamayan kelime LM Studio'ya ya da alternatif uca sorulur ve yerel sozluge kaydedilir; dinle, kelime bankasina ekle, CSV/TSV ice/disa aktar |
+| **Sozluk RU-EN-TR** | Uc dilli Rusca<->Ingilizce/Turkce sozluk. Yon secici (`dict_direction` ayari): Otomatik (Kiril: RU->EN; Latin: en iyi eslesen tarafa gore EN->RU ya da TR->RU), RU→EN, EN→RU, RU→TR, TR→RU - sabit yon yalnizca kaynak tarafi arar. Listede Rusca / Ingilizce / Türkçe sutunlari (Turkce hedefli yonde Türkçe one gelir); 1.360 gomulu vurgulu madde, indirilen OpenRussian verisiyle 45.000+ madde; bulunamayan kelime ya da eksik Turkce karsilik LM Studio'ya / alternatif uca sorulur ve yerel sozluge islenir; dinle, kelime bankasina ekle (TR alanina Turkce karsilik), CSV/TSV ice/disa aktar (`ru, en, tr, pos, extra, source`; eski `ru, en, pos, extra` duzeni de okunur) |
 | **Aralikli Tekrar** | "Bugun" panosu + SM-2/Leitner kart oturumu, 5 calisma modu |
 | **Sinav** | 9 soru tipi, otomatik puanlama, esdeger cevap toleransi |
 | **Kiril Lab** | 33 harf, basili/el yazisi formlari, yazim animasyonu, karisan ciftler |
@@ -233,8 +235,8 @@ rca/
   library.py              acik lisansli kaynak katalogu + indirici + ice aktarici
   ui_util.py              tema, kenar cubugu, yuvarlak kartlar, grafikler, thread kuyrugu
   tabs/                   18 sayfa, her biri tek bir LazyTab sinifi
-  dictionary.py           RU<->EN sozluk motoru (gomulu + kullanici + OpenRussian + AI katmanlari)
-  dict_data.py            1.360 maddelik gomulu cekirdek sozluk
+  dictionary.py           RU<->EN/TR sozluk motoru (yon secimi, gomulu + kullanici + OpenRussian + AI katmanlari)
+  dict_data.py            1.360 maddelik gomulu cekirdek sozluk (istege bagli Turkce alan)
 grammar/*.md              markdown dilbilgisi notlari
 assets/app.ico            uygulama simgesi
 tools/                    simge ureteci + masaustu kisayolu betigi
@@ -303,7 +305,7 @@ Ingilizce ile doldurulur ki kartlar hemen calissin; sonradan duzenleyebilirsiniz
 python -m pytest tests -q
 ```
 
-137 test: SM-2 aralik hesabi, RU<->EN sozluk motoru (veri butunlugu, iki yonlu arama, ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
+156 test: SM-2 aralik hesabi, RU<->EN/TR sozluk motoru (veri butunlugu, yon secimli ve otomatik arama, Turkce sorgu, tr sutunlu CSV ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, Ingilizce + Turkce karsilik, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
 repositoryleri, metin normalizasyonu (ё / vurgu), gomulu icerik tutarliligi,
 uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi ve pencere/sayfa duman testi.
 Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz.

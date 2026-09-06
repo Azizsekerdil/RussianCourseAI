@@ -198,7 +198,7 @@ async function main() {
     text(slide, "breadth-caption", "focused workspaces\nodaklı çalışma alanı\nспециализированных разделов", 54, 446, 420, 126, 25, { bold: true });
     line(slide, "breadth-divider", 500, 188, 0, C.rule, 1).position = { left: 500, top: 188, width: 0, height: 414 };
     const items = [
-      "RU-EN dictionary · Sözlük · Словарь RU-EN",
+      "RU-EN-TR dictionary · Yön seçimli sözlük · Словарь RU-EN-TR",
       "Word bank & grammar · Kelime bankası · Грамматика",
       "PDF reader · PDF okuyucu · PDF-читалка",
       "AI tutor · AI öğretmen · ИИ-преподаватель",
@@ -217,7 +217,7 @@ async function main() {
     footer(slide, 5);
     notes(slide, [
       "D:/Russian/Russian_Course_AI.pyw (18 entries in TAB_SPECS)",
-      "D:/Russian/rca/dictionary.py + rca/dict_data.py (bidirectional RU-EN dictionary, 1,360 built-in entries, OpenRussian layer)",
+      "D:/Russian/rca/dictionary.py + rca/dict_data.py (RU-EN-TR dictionary with direction switch, 1,360 built-in entries with Turkish glosses, OpenRussian layer)",
       "D:/Russian/README.md (feature descriptions)",
     ]);
   }
@@ -243,7 +243,7 @@ async function main() {
     ]);
   }
 
-  // 7 — Platforms & download: v1.1.2 release availability with the private-repo caveat.
+  // 7 — Platforms & download: v1.2.0 release availability with the private-repo caveat.
   {
     const slide = deck.slides.add();
     slide.background.fill = C.white;
@@ -251,9 +251,9 @@ async function main() {
     text(slide, "platform-subtitle", "Platformlar & İndirme  •  Платформы и загрузка", 42, 112, 1100, 30, 19, { color: C.muted });
     line(slide, "platform-rule", 42, 196, 1196, C.rule, 1);
     const rows = [
-      { label: "TÜRKÇE", color: C.ink, body: "Windows 10/11 (x64) + macOS (Apple Silicon) — İndirme: github.com/Azizsekerdil/RussianCourseAI/releases (v1.1.2) (özel repo)" },
-      { label: "ENGLISH", color: C.blue, body: "Windows 10/11 (x64) & macOS (Apple Silicon) — Download: GitHub Releases (v1.1.2)" },
-      { label: "РУССКИЙ", color: C.muted, body: "Windows 10/11 (x64) и macOS (Apple Silicon) — Загрузка: GitHub Releases (v1.1.2)" },
+      { label: "TÜRKÇE", color: C.ink, body: "Windows 10/11 (x64) + macOS (Apple Silicon) — İndirme: github.com/Azizsekerdil/RussianCourseAI/releases (v1.2.0) (özel repo)" },
+      { label: "ENGLISH", color: C.blue, body: "Windows 10/11 (x64) & macOS (Apple Silicon) — Download: GitHub Releases (v1.2.0)" },
+      { label: "РУССКИЙ", color: C.muted, body: "Windows 10/11 (x64) и macOS (Apple Silicon) — Загрузка: GitHub Releases (v1.2.0)" },
     ];
     for (const [i, row] of rows.entries()) {
       const y = 232 + i * 104;
@@ -264,13 +264,13 @@ async function main() {
     text(
       slide,
       "platform-footnote",
-      "Release v1.1.2 — iki paket: Windows zip + macOS zip. macOS paketi Apple Silicon (arm64) içindir ve notarize edilmemiştir; ilk açılışta sağ tık → Aç.\nDepo özel (private) — github.com/Azizsekerdil/RussianCourseAI bağlantısına yalnızca hesap sahibi erişebilir.",
+      "Release v1.2.0 — iki paket: Windows zip + macOS zip. macOS paketi Apple Silicon (arm64) içindir ve notarize edilmemiştir; ilk açılışta sağ tık → Aç.\nDepo özel (private) — github.com/Azizsekerdil/RussianCourseAI bağlantısına yalnızca hesap sahibi erişebilir.",
       42, 576, 1120, 84, 15,
       { color: C.muted },
     );
     footer(slide, 7);
     notes(slide, [
-      "https://github.com/Azizsekerdil/RussianCourseAI/releases/tag/v1.1.2 (v1.1.2 release with Windows and macOS zip assets; private repository)",
+      "https://github.com/Azizsekerdil/RussianCourseAI/releases/tag/v1.2.0 (v1.2.0 release with Windows and macOS zip assets; private repository)",
     ]);
   }
 

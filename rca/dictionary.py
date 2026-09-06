@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Cift yonlu Rusca <-> Ingilizce sozluk.
+"""Uc dilli Rusca <-> Ingilizce / Turkce sozluk.
 
 Dort katman birlesir:
 1. Gomulu cekirdek sozluk (`rca/dict_data.py`, ~1000 A1-B1 madde, vurgu isaretli).
@@ -8,15 +8,19 @@ Dort katman birlesir:
 4. AI'dan (LM Studio ya da alternatif OpenAI uyumlu uc) alinan yapisal maddeler;
    istenirse `dict_entries` tablosuna "ai" kaynagiyla kaydedilir (`ai_lookup`).
 
-Arama iki yonde calisir: Kiril yazilirsa RU->EN, Latin yazilirsa EN->RU.
-Siralama: tam eslesme > kelime basi > icerme.
+Her madde Ingilizce karsiligi (`translation`) ve istege bagli Turkce karsiligi (`tr`)
+tasir. Arama yonu (`DIRECTIONS`): auto | ru2en | en2ru | ru2tr | tr2ru.
+- Sabit yonde YALNIZCA kaynak taraf aranir (baslik / Ingilizce / Turkce).
+- auto: Kiril yazilirsa baslik (ru2en); Latin yazilirsa Ingilizce ve Turkce taraflari
+  puanlanir, en iyi puanli taraf yonu belirler (esitlikte Ingilizce).
+Siralama: tam eslesme > kelime basi > kelime icinde > alt dize.
 """
 from __future__ import annotations
 
 import csv
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -63,6 +67,7 @@ class Entry:
     marked: str = ""       # tum kelimeleri vurgu isaretli baslik (deyimler icin)
     example: str = ""      # kisa Rusca ornek cumle (AI maddeleri)
     note: str = ""         # kisa kullanim notu / tanim (AI maddeleri, arayuz dilinde)
+    tr: str = ""           # Turkce karsilik(lar), '; ' ile ayrilmis ("" = henuz yok)
 
     @property
     def display(self) -> str:
@@ -134,21 +139,26 @@ def mark_all(marked: str) -> str:
 
 
 def parse_line(line: str, source: str = SOURCE_BUILTIN) -> Optional[Entry]:
-    """`headword|pos extra|translation` satirini Entry'ye cevir."""
+    """`headword|pos extra|english[|turkish]` satirini Entry'ye cevir.
+
+    Dorduncu alan istege baglidir: Turkce karsilik(lar), '; ' ile ayrilmis. Yoksa
+    (ya da bossa) Entry.tr "" olur; gomulu veri bu alani kademeli olarak kazanir.
+    """
     line = (line or "").strip()
     if not line or line.startswith("#"):
         return None
     parts = [p.strip() for p in line.split("|")]
     if len(parts) < 3:
         return None
-    head, tag, tr = parts[0], parts[1], parts[2]
+    head, tag, en = parts[0], parts[1], parts[2]
+    turkish = parts[3] if len(parts) > 3 else ""
     tokens = tag.split()
     pos = tokens[0] if tokens else ""
     extra = tokens[1] if len(tokens) > 1 else ""
     word, stress = split_stress(head)
-    if not word or not tr:
+    if not word or not en:
         return None
-    return Entry(word, stress, pos, extra, tr, source, mark_all(head))
+    return Entry(word, stress, pos, extra, en, source, mark_all(head), tr=turkish)
 
 
 def parse_block(text: str, source: str = SOURCE_BUILTIN) -> List[Entry]:
@@ -161,7 +171,13 @@ def parse_block(text: str, source: str = SOURCE_BUILTIN) -> List[Entry]:
 
 
 def _norm(text: str) -> str:
-    return C.strip_stress((text or "").strip().lower().replace("ё", "е"))
+    """Kucuk harf, vurgusuz, ё->е, kirpilmis. Turkce harfler (ç ğ ı ö ş ü) KORUNUR.
+
+    Noktali buyuk İ Python'da 'i' + birlesik nokta (U+0307) olur; once duz 'i'ye
+    cevrilir ki "İstanbul" ile "istanbul" ayni anahtari versin.
+    """
+    text = (text or "").replace("İ", "i").strip().lower().replace("ё", "е")
+    return C.strip_stress(text).replace("\u0307", "")   # lower() artigi birlesik nokta
 
 
 def norm_query(text: str) -> str:
@@ -170,27 +186,106 @@ def norm_query(text: str) -> str:
 
 
 _WORD_RE = re.compile(r"[a-zа-яё'\-]+", re.IGNORECASE)
+_TURKISH_CHARS = "çğıöşü"
+
+
+def looks_turkish(text: str) -> bool:
+    """Metinde Turkceye ozgu harf var mi? (yalnizca ipucu; sonuc yoksa yon tahmini icin)"""
+    return any(ch in _TURKISH_CHARS for ch in _norm(text))
+
+
+# --------------------------------------------------------------------------
+# Arama yonu
+# --------------------------------------------------------------------------
+TARGET = C.TARGET_LANG                                  # "ru"
+DIR_AUTO = "auto"
+DIR_TO_EN = f"{TARGET}2en"                               # ru2en: baslik aranir, Ingilizce hedef
+DIR_FROM_EN = f"en2{TARGET}"                             # en2ru: Ingilizce aranir
+DIR_TO_TR = f"{TARGET}2tr"                               # ru2tr: baslik aranir, Turkce hedef
+DIR_FROM_TR = f"tr2{TARGET}"                             # tr2ru: Turkce aranir
+DIRECTIONS = (DIR_AUTO, DIR_TO_EN, DIR_FROM_EN, DIR_TO_TR, DIR_FROM_TR)
+
+# yon -> aranan (kaynak) alan: "head" baslik, "en" Ingilizce, "tr" Turkce
+_SOURCE_FIELD = {DIR_TO_EN: "head", DIR_TO_TR: "head", DIR_FROM_EN: "en", DIR_FROM_TR: "tr"}
+# yon -> hedef sutun: ru2en -> en, en2ru -> ru, ru2tr -> tr, tr2ru -> ru
+_TARGET_FIELD = {DIR_TO_EN: "en", DIR_FROM_EN: TARGET, DIR_TO_TR: "tr", DIR_FROM_TR: TARGET}
+
+
+def valid_direction(code: str) -> str:
+    """Bilinmeyen / bos yon kodu -> "auto"."""
+    return code if code in DIRECTIONS else DIR_AUTO
+
+
+def source_field(direction: str) -> str:
+    """Sabit yonde aranan alan ("head" | "en" | "tr"); auto icin "" (sorguya gore)."""
+    return _SOURCE_FIELD.get(direction, "")
+
+
+def target_field(direction: str) -> str:
+    """Yonun hedef sutunu: ru2en -> "en", en2ru -> "ru", ru2tr -> "tr", tr2ru -> "ru".
+
+    auto icin Ingilizce ("en") varsayilir; sekme sutun sirasini bununla kurar.
+    """
+    return _TARGET_FIELD.get(direction, "en")
+
+
+def gloss_field(direction: str) -> str:
+    """Yonun Rusca olmayan tarafi: Turkce iceren yonlerde "tr", digerlerinde "en"."""
+    return "tr" if direction in (DIR_TO_TR, DIR_FROM_TR) else "en"
+
+
+def headword_direction(direction: str) -> str:
+    """Yonun baslik-tarafli karsiligi (rastgele kelime, secili madde icin): en2ru -> ru2en, tr2ru -> ru2tr."""
+    if direction == DIR_FROM_EN:
+        return DIR_TO_EN
+    if direction == DIR_FROM_TR:
+        return DIR_TO_TR
+    return direction if direction in DIRECTIONS else DIR_AUTO
+
+
+def _senses(field: str) -> List[str]:
+    return [s.strip() for s in re.split(r"[;,]", field) if s.strip()]
+
+
+class LookupResult(list):
+    """lookup() sonucu: Entry listesi + cozumlenen yon (`direction`).
+
+    Duz liste gibi davranir (eski cagiranlar / testler degismez); sekme etkin yonu okur.
+    """
+
+    def __init__(self, entries: Iterable[Entry] = (), direction: str = DIR_AUTO) -> None:
+        super().__init__(entries)
+        self.direction = direction
 
 
 # --------------------------------------------------------------------------
 # Sozluk
 # --------------------------------------------------------------------------
 class Dictionary:
-    """Bellek ici indeksli, iki yonlu sozluk."""
+    """Bellek ici indeksli, uc dilli sozluk."""
 
     def __init__(self, entries: Iterable[Entry] = ()) -> None:
         self._entries: List[Entry] = []
-        self._seen = set()
+        self._seen: Dict[tuple, int] = {}          # tekillik anahtari -> _entries indeksi
         self.extend(entries)
 
     # -- yukleme -----------------------------------------------------------
     def extend(self, entries: Iterable[Entry]) -> int:
+        """Yeni maddeleri ekle; eklenen sayiyi dondur.
+
+        Ayni madde (baslik, tur, Ingilizce) zaten varsa eklenmez; ama yeni gelen Turkce
+        karsilik tasiyor ve eldeki tasimiyorsa eldeki madde ZENGINLESTIRILIR (tr dolar).
+        Boylece AI'in / kullanicinin sakladigi Turkce gloss gomulu maddeye islenir.
+        """
         added = 0
         for e in entries:
             key = self.key(e)
-            if key in self._seen:
+            idx = self._seen.get(key)
+            if idx is not None:
+                if e.tr and not self._entries[idx].tr:
+                    self._entries[idx] = replace(self._entries[idx], tr=e.tr)
                 continue
-            self._seen.add(key)
+            self._seen[key] = len(self._entries)
             self._entries.append(e)
             added += 1
         return added
@@ -204,10 +299,26 @@ class Dictionary:
         """Ayni madde (kaynagindan bagimsiz) sozlukte zaten var mi?"""
         return self.key(e) in self._seen
 
+    def find(self, e: Entry) -> Optional[Entry]:
+        """Ayni anahtarli SAKLI madde (zenginlestirilmis guncel nesne) ya da None."""
+        idx = self._seen.get(self.key(e))
+        return self._entries[idx] if idx is not None else None
+
+    def fill_tr(self, e: Entry, tr: str) -> Optional[Entry]:
+        """Sakli maddenin bos Turkce alanini doldur; guncel sakli maddeyi dondur (yoksa None)."""
+        idx = self._seen.get(self.key(e))
+        if idx is None:
+            return None
+        cur = self._entries[idx]
+        if tr and not cur.tr:
+            cur = replace(cur, tr=tr)
+            self._entries[idx] = cur
+        return cur
+
     def remove_source(self, source: str) -> None:
         keep = [e for e in self._entries if e.source != source]
         self._entries = []
-        self._seen = set()
+        self._seen = {}
         self.extend(keep)
 
     def __len__(self) -> int:
@@ -226,27 +337,70 @@ class Dictionary:
     # -- arama -------------------------------------------------------------
     @staticmethod
     def direction(query: str) -> str:
-        """'ru2en' Kiril icin, aksi halde 'en2ru'."""
-        return "ru2en" if C.has_cyrillic(query or "") else "en2ru"
+        """Yazi tipine gore kaba tahmin: Kiril -> ru2en, aksi halde en2ru.
 
-    def lookup(self, query: str, limit: int = 200) -> List[Entry]:
-        q = _norm(query)
-        if not q:
-            return []
-        ru_side = self.direction(query) == "ru2en"
+        Turkce/Ingilizce ayrimi yazidan yapilamaz; kesin yon `lookup(..., "auto")`
+        sonucunun `.direction` alanindadir (en iyi puanli taraf).
+        """
+        return DIR_TO_EN if C.has_cyrillic(query or "") else DIR_FROM_EN
+
+    def _score_side(self, q: str, side: str) -> List[Tuple[int, int, int, Entry]]:
+        """Tek bir tarafi (head / en / tr) puanla: (puan, tr-eksik, uzunluk, madde) listesi."""
         scored = []
         for e in self._entries:
-            if ru_side:
+            if side == "head":
                 field = _norm(e.headword)
                 score = _score(q, field, [field])
+            elif side == "tr":
+                field = _norm(e.tr)
+                score = _score(q, field, _senses(field)) if field else 0
             else:
                 field = _norm(e.translation)
-                senses = [s.strip() for s in re.split(r"[;,]", field) if s.strip()]
-                score = _score(q, field, senses)
+                score = _score(q, field, _senses(field))
             if score:
-                scored.append((score, len(e.headword), e))
-        scored.sort(key=lambda t: (-t[0], t[1], t[2].headword))
-        return [e for _s, _l, e in scored[:limit]]
+                scored.append((score, 0 if e.tr else 1, len(e.headword), e))
+        return scored
+
+    def lookup(self, query: str, direction: str = DIR_AUTO, limit: int = 200) -> LookupResult:
+        """Sorguyu verilen yonde ara; sonuc listesi `.direction` ile etkin yonu tasir.
+
+        Sabit yon: yalnizca kaynak taraf aranir. auto: Kiril => ru2en; Latin => Ingilizce
+        ve Turkce taraflari puanlanir, en iyi puan hangi taraftaysa o yon secilir
+        (esitlikte Ingilizce; hic sonuc yoksa Turkce harf iceren sorgu tr2ru sayilir).
+        Esit puanda Turkce karsiligi olan madde one gelir (ru2tr icin anlamli).
+        """
+        if isinstance(direction, int):                         # eski cagri: lookup(q, limit)
+            direction, limit = DIR_AUTO, direction
+        direction = valid_direction(direction)
+        q = _norm(query)
+        if not q:
+            return LookupResult([], self._resolve_empty(query, direction))
+        if direction != DIR_AUTO:
+            scored = self._score_side(q, source_field(direction))
+        elif C.has_cyrillic(query):
+            direction, scored = DIR_TO_EN, self._score_side(q, "head")
+        else:
+            en_side = self._score_side(q, "en")
+            tr_side = self._score_side(q, "tr")
+            best_en = max((s[0] for s in en_side), default=0)
+            best_tr = max((s[0] for s in tr_side), default=0)
+            if best_tr > best_en:
+                direction, scored = DIR_FROM_TR, tr_side
+            elif best_en or not looks_turkish(query):
+                direction, scored = DIR_FROM_EN, en_side
+            else:
+                direction, scored = DIR_FROM_TR, tr_side
+        prefer_tr = gloss_field(direction) == "tr"              # Turkce yonlerde gloss'u olan one
+        scored.sort(key=lambda t: (-t[0], t[1] if prefer_tr else 0, t[2], t[3].headword))
+        return LookupResult((e for _s, _t, _l, e in scored[:limit]), direction)
+
+    @staticmethod
+    def _resolve_empty(query: str, direction: str) -> str:
+        if direction != DIR_AUTO:
+            return direction
+        if C.has_cyrillic(query or ""):
+            return DIR_TO_EN
+        return DIR_FROM_TR if looks_turkish(query or "") else DIR_FROM_EN
 
     def random_entry(self, rng=None) -> Optional[Entry]:
         import random
@@ -256,17 +410,25 @@ class Dictionary:
         return (rng or random).choice(pool)
 
 
+_ARTICLE_RE = re.compile(r"^(to|the|a|an) ")
+
+
 def _score(q: str, field: str, senses: List[str]) -> int:
-    """Tam eslesme 100, kelime basi 60, kelime icinde 30, alt dize 10."""
+    """Tam eslesme 100, kelime basi 60, kelime icinde 30, alt dize 10.
+
+    Ingilizce anlamlarin basindaki "to / the / a / an" hem tam eslesmede (95) hem de
+    kelime basi eslesmesinde (60) yok sayilir: "ask" sorgusu "to ask (a question)" icin
+    60 alir. Aksi halde otomatik yonde Turkce on ek eslesmesi (asker -> 60) Ingilizce
+    fiili (30) yenip listeyi TR→RU'ya cevirirdi.
+    """
     if not field:
         return 0
     if q == field or q in senses:
         return 100
-    for s in senses:
-        stripped = re.sub(r"^(to|the|a|an) ", "", s)
-        if stripped == q:
-            return 95
-    if any(s.startswith(q) for s in senses) or field.startswith(q):
+    bare = [_ARTICLE_RE.sub("", s) for s in senses]
+    if q in bare:
+        return 95
+    if any(s.startswith(q) for s in senses) or any(b.startswith(q) for b in bare) or field.startswith(q):
         return 60
     if re.search(r"(^|[\s\-(])" + re.escape(q), field):
         return 30
@@ -278,16 +440,55 @@ def _score(q: str, field: str, senses: List[str]) -> int:
 # --------------------------------------------------------------------------
 # Dosya ice/disa aktarim
 # --------------------------------------------------------------------------
+CSV_COLUMNS = ("ru", "en", "tr", "pos", "extra", "source")
+# baslik satirindaki ad -> sutun (kucuk harf, Turkce/Ingilizce/Rusca esanlamlilar)
+_CSV_ALIASES = {
+    "ru": "ru", "rus": "ru", "russian": "ru", "rusca": "ru", "rusça": "ru", "headword": "ru",
+    "en": "en", "eng": "en", "english": "en", "ingilizce": "en", "translation": "en",
+    "tr": "tr", "turkish": "tr", "turkce": "tr", "türkçe": "tr",
+    "pos": "pos", "tur": "pos", "tür": "pos", "type": "pos", "part of speech": "pos",
+    "extra": "extra", "ek": "extra", "gender": "extra", "aspect": "extra",
+    "source": "source", "kaynak": "source",
+}
+
+
+def _header_map(row: List[str]) -> Optional[Dict[str, int]]:
+    """Ilk satir baslik satiriysa {sutun: indeks}; degilse None (ru ve en zorunlu)."""
+    cols: Dict[str, int] = {}
+    for i, cell in enumerate(row):
+        name = _CSV_ALIASES.get((cell or "").strip().lower().replace("İ", "i"))
+        if name and name not in cols:
+            cols[name] = i
+    if "ru" in cols and "en" in cols and not any(C.has_cyrillic(c) for c in row):
+        return cols
+    return None
+
+
 def read_table(path: Path) -> List[Entry]:
-    """CSV/TSV oku: sutunlar `ru, en[, pos[, extra]]` (baslik satiri istege bagli)."""
+    """CSV/TSV oku.
+
+    Baslik satiri varsa sutunlar ADIYLA eslenir (`ru, en, tr, pos, extra, source` ya da
+    esanlamlilari, herhangi bir sirada). Baslik yoksa eski konumsal duzen gecerlidir:
+    `ru, en[, pos[, extra]]`. Turkce sutunu her iki durumda da istege baglidir.
+    """
     path = Path(path)
     raw = path.read_text(encoding="utf-8-sig", errors="replace")
     delim = "\t" if path.suffix.lower() in (".tsv", ".txt") or raw.count("\t") > raw.count(",") else ","
     out: List[Entry] = []
-    for row in csv.reader(raw.splitlines(), delimiter=delim):
+    rows = list(csv.reader(raw.splitlines(), delimiter=delim))
+    cols = {"ru": 0, "en": 1, "pos": 2, "extra": 3}                # eski konumsal duzen
+    if rows and _header_map(rows[0]):
+        cols = _header_map(rows[0])
+        rows = rows[1:]
+
+    def cell(row, name):
+        i = cols.get(name)
+        return row[i].strip() if i is not None and len(row) > i else ""
+
+    for row in rows:
         if len(row) < 2:
             continue
-        ru, en = row[0].strip(), row[1].strip()
+        ru, en = cell(row, "ru"), cell(row, "en")
         if not ru or not en:
             continue
         if not C.has_cyrillic(ru):
@@ -295,20 +496,21 @@ def read_table(path: Path) -> List[Entry]:
                 ru, en = en, ru
             else:
                 continue
-        pos = row[2].strip() if len(row) > 2 else ""
-        extra = row[3].strip() if len(row) > 3 else ""
         word, stress = split_stress(ru)
-        out.append(Entry(word, stress, pos, extra, en, SOURCE_USER, mark_all(ru)))
+        out.append(Entry(word, stress, cell(row, "pos"), cell(row, "extra"), en, SOURCE_USER,
+                         mark_all(ru), tr=cell(row, "tr")))
     return out
 
 
 def write_table(path: Path, entries: Iterable[Entry]) -> int:
+    """CSV yaz: `ru, en, tr, pos, extra, source` (baslikli; read_table ayni dosyayi geri okur)."""
     n = 0
     with open(path, "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["ru", "en", "pos", "extra", "source"])
+        w.writerow(list(CSV_COLUMNS))
         for e in entries:
-            w.writerow([e.display.replace(C.STRESS_MARK, "'"), e.translation, e.pos, e.extra, e.source])
+            w.writerow([e.display.replace(C.STRESS_MARK, "'"), e.translation, e.tr,
+                        e.pos, e.extra, e.source])
             n += 1
     return n
 
@@ -369,7 +571,8 @@ def openrussian_dir() -> Path:
 AI_TIMEOUT = 90.0
 AI_MAX_ENTRIES = 5
 AI_MAX_TOKENS = 1200
-_AI_LIMITS = {"headword": 80, "translation": 240, "example": 300, "note": 400}
+_AI_LIMITS = {"headword": 80, "translation": 240, "translation_en": 240, "translation_tr": 240,
+              "tr": 240, "turkish": 240, "example": 300, "note": 400}
 _AI_NOTE_LANG = {"tr": "Turkish", "en": "English", "ru": "Russian"}
 _POS_ALIASES = {
     "noun": "n", "verb": "v", "adjective": "adj", "adverb": "adv", "pronoun": "pron",
@@ -412,13 +615,27 @@ def _clean_headword(head: str) -> str:
     return head
 
 
-def ai_prompt(query: str, ui_lang: str = "tr") -> Tuple[str, str]:
-    """AI icin (sistem yonergesi, kullanici mesaji) cifti. Yanit yalnizca JSON dizisi olmali."""
-    direction = Dictionary.direction(query)
+def query_language(query: str, direction: str = DIR_AUTO) -> str:
+    """Sorgunun dili (AI yonergesi icin): Kiril her zaman Rusca; Latin'de sabit yon belirler."""
+    if C.has_cyrillic(query or ""):
+        return "Cyrillic (Russian)"
+    if direction == DIR_FROM_TR:
+        return "Latin (Turkish)"
+    if direction == DIR_FROM_EN:
+        return "Latin (English)"
+    return "Latin (probably English or Turkish)"
+
+
+def ai_prompt(query: str, ui_lang: str = "tr", direction: str = DIR_AUTO) -> Tuple[str, str]:
+    """AI icin (sistem yonergesi, kullanici mesaji) cifti. Yanit yalnizca JSON dizisi olmali.
+
+    Modelden HEM Ingilizce (`translation_en`) HEM Turkce (`translation_tr`) karsilik istenir;
+    `direction` sorgunun dilini (Ingilizce / Turkce) kesinlestirir, Kiril her zaman Rusca'dir.
+    """
     note_lang = _AI_NOTE_LANG.get(ui_lang, "Turkish")
     system = (
-        "You are a precise Russian-English dictionary engine. You answer ONLY with a JSON array - "
-        "no prose, no markdown, no code fences, nothing before or after the array.\n"
+        "You are a precise Russian-English-Turkish dictionary engine. You answer ONLY with a JSON "
+        "array - no prose, no markdown, no code fences, nothing before or after the array.\n"
         "Each element is an object with exactly these keys:\n"
         '  "headword": the Russian dictionary form (nominative singular for nouns, infinitive for '
         "verbs) in Cyrillic, with an apostrophe placed immediately AFTER the stressed vowel, e.g. "
@@ -427,17 +644,20 @@ def ai_prompt(query: str, ui_lang: str = "tr") -> Tuple[str, str]:
         '  "pos": one of n v adj adv pron prep conj num part int phr\n'
         '  "extra": for nouns the gender m / f / n (pl for plural-only nouns); for verbs the aspect '
         'ipf / pf; for everything else "".\n'
-        '  "translation": the English meanings, senses separated by "; " (for example "house; home").\n'
+        '  "translation_en": the English meanings, senses separated by "; " (for example "house; home").\n'
+        '  "translation_tr": the Turkish meanings, senses separated by "; " (for example "ev; yuva"), '
+        "written with proper Turkish letters (ç ğ ı ö ş ü).\n"
         '  "example": one short natural Russian sentence in Cyrillic that uses the word (no stress marks).\n'
         f'  "note": a short usage note or definition written in {note_lang} (at most 25 words).\n'
-        "Return between 1 and 5 objects, the most common sense or word first.\n"
-        "The query may be Russian or English (or occasionally another language written in Latin "
-        "letters). If the query is Russian, describe that word in its dictionary form. If it is not "
-        "Russian, return the Russian words that translate it. Never invent words; when unsure return "
-        "fewer entries. If the query is not a real word or phrase, return []."
+        "Return between 1 and 5 objects, the most common sense or word first. Always fill BOTH "
+        "translation_en and translation_tr.\n"
+        "The query may be Russian, English or Turkish (or occasionally another language written in "
+        "Latin letters). If the query is Russian, describe that word in its dictionary form. If it is "
+        "English or Turkish, return the Russian words that translate it. Never invent words; when "
+        "unsure return fewer entries. If the query is not a real word or phrase, return []."
     )
     user = (f"Query: {query.strip()}\n"
-            f"Query script: {'Cyrillic (Russian)' if direction == 'ru2en' else 'Latin (probably English)'}\n"
+            f"Query script: {query_language(query, direction)}\n"
             "JSON array:")
     return system, user
 
@@ -523,11 +743,14 @@ def parse_ai_entries(text: str, limit: int = AI_MAX_ENTRIES) -> List[Entry]:
             continue
         try:
             head = _ai_str(obj, "headword") or _ai_str(obj, "word") or _ai_str(obj, "ru")
-            trans = _ai_str(obj, "translation") or _ai_str(obj, "en") or _ai_str(obj, "meaning")
+            trans = (_ai_str(obj, "translation_en") or _ai_str(obj, "translation")
+                     or _ai_str(obj, "en") or _ai_str(obj, "meaning"))
+            turkish = _ai_str(obj, "translation_tr") or _ai_str(obj, "tr") or _ai_str(obj, "turkish")
             if head and trans and not C.has_cyrillic(head) and C.has_cyrillic(trans):
                 head, trans = trans, head                       # yon karistiysa duzelt
             head = repair_stress(_clean_headword(head))
-            trans = "; ".join(dict.fromkeys(t.strip() for t in trans.split(";") if t.strip()))   # tekrar eden anlamlari at
+            trans = _dedupe_senses(trans)                       # tekrar eden anlamlari at
+            turkish = "" if C.has_cyrillic(turkish) else _dedupe_senses(turkish)
             if not head or not trans or not C.has_cyrillic(head):
                 continue
             head = head[:_AI_LIMITS["headword"]]
@@ -546,7 +769,7 @@ def parse_ai_entries(text: str, limit: int = AI_MAX_ENTRIES) -> List[Entry]:
                 continue
             seen.add(key)
             out.append(Entry(word, stress, pos, extra, trans, SOURCE_AI, mark_all(head),
-                             example, note))
+                             example, note, turkish))
         except Exception:                                       # noqa: BLE001
             continue
         if len(out) >= limit:
@@ -554,16 +777,23 @@ def parse_ai_entries(text: str, limit: int = AI_MAX_ENTRIES) -> List[Entry]:
     return out
 
 
-def ai_lookup(client, query: str, ui_lang: str = "tr", model: str = "") -> List[Entry]:
+def _dedupe_senses(text: str) -> str:
+    """'; ' ile ayrilmis anlam listesinde tekrarlari (sira korunarak) at."""
+    return "; ".join(dict.fromkeys(t.strip() for t in (text or "").split(";") if t.strip()))
+
+
+def ai_lookup(client, query: str, ui_lang: str = "tr", model: str = "",
+              direction: str = DIR_AUTO) -> List[Entry]:
     """Sorguyu AI'a sor ve yapisal maddeleri dondur.
 
     Baglanti / model hatasi (AIError) cagirana yayilir ki sekme cevrimdisi
     mesajini gosterebilsin; anlamsiz cikti ise sessizce bos liste olur.
+    `direction` yalnizca yonergedeki sorgu dilini kesinlestirir (tr2ru -> Turkce).
     """
     query = (query or "").strip()
     if not query or client is None:
         return []
-    system, user = ai_prompt(query, ui_lang)
+    system, user = ai_prompt(query, ui_lang, direction)
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     # Dusunen modellerde (gemma-4, qwen3...) akil yurutme metni butceyi yiyip icerigi bos
     # birakabilir; yerel sunucuya "dusunme" isteyen alan gonderilir (tanimayan sunucu 400
@@ -600,9 +830,10 @@ def _row_field(row, index: int, key: str, default: str = "") -> str:
 def build_dictionary(user_rows: Iterable[Sequence] = ()) -> Dictionary:
     """Gomulu + kullanici/AI maddelerinden sozluk kur (OpenRussian ayrica yuklenir).
 
-    Satirlar `(ru, en[, pos[, extra[, source[, example[, note]]]]])` demetleri ya da
+    Satirlar `(ru, en[, pos[, extra[, source[, example[, note[, tr]]]]]])` demetleri ya da
     `dict_entries` sozlukleri olabilir; saklanan "source" degeri Entry.source'a
-    ("user" / "ai") aktarilir ki sekme maddeleri etiketleyebilsin.
+    ("user" / "ai") aktarilir ki sekme maddeleri etiketleyebilsin. Gomulu bir maddeyle
+    ayni olan satir eklenmez ama Turkce karsiligi varsa gomulu maddeye islenir.
     """
     d = Dictionary(builtin_entries())
     users = []
@@ -617,8 +848,9 @@ def build_dictionary(user_rows: Iterable[Sequence] = ()) -> Dictionary:
             source = SOURCE_USER
         example = _row_field(r, 5, "example")
         note = _row_field(r, 6, "note")
+        turkish = _row_field(r, 7, "tr")
         word, stress = split_stress(ru)
         users.append(Entry(word, stress, pos or "", extra or "", en, source, mark_all(ru),
-                           example or "", note or ""))
+                           example or "", note or "", turkish or ""))
     d.extend(users)
     return d

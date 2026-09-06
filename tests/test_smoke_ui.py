@@ -523,3 +523,224 @@ def test_settings_language_change_keeps_dict_ai_policy(app):
         tab.dict_ai.set(tab._policy_label("local"))
         tab.save()
         instance.update()
+
+
+# --- sozluk yon secici + Turkce --------------------------------------------
+def _display_columns(tab) -> tuple:
+    cols = tab.tree["displaycolumns"]
+    return tuple(cols.split()) if isinstance(cols, str) else tuple(cols)
+
+
+def test_dictionary_direction_switch_reruns_search_and_persists(app):
+    """Yon kutusu: arama yeniden calisir, etkin yon etiketi ve sutun sirasi guncellenir, ayar kaydedilir.
+
+    AI politikasi 'kapali' tutulur: bu test aga / sahte sunucuya HIC istek gondermez.
+    Gomulu verinin Turkce kapsami varsayilmaz; Turkce'li madde testte eklenir.
+    """
+    instance, _ = app
+    from rca import dictionary as D
+    from rca import i18n
+    from rca.tabs.dictionary_tab import DIRECTION_KEYS, direction_code
+    CC = sys.modules["rca_common"]
+    for code, key in DIRECTION_KEYS.items():
+        assert all(direction_code(i18n.t(key, lang)) == code for lang in i18n.LANGS), code
+    assert direction_code("bogus") == "auto"
+    instance.settings["dict_ai"] = "off"
+    tab = instance.goto_tab("tab.dictionary")
+    tab.on_show()
+    _pump(instance, lambda: False, timeout=0.3)
+    old_lang = instance.ui_lang()
+    try:
+        assert instance.settings.get("dict_direction", "auto") == "auto"
+        assert tab.direction_var.get() == tab.t("d.dir_auto")
+        assert _display_columns(tab) == ("ru", "en", "tr", "pos", "extra", "src")
+        assert tab.tree.heading("tr", "text") == tab.t("d.turkish")
+        tab.dict.extend([D.Entry("тестдом", -1, "n", "m", "testhouse", D.SOURCE_USER,
+                                 tr="testev; deneme evi")])
+        tab.q.set("house")
+        tab.search()
+        assert tab.dir_lbl.cget("text") == tab.t("d.dir_en2ru") and tab.results[0].headword == "дом"
+        tab.q.set("testev")
+        tab.search()
+        assert tab.dir_lbl.cget("text") == tab.t("d.dir_tr2ru") and tab.results[0].headword == "тестдом"
+        assert tab.w_tr.cget("text") == f"{tab.t('d.turkish')}: testev; deneme evi"
+        assert tab.tree.item("0", "values")[2] == "testev; deneme evi"
+        # kutudan RU → EN: ayni sorgu yalnizca baslikta aranir -> sonuc yok; etiket + ayar + dosya degisir
+        tab.direction_var.set(tab.t("d.dir_ru2en"))
+        tab._on_direction_change()
+        instance.update()
+        assert instance.settings["dict_direction"] == "ru2en"
+        assert json.loads(CC.SETTINGS_PATH.read_text(encoding="utf-8"))["dict_direction"] == "ru2en"
+        assert tab.results == [] and tab.dir_lbl.cget("text") == tab.t("d.dir_ru2en")
+        # RU → TR: Turkce sutunu basligin hemen sagina gelir, detay panelinde iki karsilik
+        tab.q.set("тестдом")
+        tab.direction_var.set(tab.t("d.dir_ru2tr"))
+        tab._on_direction_change()
+        instance.update()
+        assert instance.settings["dict_direction"] == "ru2tr"
+        assert _display_columns(tab) == ("ru", "tr", "en", "pos", "extra", "src")
+        assert tab.results and tab.results[0].headword == "тестдом"
+        assert tab.dir_lbl.cget("text") == tab.t("d.dir_ru2tr")
+        assert tab.w_en.cget("text") == f"{tab.t('d.trans')}: testhouse"
+        assert tab.w_tr.cget("text") == f"{tab.t('d.turkish')}: testev; deneme evi"
+        # kelime bankasina ekle: TR alani Turkce karsiligin ilk anlami
+        tab.add_to_bank()
+        w = instance.repos.words.search("тестдом", limit=1)[0]
+        assert w["tr"] == "testev" and w["en"] == "testhouse"
+        # Turkce'si olmayan maddede '—' (AI kapali: istek yok)
+        tab.q.set("дом")
+        tab.search()
+        instance.update()
+        e = tab.results[0]
+        assert tab.w_tr.cget("text") == f"{tab.t('d.turkish')}: {e.tr or '—'}"
+        # rastgele kelime EN→RU / TR→RU secilmisken de baslikta arar
+        instance.settings["dict_direction"] = "tr2ru"
+        tab.on_show()
+        instance.update()
+        assert tab.direction_var.get() == tab.t("d.dir_tr2ru") and tab.chosen_direction() == "tr2ru"
+        tab.random_word()
+        assert tab.results and tab.dir_lbl.cget("text") == tab.t("d.dir_ru2tr")
+        # dil degisince kutu ve sutun basliklari yeni dile gecer, secim korunur
+        instance.set_ui_language("en")
+        instance.update()
+        assert tab.direction_var.get() == "TR → RU" and tab.tree.heading("tr", "text") == "Turkish"
+        assert tuple(tab.direction_box["values"]) == ("Auto", "RU → EN", "EN → RU", "RU → TR", "TR → RU")
+        assert tab.tree.heading("en", "text") == "English"
+    finally:
+        instance.set_ui_language(old_lang)
+        instance.settings.update({"dict_direction": "auto", "dict_ai": "local"})
+        tab._sync_direction()
+        tab._sync_policy()
+        tab._order_columns()
+        CC.save_settings(instance.settings)
+        instance.update()
+
+
+def test_dictionary_ru2tr_asks_ai_for_missing_turkish_gloss(app, mock_server):
+    """RU→TR yonunde Turkce karsiligi olmayan madde: AI otomatik sorulur, gloss mevcut maddeye islenir.
+
+    dict_entries'e kopya satir eklenmez (UPDATE), bellekteki madde zenginlesir, bir sonraki
+    arama AI'a gitmez ve yeniden kurulan sozluk Turkce'yi tasir.
+    """
+    instance, _ = app
+    from rca import dictionary as D
+    mock_server.reset()
+    mock_server.content = ('[{"headword": "бюбюдо\'м", "pos": "n", "extra": "m", "translation_en": "mockhouse", '
+                           '"translation_tr": "sahte ev; deneme evi", "example": "Это бюбюдом.", "note": "Mock."}]')
+    try:
+        instance.settings.update({"dict_ai": "local", "dict_ai_autosave": True, "dict_direction": "ru2tr"})
+        instance.refresh_ai_clients()
+        tab = instance.goto_tab("tab.dictionary")
+        tab.on_show()
+        instance.update()
+        assert tab.direction_var.get() == tab.t("d.dir_ru2tr")
+        assert instance.repos.dictionary.add("бюбюдо'м", "mockhouse", "n", "m") == 1
+        tab.dict.extend([D.Entry("бюбюдом", 5, "n", "m", "mockhouse", D.SOURCE_USER, D.mark_all("бюбюдо'м"))])
+        before = instance.repos.dictionary.count()
+        n_chat = len(mock_server.chat_requests())
+        tab.q.set("бюбюдом")
+        tab.search()
+        assert tab.results and tab.results[0].headword == "бюбюдом" and tab.results[0].tr == ""
+        assert tab.dir_lbl.cget("text") == tab.t("d.dir_ru2tr")
+        assert tab.t("d.ai_fill_tr") in tab.ai_out.get("1.0", "end")
+        assert _pump(instance, lambda: any(e.tr for e in tab.results)), "AI Turkce karsiligi gelmedi"
+        assert len(mock_server.chat_requests()) == n_chat + 1
+        body = json.loads(mock_server.chat_requests()[-1]["body"])
+        assert "translation_tr" in body["messages"][0]["content"] and "Cyrillic" in body["messages"][-1]["content"]
+        # AI maddesi listenin basinda; mevcut madde zenginlesti; DB'de kopya yok, tr doldu
+        assert tab.results[0].source == "ai" and tab.results[0].tr == "sahte ev; deneme evi"
+        stored = [e for e in tab.results if e.source == D.SOURCE_USER and e.headword == "бюбюдом"]
+        assert stored and stored[0].tr == "sahte ev; deneme evi"
+        assert instance.repos.dictionary.count() == before
+        row = [r for r in instance.repos.dictionary.all() if r["ru"] == "бюбюдо'м"][0]
+        assert row["tr"] == "sahte ev; deneme evi" and row["source"] == "user"
+        assert tab.w_tr.cget("text") == f"{tab.t('d.turkish')}: sahte ev; deneme evi"
+        out = tab.ai_out.get("1.0", "end")
+        assert "EN: mockhouse" in out and "TR: sahte ev; deneme evi" in out
+        assert not tab.btn_save_ai.winfo_manager()
+        # ikinci arama: Turkce artik var -> AI'a yeniden sorulmaz
+        tab.search()
+        _pump(instance, lambda: False, timeout=0.5)
+        assert len(mock_server.chat_requests()) == n_chat + 1
+        assert tab.results[0].headword == "бюбюдом" and tab.results[0].tr == "sahte ev; deneme evi"
+        d = D.build_dictionary(instance.repos.dictionary.all())
+        assert d.lookup("бюбюдом", "ru2tr")[0].tr == "sahte ev; deneme evi"
+        assert d.lookup("sahte ev", "tr2ru")[0].headword == "бюбюдом"
+        # kelime bankasi: TR alani Turkce'nin ilk anlami
+        tab.add_to_bank()
+        assert instance.repos.words.search("бюбюдом", limit=1)[0]["tr"] == "sahte ev"
+    finally:
+        instance.settings.update({"dict_direction": "auto", "dict_ai": "local"})
+        tab._sync_direction()
+        tab._order_columns()
+        mock_server.reset()
+
+
+def test_dictionary_turkish_fill_updates_unstressed_stored_row_instead_of_duplicating(app, mock_server):
+    """AI'in Turkce dolgusu, VURGUSUZ ve farkli buyuk/kucuk harfli sakli satira islenir; kopya 'ai' satiri acilmaz.
+
+    Kullanicinin ekleme penceresinden / eski CSV'den gelen satirlar cogu zaman vurgusuzdur; AI ise
+    vurgulu baslik ve kucuk harf Ingilizce dondurur. Bellekteki eslesme vurgu/harf farksizdir; kalici
+    yazim da sakli satirin kimligiyle yapilmali (UPDATE), yoksa acilista 'ai' satiri kullanicinin
+    satirini golgeler. Otomatik kayit KAPALI: dolgu 'Sozluge kaydet' ile yazilir. Sakli maddenin
+    DB satiri yoksa (gomulu / OpenRussian) Turkce'yi tasiyan tek bir 'ai' satiri acilir.
+    """
+    instance, _ = app
+    from rca import dictionary as D
+    mock_server.reset()
+    mock_server.content = ('[{"headword": "тестови\'к", "pos": "n", "extra": "m", "translation_en": "testword", '
+                           '"translation_tr": "deneme sözcüğü; test kelimesi", "example": "Это тестовик.", "note": "Mock."}]')
+    try:
+        instance.settings.update({"dict_ai": "local", "dict_ai_autosave": False, "dict_direction": "ru2tr"})
+        instance.refresh_ai_clients()
+        tab = instance.goto_tab("tab.dictionary")
+        tab.on_show()
+        instance.update()
+        assert instance.repos.dictionary.add("тестовик", "Testword", "n", "m") == 1      # vurgusuz, buyuk harfli
+        tab.dict.extend([D.Entry("тестовик", -1, "n", "m", "Testword", D.SOURCE_USER, D.mark_all("тестовик"))])
+        before = instance.repos.dictionary.count()
+        n_chat = len(mock_server.chat_requests())
+        tab.q.set("тестовик")
+        tab.search()
+        assert tab.results and tab.results[0].tr == "" and tab.dir_lbl.cget("text") == tab.t("d.dir_ru2tr")
+        assert _pump(instance, lambda: any(e.tr for e in tab.results)), "AI Turkce karsiligi gelmedi"
+        assert len(mock_server.chat_requests()) == n_chat + 1
+        # bellekte: sakli madde zenginlesti, kimligi (vurgusuz, 'Testword') degismedi; henuz kaydedilmedi
+        stored = [e for e in tab.results if e.source == D.SOURCE_USER and e.headword == "тестовик"]
+        assert stored and stored[0].tr == "deneme sözcüğü; test kelimesi"
+        assert stored[0].stress == -1 and stored[0].translation == "Testword"
+        assert tab.btn_save_ai.winfo_manager() == "pack"
+        assert instance.repos.dictionary.count() == before
+        assert [r["tr"] for r in instance.repos.dictionary.all() if r["ru"] == "тестовик"] == [""]
+        # 'Sozluge kaydet': sakli satir GUNCELLENIR, kopya yok, kaynak ve baslik ayni kalir
+        tab.save_ai_entry()
+        instance.update()
+        assert instance.repos.dictionary.count() == before
+        rows = [r for r in instance.repos.dictionary.all() if r["en"].lower() == "testword"]
+        assert [(r["ru"], r["en"], r["tr"], r["source"]) for r in rows] == [
+            ("тестовик", "Testword", "deneme sözcüğü; test kelimesi", "user")]
+        assert not tab.btn_save_ai.winfo_manager()
+        # yeniden kurulan sozluk: tek madde, kullanicinin satiri (golgelenme yok)
+        d = D.build_dictionary(instance.repos.dictionary.all())
+        hit = d.lookup("тестовик", "ru2tr")
+        assert len(hit) == 1 and hit[0].source == D.SOURCE_USER and hit[0].stress == -1
+        assert hit[0].tr == "deneme sözcüğü; test kelimesi"
+        # DB satiri olmayan sakli madde (gomulu / OpenRussian gibi): Turkce'yi tasiyan TEK 'ai' satiri
+        tab.dict.extend([D.Entry("тестогом", -1, "n", "m", "testgom", D.SOURCE_BUILTIN, D.mark_all("тестогом"))])
+        mock_server.content = ('[{"headword": "тестого\'м", "pos": "n", "extra": "m", "translation_en": "Testgom", '
+                               '"translation_tr": "deneme gomu"}]')
+        tab.q.set("тестогом")
+        tab.search()
+        assert _pump(instance, lambda: any(e.tr for e in tab.results)), "AI Turkce karsiligi gelmedi"
+        tab.save_ai_entry()
+        instance.update()
+        assert instance.repos.dictionary.count() == before + 1
+        rows = [r for r in instance.repos.dictionary.all() if r["en"].lower() == "testgom"]
+        assert [(r["ru"], r["tr"], r["source"]) for r in rows] == [("тестогом", "deneme gomu", "ai")]
+        tab.save_ai_entry()                                             # ikinci kez: hicbir sey yazilmaz
+        assert instance.repos.dictionary.count() == before + 1
+    finally:
+        instance.settings.update({"dict_direction": "auto", "dict_ai": "local", "dict_ai_autosave": True})
+        tab._sync_direction()
+        tab._order_columns()
+        mock_server.reset()

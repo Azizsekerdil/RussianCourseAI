@@ -17,7 +17,8 @@ immediately and are remembered for the next launch.
 
 - Spaced review with SM-2/Leitner scheduling and five practice modes
 - Turkish-Russian-English word bank with CSV import and export
-- Bidirectional Russian-English dictionary: 1,360 stressed built-in entries, 45,000+ with the downloadable OpenRussian data, TTS, AI lookup, CSV/TSV import
+- Bidirectional Russian-English dictionary: 1,360 stressed built-in entries, 45,000+ with the downloadable OpenRussian data, TTS, CSV/TSV import
+- AI dictionary lookup for missing words through LM Studio or an alternative OpenAI-compatible endpoint (NVIDIA NIM by default, or any URL + API key); results are cached into the local dictionary
 - Cyrillic, pronunciation, stress, grammar, speaking, and handwriting labs
 - PDF reader with notes, annotations, selected-text lookup, and AI explanation
 - Exams, weak-topic analysis, learning streaks, and weekly progress summaries
@@ -30,7 +31,12 @@ immediately and are remembered for the next launch.
 Study data is stored locally in SQLite. The AI tutor can run locally through LM
 Studio, so core learning does not require a cloud account. Network access is
 used only for features the user explicitly chooses, such as Resource Center
-downloads or the optional NVIDIA NIM endpoint.
+downloads or the optional alternative AI endpoint (off by default).
+
+The alternative endpoint's API key is kept in Windows Credential Manager (a
+local file in the settings folder on other systems) and is never written to
+`settings.json`. It can also be supplied through the `RUSSIANCOURSEAI_API_KEY`
+environment variable.
 
 The token log stores counts, model names, task types, and timing information;
 it does not store prompt or response text.
@@ -77,6 +83,23 @@ The executable is written to `dist/RussianCourseAI.exe`.
 
 The rest of the application remains available when no AI model is running.
 
+### Alternative endpoint for the dictionary (optional, internet)
+
+When a word is missing from the local dictionary, the RU-EN Dictionary asks an
+AI model and receives a structured entry (headword with stress, part of speech,
+gender/aspect, translation, example sentence, note). Two providers are available:
+
+| Provider | Address | Key |
+|---|---|---|
+| LM Studio (local) | `http://127.0.0.1:1234` | not needed |
+| Alternative endpoint | NVIDIA NIM `https://integrate.api.nvidia.com/v1` by default; any OpenAI-compatible URL (OpenRouter, Groq, Ollama, ...) | entered in Settings |
+
+The `dict_ai` policy (also selectable from the dictionary toolbar) decides which
+one is used: `auto` (LM Studio when reachable, otherwise the alternative
+endpoint if enabled), `local`, `alt`, or `off`. AI results are saved into the
+local dictionary with source `ai`, so the next lookup is instant and offline;
+with autosave disabled, a selected AI entry can be saved with one click.
+
 ## Main workspaces
 
 | Area | What it provides |
@@ -98,8 +121,10 @@ The rest of the application remains available when no AI model is running.
 python -m pytest -q
 ```
 
-The test suite (103 tests) covers the database, spaced-repetition calculations, quiz engine, the RU-EN dictionary engine,
-content packages, multilingual text integrity, and UI smoke flows.
+The test suite (126 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN dictionary engine,
+the AI dictionary layer (a mock OpenAI-compatible server, provider resolution, the secrets store),
+content packages, multilingual text integrity, and UI smoke flows. No test touches the network,
+LM Studio, or Windows Credential Manager.
 
 ## Project structure
 

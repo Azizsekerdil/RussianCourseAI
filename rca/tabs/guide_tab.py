@@ -25,8 +25,12 @@ SECTIONS = [
      "Kutuya Kiril yazarsaniz Rusca->Ingilizce, Latin yazarsaniz Ingilizce->Rusca arar; "
      "yon otomatik secilir. Gomulu ~1.400 maddelik cekirdek sozluk aninda calisir. Kaynak "
      "Merkezi'nden OpenRussian dosyalarini indirdiyseniz 'OpenRussian'i yukle' ile on binlerce "
-     "madde eklenir. Sagdaki panelden dinleyin, kelime bankasina ekleyin, AI'a sorun; kendi "
-     "CSV/TSV listelerinizi ice aktarin.",
+     "madde eklenir. Sozlukte olmayan bir kelime otomatik olarak AI'a sorulur (LM Studio ya da "
+     "Ayarlar'daki alternatif uc); gelen madde 'AI' etiketiyle listelenir, ornek cumle ve notuyla "
+     "gosterilir ve varsayilan olarak yerel sozluge kaydedilir - bir sonraki arama cevrimdisi "
+     "calisir. Arac cubugundaki AI secicisiyle otomatik / yerel / alternatif / kapali secin. "
+     "Sagdaki panelden dinleyin, kelime bankasina ekleyin, AI'a sorun; kendi CSV/TSV "
+     "listelerinizi ice aktarin.",
      "Programdan cikmadan vurgulu, turu ve cinsiyeti belli bir karsilik bulur; bir tikla "
      "tekrar dongusune alirsiniz."),
 
@@ -124,7 +128,9 @@ SECTIONS = [
 
     ("Ayarlar",
      "Herkesin ekrani, kulagi ve tempo tercihi farklidir.",
-     "Arayuz dilini (TR/EN/RU), temayi, gunluk hedefi, ses ve AI adresini buradan degistirin.",
+     "Arayuz dilini (TR/EN/RU), temayi, gunluk hedefi, ses ve AI adresini buradan degistirin. "
+     "'Alternatif uc' bolumunde NVIDIA NIM ya da baska bir OpenAI uyumlu adresi, model adini ve "
+     "API anahtarini girin, 'Baglantiyi dene' ile sinayin; sozlugun AI kaynagini da burada secin.",
      "Program size uyum saglar; ayarlar %APPDATA%\\RussianCourseAI\\settings altinda saklanir."),
 ]
 
@@ -132,9 +138,11 @@ PRIVACY = [
     "Hicbir veri makineden cikmaz; bulut, hesap veya internet gerekmez.",
     "AI yerelde LM Studio ile calisir; modele yalnizca sectiginiz metin gonderilir.",
     "Token defteri sadece sayaclari tutar, istek metinlerini saklamaz.",
-    "API anahtari kullanilirsa Windows Credential Manager'da tutulur, diske duz metin yazilmaz.",
-    "Ag cagrisi yalnizca NVIDIA NIM'i acikca acarsaniz veya Kaynak Merkezinden "
-    "bir dosya indirdiginizde yapilir - ikisi de sizin baslattiginiz islemlerdir.",
+    "Alternatif AI ucunun API anahtari Windows Credential Manager'da tutulur (diger sistemlerde "
+    "ayar klasorundeki yerel dosyada); settings.json'a asla yazilmaz.",
+    "Ag cagrisi yalnizca alternatif AI ucunu (NVIDIA NIM ya da baska bir OpenAI uyumlu adres) "
+    "Ayarlar'dan acikca acarsaniz veya Kaynak Merkezinden bir dosya indirdiginizde yapilir - "
+    "ikisi de sizin baslattiginiz islemlerdir.",
     "Kaynak Merkezi yalnizca acik lisansli kaynak indirir; TLS sertifika "
     "dogrulamasi hicbir kosulda kapatilmaz.",
 ]

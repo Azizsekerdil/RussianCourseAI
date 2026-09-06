@@ -16,7 +16,9 @@ el yazisi cizim tahtasi, cift yonlu TR<->RU kelime bankasi ve **Rusca<->Ingilizc
 
 **Hicbir veri makineden cikmaz.** Yapay zeka yerelde LM Studio ile calisir; program
 dosyalari kendisi okur ve modele yalnizca sectiginiz metni gonderir.
-Bulut yok, hesap yok, internet gerekmez.
+Bulut yok, hesap yok, internet gerekmez. Istege bagli olarak sozluk, LM Studio
+kapaliyken NVIDIA NIM ya da baska bir OpenAI uyumlu uca (API anahtariyla) sorabilir;
+bu yalnizca Ayarlar'dan acikca acilirsa olur.
 
 ---
 
@@ -121,8 +123,28 @@ Vosk icin ayrica bir Rusca model indirip su klasore acmalisiniz:
 Model bulunamazsa ozellik **cokmez**: profiller kurulu modellere karsi cozumlenir,
 hicbiri yoksa arayuz sakin bir uyari gosterir ve program calismaya devam eder.
 
-NVIDIA NIM ucu **varsayilan olarak kapalidir**; yalnizca Ayarlar'dan acikca
-acarsaniz ag cagrisi yapilir.
+### Sozluk icin alternatif uc (istege bagli, internet)
+
+Sozluk RU-EN sekmesi, yerel sozlukte bulunmayan bir kelimeyi bir yapay zeka
+modeline sorar ve yapisal madde (baslik + vurgu, tur, cins/gorunus, ceviri, ornek
+cumle, not) olarak alir. Iki saglayici vardir:
+
+| Saglayici | Adres | Anahtar |
+|---|---|---|
+| **LM Studio** (yerel) | `http://127.0.0.1:1234` | gerekmez |
+| **Alternatif uc** | varsayilan NVIDIA NIM `https://integrate.api.nvidia.com/v1`; OpenRouter, Groq, Ollama gibi herhangi bir OpenAI uyumlu adres girilebilir | Ayarlar'da girilir |
+
+- Alternatif uc **varsayilan olarak kapalidir**; yalnizca Ayarlar'dan acikca
+  acarsaniz ag cagrisi yapilir.
+- API anahtari **Windows Credential Manager**'da saklanir (Windows disinda ayar
+  klasorundeki yerel bir dosyada); `settings.json`'a asla yazilmaz. Anahtar
+  `RUSSIANCOURSEAI_API_KEY` ortam degiskeniyle de verilebilir.
+- **Politika** (`dict_ai` ayari, sozluk arac cubugundan da secilir):
+  `auto` = LM Studio ulasilabiliyorsa yerel, degilse alternatif uc;
+  `local` = yalnizca LM Studio; `alt` = yalnizca alternatif uc; `off` = sozlukte AI yok.
+- AI'dan gelen maddeler varsayilan olarak yerel sozluge (`dict_entries`, kaynak
+  `ai`) kaydedilir; bir sonraki arama aninda ve cevrimdisi calisir. Otomatik
+  kayit kapaliysa secili madde "Sozluge kaydet" ile tek tek kaydedilir.
 
 ---
 
@@ -131,7 +153,7 @@ acarsaniz ag cagrisi yapilir.
 | Sekme | Ne yapar |
 |---|---|
 | **Kelime Bankasi** | TR<->RU<->EN sozluk, frekans listeleri, gorunus ciftleri, CSV ice/disa aktarim |
-| **Sozluk RU-EN** | Cift yonlu Rusca<->Ingilizce sozluk: Kiril yazinca RU->EN, Latin yazinca EN->RU; 1.360 gomulu vurgulu madde, indirilen OpenRussian verisiyle 45.000+ madde; dinle, kelime bankasina ekle, AI'a sor, CSV/TSV ice/disa aktar |
+| **Sozluk RU-EN** | Cift yonlu Rusca<->Ingilizce sozluk: Kiril yazinca RU->EN, Latin yazinca EN->RU; 1.360 gomulu vurgulu madde, indirilen OpenRussian verisiyle 45.000+ madde; bulunamayan kelime LM Studio'ya ya da alternatif uca sorulur ve yerel sozluge kaydedilir; dinle, kelime bankasina ekle, CSV/TSV ice/disa aktar |
 | **Aralikli Tekrar** | "Bugun" panosu + SM-2/Leitner kart oturumu, 5 calisma modu |
 | **Sinav** | 9 soru tipi, otomatik puanlama, esdeger cevap toleransi |
 | **Kiril Lab** | 33 harf, basili/el yazisi formlari, yazim animasyonu, karisan ciftler |
@@ -147,7 +169,7 @@ acarsaniz ag cagrisi yapilir.
 | **Paketler** | `.rupack` (ZIP) disa/ice aktarim, `.json` geriye donuk uyumlu |
 | **Token Defteri** | Bugun/7/30/tum zamanlar sayaclari, CSV cikti - **istek metinleri saklanmaz** |
 | **Kilavuz** | Her ekrani neden -> nasil -> fayda biciminde anlatan cevrimdisi rehber |
-| **Ayarlar** | Dil (TR/EN/RU), tema, hedef, ses, AI adresi, profiller, veri yonetimi |
+| **Ayarlar** | Dil (TR/EN/RU), tema, hedef, ses, AI adresi, alternatif uc (adres / model / API anahtari / baglanti testi), sozluk AI politikasi, profiller, veri yonetimi |
 
 ---
 
@@ -204,13 +226,14 @@ rca/
   quiz_engine.py          soru uretimi + cevap dogrulama  (saf mantik)
   content.py              gomulu icerik paketleri (alfabe, hal, fiil, hareket, sayi)
   seed_words.py           A1 baslangic destesi
-  ai_client.py            LM Studio istemcisi (yalnizca stdlib)
+  ai_client.py            OpenAI uyumlu istemci: LM Studio + alternatif uc, saglayici secimi (yalnizca stdlib)
+  secrets.py              API anahtari deposu: Windows Credential Manager (ctypes) + dosya yedegi
   tts.py                  seslendirme + konusma tanima sarmalayicilari
   i18n.py                 TR / EN / RU arayuz metinleri + AI sistem yonergeleri
   library.py              acik lisansli kaynak katalogu + indirici + ice aktarici
   ui_util.py              tema, kenar cubugu, yuvarlak kartlar, grafikler, thread kuyrugu
   tabs/                   18 sayfa, her biri tek bir LazyTab sinifi
-  dictionary.py           RU<->EN sozluk motoru (gomulu + kullanici + OpenRussian katmanlari)
+  dictionary.py           RU<->EN sozluk motoru (gomulu + kullanici + OpenRussian + AI katmanlari)
   dict_data.py            1.360 maddelik gomulu cekirdek sozluk
 grammar/*.md              markdown dilbilgisi notlari
 assets/app.ico            uygulama simgesi
@@ -280,9 +303,10 @@ Ingilizce ile doldurulur ki kartlar hemen calissin; sonradan duzenleyebilirsiniz
 python -m pytest tests -q
 ```
 
-103 test: SM-2 aralik hesabi, RU<->EN sozluk motoru (veri butunlugu, iki yonlu arama, ice/disa aktarim), cevap dogrulama ve harf-harf karsilastirma, veritabani
+126 test: SM-2 aralik hesabi, RU<->EN sozluk motoru (veri butunlugu, iki yonlu arama, ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
 repositoryleri, metin normalizasyonu (ё / vurgu), gomulu icerik tutarliligi,
 uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi ve pencere/sayfa duman testi.
+Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz.
 
 ---
 
@@ -291,8 +315,10 @@ uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice a
 - Hicbir veri makineden cikmaz; bulut, hesap veya internet gerekmez.
 - AI yerelde calisir; modele yalnizca sectiginiz metin gonderilir.
 - Token defteri **yalnizca sayaclari** tutar - istek metinleri kaydedilmez.
-- API anahtari kullanilirsa Windows Credential Manager'da tutulur, diske duz metin yazilmaz.
-- Ag cagrisi yalnizca NVIDIA NIM'i acikca acarsaniz yapilir.
+- Alternatif ucun API anahtari Windows Credential Manager'da tutulur (Windows disinda
+  ayar klasorundeki yerel dosyada); `settings.json`'a asla yazilmaz.
+- Ag cagrisi yalnizca alternatif AI ucunu (NVIDIA NIM ya da baska bir OpenAI uyumlu
+  adres) Ayarlar'dan acikca acarsaniz ya da Kaynak Merkezi'nden indirme yaparsaniz yapilir.
 - Kullanici verisi tek yerde: `%APPDATA%\RussianCourseAI` (`data/`, `settings/`,
   `exports/`, `logs/`). Yedeklemek icin bu klasoru kopyalamak yeterlidir.
 

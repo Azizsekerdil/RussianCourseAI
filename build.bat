@@ -61,6 +61,11 @@ python -m PyInstaller ^
     --add-data "grammar;grammar" ^
     --add-data "assets;assets" ^
     --collect-submodules rca ^
+    --hidden-import rca.secrets ^
+    --hidden-import rca.dictionary ^
+    --hidden-import rca.dict_data ^
+    --hidden-import rca.ai_client ^
+    --hidden-import rca.tabs.dictionary_tab ^
     --hidden-import rca.tabs.vocab_tab ^
     --hidden-import rca.tabs.srs_tab ^
     --hidden-import rca.tabs.exam_tab ^

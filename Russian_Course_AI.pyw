@@ -63,7 +63,8 @@ class App(tk.Tk):
         self.repos = None
         self.profile_id = 0
         self.speaker = None
-        self.ai = None
+        self.ai = None                 # yerel LM Studio istemcisi
+        self.ai_alt = None             # alternatif OpenAI uyumlu uc (NIM / OpenRouter / ...)
         self._tabs = {}
         self._current_key = None
 
@@ -117,9 +118,16 @@ class App(tk.Tk):
         except Exception:
             self.speaker = None
 
+        import rca.secrets as secrets
         from rca.ai_client import AIClient
         self.ai = AIClient(self.settings.get("ai_base", C.LMSTUDIO_BASE),
                            token_logger=self._log_tokens)
+        # Alternatif uc: anahtar gizli depodan (Credential Manager / dosya) okunur,
+        # settings.json'da asla yer almaz. Iki istemci de ayni token defterini kullanir.
+        self.ai_alt = AIClient(self.settings.get("alt_base", C.NIM_BASE),
+                               token_logger=self._log_tokens,
+                               api_key=secrets.get_secret(secrets.KEY_ALT_API),
+                               model=self.settings.get("alt_model", C.ALT_DEFAULT_MODEL))
 
     def _log_tokens(self, model, task, ptok, ctok, ms, ok) -> None:
         """AI istemcisinden gelen token bilgisini deftere yaz."""
@@ -127,6 +135,25 @@ class App(tk.Tk):
             self.repos.tokens.log(model, task, ptok, ctok, ms, ok)
         except Exception:
             pass
+
+    def refresh_ai_clients(self) -> None:
+        """Ayarlar kaydedilince iki istemciyi de (adres / anahtar / model) tazele."""
+        import rca.secrets as secrets
+        s = self.settings
+        if self.ai is not None:
+            self.ai.configure(base=s.get("ai_base", C.LMSTUDIO_BASE))
+        if self.ai_alt is not None:
+            self.ai_alt.configure(base=s.get("alt_base", C.NIM_BASE),
+                                  api_key=secrets.get_secret(secrets.KEY_ALT_API),
+                                  model=s.get("alt_model", C.ALT_DEFAULT_MODEL))
+
+    def dict_provider(self):
+        """Sozluk icin kullanilacak AI istemcisi (dict_ai politikasina gore) ya da None.
+
+        Erisilebilirlik denetimi ag bekletebilir: arka plandan (worker) cagirin.
+        """
+        from rca.ai_client import resolve_dict_provider
+        return resolve_dict_provider(self.settings, self.ai, self.ai_alt)
 
     # -- iskelet -----------------------------------------------------------
     def _build_shell(self) -> None:

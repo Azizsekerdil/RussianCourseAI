@@ -174,9 +174,22 @@ CREATE TABLE IF NOT EXISTS dict_entries (
     pos TEXT DEFAULT '',
     extra TEXT DEFAULT '',
     created_at TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'user',
+    example TEXT NOT NULL DEFAULT '',
+    note TEXT NOT NULL DEFAULT '',
     UNIQUE(ru, en)
 );
 """
+
+# Onceki surumlerde olusmus tablolara eklenecek sutunlar (eklemeli goc):
+# tablo -> [(sutun, tanim)]
+COLUMN_MIGRATIONS = {
+    "dict_entries": [
+        ("source", "TEXT NOT NULL DEFAULT 'user'"),
+        ("example", "TEXT NOT NULL DEFAULT ''"),
+        ("note", "TEXT NOT NULL DEFAULT ''"),
+    ],
+}
 
 
 # --------------------------------------------------------------------------
@@ -218,12 +231,34 @@ class Database:
         with self._lock:
             self.conn.executescript(DDL)
             self.conn.commit()
+        self._add_missing_columns()
         cur = self.one("SELECT value FROM meta WHERE key='schema_version'")
         if cur is None:
             self.execute("INSERT INTO meta(key,value) VALUES('schema_version',?)",
                          (str(SCHEMA_VERSION),))
         if self.one("SELECT 1 FROM words LIMIT 1") is None:
             self.seed()
+
+    def columns(self, table: str) -> List[str]:
+        """Tablonun sutun adlari (PRAGMA table_info)."""
+        return [str(r[1]) for r in self.query(f"PRAGMA table_info({table})")]
+
+    def _add_missing_columns(self) -> None:
+        """Eski veritabanlarina eksik sutunlari ekle (yalnizca ALTER TABLE ADD COLUMN)."""
+        for table, specs in COLUMN_MIGRATIONS.items():
+            try:
+                have = set(self.columns(table))
+            except sqlite3.Error:
+                continue
+            if not have:
+                continue
+            for col, ddl in specs:
+                if col in have:
+                    continue
+                try:
+                    self.execute(f"ALTER TABLE {table} ADD COLUMN {col} {ddl}")
+                except sqlite3.Error:
+                    pass                                        # ayni anda eklenmis olabilir
 
     def seed(self) -> int:
         """Gomulu A1 destesini ve gorunus ciftlerini yukle. Eklenen kelime sayisini dondurur."""
@@ -752,35 +787,67 @@ def _parse_date(value) -> Optional[date]:
 
 
 class DictRepo:
-    """Kullanicinin sozluge ekledigi / ice aktardigi maddeler (gomulu sozlugun ustune)."""
+    """Kullanicinin sozluge ekledigi / ice aktardigi ve AI'dan kaydedilen maddeler.
+
+    `source` sutunu maddenin kokenini tutar: 'user' (ekleme / ice aktarim) ya da 'ai'.
+    """
+
+    SOURCE_USER = "user"
+    SOURCE_AI = "ai"
 
     def __init__(self, db: Database) -> None:
         self.db = db
 
-    def all(self) -> List[Dict[str, Any]]:
+    def all(self, source: str = None) -> List[Dict[str, Any]]:
+        """Tum maddeler (source verilirse yalnizca o kaynak); 'source' alani dahil."""
+        if source:
+            return [dict(r) for r in self.db.query(
+                "SELECT * FROM dict_entries WHERE source=? ORDER BY ru", (source,))]
         return [dict(r) for r in self.db.query("SELECT * FROM dict_entries ORDER BY ru")]
 
-    def count(self) -> int:
-        row = self.db.one("SELECT COUNT(*) AS n FROM dict_entries")
+    def count(self, source: str = None) -> int:
+        if source:
+            row = self.db.one("SELECT COUNT(*) AS n FROM dict_entries WHERE source=?", (source,))
+        else:
+            row = self.db.one("SELECT COUNT(*) AS n FROM dict_entries")
         return int(row["n"]) if row else 0
 
-    def add_many(self, rows: Sequence[Sequence]) -> int:
-        """(ru, en[, pos[, extra]]) dizisini ekle; tekrarlari atla. Eklenen sayiyi dondur."""
+    def count_by_source(self) -> Dict[str, int]:
+        """{'user': n, 'ai': m} - bos kaynaklar listede yer almaz."""
+        return {str(r["source"]): int(r["n"]) for r in self.db.query(
+            "SELECT source, COUNT(*) AS n FROM dict_entries GROUP BY source")}
+
+    def add_many(self, rows: Sequence[Sequence], source: str = SOURCE_USER) -> int:
+        """(ru, en[, pos[, extra[, example[, note]]]]) dizisini ekle; tekrarlari atla.
+
+        Eklenen sayiyi dondurur. `source` tum satirlara uygulanir ('user' | 'ai').
+        """
         now = datetime.now().isoformat(timespec="seconds")
+        src = source or self.SOURCE_USER
         before = self.count()
+
+        def field(r, i):
+            return (r[i] if len(r) > i and r[i] is not None else "")
+
         with self.db._lock:
             self.db.conn.executemany(
-                "INSERT OR IGNORE INTO dict_entries(ru,en,pos,extra,created_at) VALUES(?,?,?,?,?)",
-                [(r[0], r[1], r[2] if len(r) > 2 else "", r[3] if len(r) > 3 else "", now)
+                "INSERT OR IGNORE INTO dict_entries(ru,en,pos,extra,created_at,source,example,note) "
+                "VALUES(?,?,?,?,?,?,?,?)",
+                [(r[0], r[1], field(r, 2), field(r, 3), now, src, field(r, 4), field(r, 5))
                  for r in rows if r and r[0] and r[1]])
             self.db.conn.commit()
         return self.count() - before
 
-    def add(self, ru: str, en: str, pos: str = "", extra: str = "") -> int:
-        return self.add_many([(ru, en, pos, extra)])
+    def add(self, ru: str, en: str, pos: str = "", extra: str = "",
+            source: str = SOURCE_USER, example: str = "", note: str = "") -> int:
+        return self.add_many([(ru, en, pos, extra, example, note)], source=source)
 
-    def clear(self) -> None:
-        self.db.execute("DELETE FROM dict_entries")
+    def clear(self, source: str = None) -> None:
+        """Tum maddeleri (ya da yalnizca verilen kaynagi) sil."""
+        if source:
+            self.db.execute("DELETE FROM dict_entries WHERE source=?", (source,))
+        else:
+            self.db.execute("DELETE FROM dict_entries")
 
 
 class Repos:

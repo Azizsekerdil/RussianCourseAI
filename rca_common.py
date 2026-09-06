@@ -20,7 +20,7 @@ from typing import Any, Dict
 # --------------------------------------------------------------------------
 APP_NAME = "Russian Course AI"
 APP_SLUG = "RussianCourseAI"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 TARGET_LANG = "ru"          # hedef dil kodu (baska dile uyarlamak icin tek nokta)
 TARGET_LANG_NAME = "Rusca"
 
@@ -128,14 +128,23 @@ FONT_MONO = ("Consolas", 10)
 RADIUS = 10                          # kart kose yaricapi (Canvas cizimlerinde)
 
 # --------------------------------------------------------------------------
-# Yapay zeka  -  LM Studio (OpenAI uyumlu) + istege bagli NVIDIA NIM
+# Yapay zeka  -  LM Studio (OpenAI uyumlu) + istege bagli alternatif uc
 # --------------------------------------------------------------------------
 LMSTUDIO_BASE = "http://127.0.0.1:1234"
 NIM_BASE = "https://integrate.api.nvidia.com/v1"
+ALT_DEFAULT_MODEL = "meta/llama-3.1-8b-instruct"
+
+# Sozluk sekmesinin AI politikasi:
+#   auto  -> LM Studio ulasilabiliyorsa yerel, degilse (acik ise) alternatif uc
+#   local -> yalnizca LM Studio
+#   alt   -> yalnizca alternatif uc
+#   off   -> sozlukte AI kullanilmaz
+DICT_AI_POLICIES = ("auto", "local", "alt", "off")
 
 # gorev -> tercih edilen model listesi (ilk kurulu olan secilir)
 MODEL_PROFILES: Dict[str, list] = {
     "chat":      ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct", "llama-3.1-8b-instruct"],
+    "dictionary": ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct", "llama-3.1-8b-instruct"],
     "grammar":   ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct"],
     "translate": ["qwen2.5-7b-instruct", "gemma-2-9b-it"],
     "correct":   ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct"],
@@ -159,10 +168,16 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "ai_base": LMSTUDIO_BASE,
     "ai_model": DEFAULT_MODEL,
     "ai_enabled": True,
-    "nim_enabled": False,
+    "nim_enabled": False,         # eski surumlerle uyumluluk icin korunur (bkz. alt_enabled)
+    "alt_enabled": False,         # alternatif OpenAI uyumlu uc (NIM / OpenRouter / Groq / Ollama...)
+    "alt_base": NIM_BASE,
+    "alt_model": ALT_DEFAULT_MODEL,
+    "dict_ai": "auto",            # sozluk AI politikasi: auto | local | alt | off
+    "dict_ai_autosave": True,     # AI'dan gelen sozluk maddeleri yerel sozluge kaydedilsin mi
     "cefr": "A1",
     "last_pdf": "",
 }
+# API anahtari ASLA settings.json'a yazilmaz; rca/secrets.py uzerinden saklanir.
 
 
 def load_settings() -> Dict[str, Any]:
@@ -174,8 +189,13 @@ def load_settings() -> Dict[str, Any]:
             raw = json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
             if isinstance(raw, dict):
                 data.update({k: v for k, v in raw.items() if k in DEFAULT_SETTINGS})
+                # eski "nim_enabled" isaretini yeni alternatif uc ayarina tasi
+                if raw.get("nim_enabled") and "alt_enabled" not in raw:
+                    data["alt_enabled"] = True
     except Exception:
         pass  # bozuk ayar dosyasi programi durdurmaz
+    if data.get("dict_ai") not in DICT_AI_POLICIES:
+        data["dict_ai"] = "auto"
     return data
 
 

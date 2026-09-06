@@ -184,3 +184,53 @@ def test_resource_toggle(repos):
     assert "a.pdf" in repos.resources.done_set(pid)
     assert repos.resources.toggle(pid, "a.pdf") is False
     assert repos.resources.done_set(pid) == set()
+
+
+def test_dict_entries_source_column_is_added_to_old_databases(tmp_path):
+    """Onceki surumun (source sutunsuz) dict_entries tablosu acilista eklemeli gocle guncellenir."""
+    import sqlite3
+    os.environ["RCA_HOME"] = str(tmp_path)
+    for name in list(sys.modules):
+        if name == "rca_common" or name.startswith("rca."):
+            del sys.modules[name]
+    path = tmp_path / "old.db"
+    con = sqlite3.connect(path)
+    con.executescript("""
+        CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
+        INSERT INTO meta VALUES('schema_version', '1');
+        CREATE TABLE dict_entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ru TEXT NOT NULL,
+            en TEXT NOT NULL,
+            pos TEXT DEFAULT '',
+            extra TEXT DEFAULT '',
+            created_at TEXT NOT NULL,
+            UNIQUE(ru, en)
+        );
+        INSERT INTO dict_entries(ru, en, pos, extra, created_at)
+            VALUES('сло''во', 'word', 'n', 'n', '2025-01-01T00:00:00');
+    """)
+    con.commit()
+    con.close()
+
+    from rca.db import Database, Repos
+    db = Database(path)
+    cols = db.columns("dict_entries")
+    assert "source" in cols and "example" in cols and "note" in cols
+    repos = Repos(db)
+    rows = repos.dictionary.all()
+    assert len(rows) == 1 and rows[0]["ru"] == "сло'во" and rows[0]["source"] == "user"
+    assert repos.dictionary.add("до'м", "house", "n", "m", source="ai",
+                                example="Это дом.", note="ev") == 1
+    assert repos.dictionary.count_by_source() == {"user": 1, "ai": 1}
+    ai = repos.dictionary.all(source="ai")[0]
+    assert ai["example"] == "Это дом." and ai["note"] == "ev"
+    assert repos.dictionary.add_many([("ко'т", "cat", "n", "m"), ("ко'т", "cat")], source="ai") == 1
+    assert repos.dictionary.count(source="ai") == 2
+    repos.dictionary.clear(source="ai")
+    assert repos.dictionary.count() == 1 and repos.dictionary.count(source="ai") == 0
+    db.close()
+
+    db2 = Database(path)                       # goc yeniden calisir, sutun ikinci kez eklenmez
+    assert db2.columns("dict_entries").count("source") == 1
+    db2.close()

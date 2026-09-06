@@ -44,6 +44,11 @@ DATA_ARGS=()
   --osx-bundle-identifier "com.russiancourseai.desktop" \
   "${ICON_ARGS[@]}" "${DATA_ARGS[@]}" \
   --collect-submodules rca \
+  --hidden-import rca.secrets \
+  --hidden-import rca.dictionary \
+  --hidden-import rca.dict_data \
+  --hidden-import rca.ai_client \
+  --hidden-import rca.tabs.dictionary_tab \
   --hidden-import rca.tabs.vocab_tab \
   --hidden-import rca.tabs.srs_tab \
   --hidden-import rca.tabs.exam_tab \

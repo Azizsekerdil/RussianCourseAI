@@ -9,7 +9,9 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 import rca_common as C
+import rca.secrets as secrets
 from rca.i18n import LANG_NAMES, LANGS
+from rca.tabs.dictionary_tab import POLICY_KEYS, policy_code
 from rca.ui_util import LazyTab, ScrollFrame
 
 
@@ -98,14 +100,50 @@ class SettingsTab(LazyTab):
                                       values=[C.DEFAULT_MODEL])
         self.model_box.grid(row=3, column=1, sticky="w", padx=8)
 
-        self.nim_on = tk.BooleanVar(value=bool(s.get("nim_enabled", False)))
-        ttk.Checkbutton(g3, text="NVIDIA NIM (INTERNET GEREKTIRIR - varsayilan kapali)",
-                        variable=self.nim_on).grid(row=4, column=0, columnspan=3,
-                                                   sticky="w", pady=(8, 0))
-        ttk.Label(g3, style="Warn.TLabel", wraplength=700, justify="left",
-                  text="NIM acilirsa istekler internete gider. Anahtar Windows Credential "
-                       "Manager'da saklanir, diske duz metin yazilmaz.").grid(
-            row=5, column=0, columnspan=3, sticky="w")
+        # --- alternatif uc (OpenAI uyumlu uzak servis: NIM / OpenRouter / Groq...) ---
+        g3b = ttk.LabelFrame(b, text=self.t("set.alt_group"), padding=12)
+        g3b.pack(fill="x", pady=(12, 0))
+        self.alt_on = tk.BooleanVar(value=bool(s.get("alt_enabled", False)))
+        ttk.Checkbutton(g3b, text=self.t("set.alt_enabled"), variable=self.alt_on).grid(
+            row=0, column=0, columnspan=3, sticky="w")
+        ttk.Label(g3b, text=self.t("set.alt_base")).grid(row=1, column=0, sticky="w", pady=6)
+        self.alt_base = tk.StringVar(value=s.get("alt_base", C.NIM_BASE) or C.NIM_BASE)
+        ttk.Entry(g3b, textvariable=self.alt_base, width=44).grid(row=1, column=1,
+                                                                  sticky="w", padx=8)
+        ttk.Label(g3b, text=self.t("set.alt_base_hint"), style="Dim.TLabel", wraplength=380,
+                  justify="left").grid(row=1, column=2, sticky="w")
+        ttk.Label(g3b, text=self.t("set.alt_model")).grid(row=2, column=0, sticky="w")
+        self.alt_model = tk.StringVar(value=s.get("alt_model", C.ALT_DEFAULT_MODEL))
+        ttk.Entry(g3b, textvariable=self.alt_model, width=44).grid(row=2, column=1,
+                                                                   sticky="w", padx=8)
+        ttk.Label(g3b, text=self.t("set.alt_key")).grid(row=3, column=0, sticky="w", pady=6)
+        # Alan gercek anahtarla ASLA doldurulmaz; yalnizca yeni anahtar yazmak icin kullanilir.
+        self.alt_key = tk.StringVar(value="")
+        ttk.Entry(g3b, textvariable=self.alt_key, width=44, show="•").grid(
+            row=3, column=1, sticky="w", padx=8)
+        self.alt_key_state = ttk.Label(g3b, text="", style="Dim.TLabel", wraplength=380,
+                                       justify="left")
+        self.alt_key_state.grid(row=3, column=2, sticky="w")
+        arow = ttk.Frame(g3b)
+        arow.grid(row=4, column=0, columnspan=3, sticky="w", pady=(2, 0))
+        ttk.Button(arow, text=self.t("set.alt_test"), command=self.test_alt).pack(side="left")
+        ttk.Button(arow, text=self.t("set.alt_delete_key"), style="Err.TButton",
+                   command=self.delete_alt_key).pack(side="left", padx=6)
+        self.alt_status = ttk.Label(g3b, text="", style="Dim.TLabel", wraplength=700,
+                                    justify="left")
+        self.alt_status.grid(row=5, column=0, columnspan=3, sticky="w", pady=6)
+        ttk.Label(g3b, style="Warn.TLabel", wraplength=700, justify="left",
+                  text=self.t("set.alt_note")).grid(row=6, column=0, columnspan=3, sticky="w")
+
+        ttk.Label(g3b, text=self.t("set.dict_ai")).grid(row=7, column=0, sticky="w", pady=(10, 0))
+        self.dict_ai = tk.StringVar(value=self._policy_label(s.get("dict_ai", "auto")))
+        self.dict_ai_box = ttk.Combobox(g3b, textvariable=self.dict_ai, state="readonly",
+                                        width=26, values=[self.t(k) for k in POLICY_KEYS.values()])
+        self.dict_ai_box.grid(row=7, column=1, sticky="w", padx=8, pady=(10, 0))
+        self.dict_autosave = tk.BooleanVar(value=bool(s.get("dict_ai_autosave", True)))
+        ttk.Checkbutton(g3b, text=self.t("d.ai_autosave"), variable=self.dict_autosave).grid(
+            row=8, column=0, columnspan=3, sticky="w", pady=(4, 0))
+        self._refresh_key_state()
 
         # --- profiller ----------------------------------------------------
         g4 = ttk.LabelFrame(b, text="Profiller", padding=12)
@@ -165,6 +203,20 @@ class SettingsTab(LazyTab):
         """Profil listesini tazele."""
         if getattr(self, "prof_list", None) is not None:
             self.refresh_profiles()
+
+    def on_language_change(self) -> None:
+        """Dil degisti (ust cubuk ya da Kaydet): dil kutusu ve politika etiketleri yeni dile gecer.
+
+        Kaydedilmemis politika secimi korunur: etiket once koda cevrilir, sonra yeni
+        dilde yeniden yazilir. Dil kutusu da esitlenir ki sonraki bir Kaydet eski
+        dili geri getirmesin.
+        """
+        if getattr(self, "dict_ai_box", None) is None:
+            return
+        self.lang.set(LANG_NAMES.get(self.app.ui_lang(), LANG_NAMES["tr"]))
+        pending = self._policy_code(self.dict_ai.get())
+        self.dict_ai_box["values"] = [self.t(k) for k in POLICY_KEYS.values()]
+        self.dict_ai.set(self._policy_label(pending))
 
     def refresh_profiles(self) -> None:
         """Profil tablosunu doldur."""
@@ -239,6 +291,54 @@ class SettingsTab(LazyTab):
         self.app.worker.run(job, done, lambda e: self.ai_status.configure(
             text=f"Hata: {e}", foreground=self.palette()["err"]))
 
+    # -- alternatif uc ---------------------------------------------------
+    def _policy_label(self, code: str) -> str:
+        return self.t(POLICY_KEYS.get(code, "d.policy_auto"))
+
+    def _policy_code(self, label: str) -> str:
+        return policy_code(label)                      # etiketin dili onemsiz
+
+    def _refresh_key_state(self) -> None:
+        """Gercek anahtar gosterilmez; yalnizca kayitli olup olmadigi soylenir."""
+        has = secrets.has_secret(secrets.KEY_ALT_API)
+        self.alt_key_state.configure(
+            text=self.t("set.alt_key_saved") if has else self.t("set.alt_key_none"))
+
+    def test_alt(self) -> None:
+        """Alternatif ucun /v1/models listesini arka planda dene ve sonucu yaz."""
+        from rca.ai_client import AIClient
+        base = self.alt_base.get().strip() or C.NIM_BASE
+        key = self.alt_key.get().strip() or secrets.get_secret(secrets.KEY_ALT_API)
+        client = AIClient(base, api_key=key, model=self.alt_model.get().strip())
+        self.alt_status.configure(text=self.t("set.alt_checking"),
+                                  foreground=self.palette()["fg_dim"])
+
+        def job():
+            return client.models(force=True), client.last_error
+
+        def done(result):
+            models, err = result
+            p = self.palette()
+            if models:
+                self.alt_status.configure(
+                    text=f"{self.t('set.alt_ok')} · {len(models)} {self.t('set.models')}: "
+                         + ", ".join(models[:4]) + ("..." if len(models) > 4 else ""),
+                    foreground=p["ok"])
+            else:
+                self.alt_status.configure(text=f"{self.t('set.alt_fail')}: {err or base}",
+                                          foreground=p["warn"])
+        self.app.worker.run(job, done, lambda e: self.alt_status.configure(
+            text=f"{self.t('set.alt_fail')}: {e}", foreground=self.palette()["err"]))
+
+    def delete_alt_key(self) -> None:
+        """Kayitli anahtari gizli depodan sil."""
+        secrets.delete_secret(secrets.KEY_ALT_API)
+        self.alt_key.set("")
+        self.app.refresh_ai_clients()
+        self._refresh_key_state()
+        self.alt_status.configure(text=self.t("set.alt_key_deleted"),
+                                  foreground=self.palette()["fg_dim"])
+
     def open_data(self) -> None:
         """Veri klasorunu ac."""
         try:
@@ -282,6 +382,8 @@ class SettingsTab(LazyTab):
         code = next((l for l in LANGS if LANG_NAMES[l] == self.lang.get()), "tr")
         lang_changed = code != s.get("ui_lang")
         theme_changed = self.theme.get() != s.get("theme")
+        # politika etiketi ui_lang degismeden ONCE koda cevrilir (etiket eski dilde yazili)
+        policy = self._policy_code(self.dict_ai.get())
 
         s["ui_lang"] = code
         s["theme"] = self.theme.get()
@@ -292,12 +394,25 @@ class SettingsTab(LazyTab):
         s["ai_enabled"] = bool(self.ai_on.get())
         s["ai_base"] = self.ai_base.get().strip()
         s["ai_model"] = self.ai_model.get().strip()
-        s["nim_enabled"] = bool(self.nim_on.get())
+        s["alt_enabled"] = bool(self.alt_on.get())
+        s["nim_enabled"] = s["alt_enabled"]              # eski surumler icin ayni bayrak
+        s["alt_base"] = self.alt_base.get().strip() or C.NIM_BASE
+        s["alt_model"] = self.alt_model.get().strip()
+        s["dict_ai"] = policy
+        s["dict_ai_autosave"] = bool(self.dict_autosave.get())
+        # Anahtar yalnizca alan doluysa ve YALNIZCA gizli depoya yazilir (settings.json'a asla).
+        key_msg = ""
+        key = self.alt_key.get().strip()
+        if key:
+            secrets.set_secret(secrets.KEY_ALT_API, key)
+            self.alt_key.set("")
+            key_msg = "  " + self.t("set.alt_key_stored")
         C.save_settings(s)
 
         if self.app.speaker:
             self.app.speaker.set_rate(int(self.rate.get()))
-        self.app.ai.base = s["ai_base"].rstrip("/")
+        self.app.refresh_ai_clients()
+        self._refresh_key_state()
         self.repos.profiles.set_cefr(self.pid, s["cefr"])
 
         if lang_changed:
@@ -306,7 +421,7 @@ class SettingsTab(LazyTab):
             self.app.retheme()
         self.app.check_ai()
 
-        msg = self.u("Kaydedildi.")
+        msg = self.u("Kaydedildi.") + key_msg
         if theme_changed:
             restart = {
                 "tr": "  Temanin tam uygulanmasi icin programi yeniden baslatin.",

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Cift yonlu Rusca <-> Ingilizce sozluk.
 
-Uc katman birlesir:
+Dort katman birlesir:
 1. Gomulu cekirdek sozluk (`rca/dict_data.py`, ~1000 A1-B1 madde, vurgu isaretli).
 2. Kullanicinin ice aktardigi CSV/TSV maddeleri (SQLite `dict_entries` tablosu).
 3. Kaynak Merkezi'nden indirilen OpenRussian TSV dosyalari (varsa, on binlerce madde).
+4. AI'dan (LM Studio ya da alternatif OpenAI uyumlu uc) alinan yapisal maddeler;
+   istenirse `dict_entries` tablosuna "ai" kaynagiyla kaydedilir (`ai_lookup`).
 
 Arama iki yonde calisir: Kiril yazilirsa RU->EN, Latin yazilirsa EN->RU.
 Siralama: tam eslesme > kelime basi > icerme.
@@ -12,10 +14,11 @@ Siralama: tam eslesme > kelime basi > icerme.
 from __future__ import annotations
 
 import csv
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import rca_common as C
 
@@ -45,6 +48,7 @@ EXTRA_LABELS: Dict[str, Dict[str, str]] = {
 SOURCE_BUILTIN = "builtin"
 SOURCE_USER = "user"
 SOURCE_OPENRUSSIAN = "openrussian"
+SOURCE_AI = "ai"
 
 
 @dataclass(frozen=True)
@@ -57,6 +61,8 @@ class Entry:
     translation: str       # Ingilizce karsilik(lar), ';' ile ayrilmis
     source: str = SOURCE_BUILTIN
     marked: str = ""       # tum kelimeleri vurgu isaretli baslik (deyimler icin)
+    example: str = ""      # kisa Rusca ornek cumle (AI maddeleri)
+    note: str = ""         # kisa kullanim notu / tanim (AI maddeleri, arayuz dilinde)
 
     @property
     def display(self) -> str:
@@ -139,6 +145,11 @@ def _norm(text: str) -> str:
     return C.strip_stress((text or "").strip().lower().replace("ё", "е"))
 
 
+def norm_query(text: str) -> str:
+    """Sorgu / baslik karsilastirma anahtari: kucuk harf, vurgusuz, ё->е, kirpilmis."""
+    return _norm(text)
+
+
 _WORD_RE = re.compile(r"[a-zа-яё'\-]+", re.IGNORECASE)
 
 
@@ -157,13 +168,22 @@ class Dictionary:
     def extend(self, entries: Iterable[Entry]) -> int:
         added = 0
         for e in entries:
-            key = (_norm(e.headword), e.pos, _norm(e.translation))
+            key = self.key(e)
             if key in self._seen:
                 continue
             self._seen.add(key)
             self._entries.append(e)
             added += 1
         return added
+
+    @staticmethod
+    def key(e: Entry) -> tuple:
+        """Tekillik anahtari: (baslik, tur, ceviri) - vurgu ve buyuk/kucuk harf farksiz."""
+        return (_norm(e.headword), e.pos, _norm(e.translation))
+
+    def contains(self, e: Entry) -> bool:
+        """Ayni madde (kaynagindan bagimsiz) sozlukte zaten var mi?"""
+        return self.key(e) in self._seen
 
     def remove_source(self, source: str) -> None:
         keep = [e for e in self._entries if e.source != source]
@@ -325,6 +345,212 @@ def openrussian_dir() -> Path:
 
 
 # --------------------------------------------------------------------------
+# AI sozluk sorgusu (yapisal JSON)
+# --------------------------------------------------------------------------
+AI_TIMEOUT = 90.0
+AI_MAX_ENTRIES = 5
+_AI_LIMITS = {"headword": 80, "translation": 240, "example": 300, "note": 400}
+_AI_NOTE_LANG = {"tr": "Turkish", "en": "English", "ru": "Russian"}
+_POS_ALIASES = {
+    "noun": "n", "verb": "v", "adjective": "adj", "adverb": "adv", "pronoun": "pron",
+    "preposition": "prep", "conjunction": "conj", "numeral": "num", "number": "num",
+    "particle": "part", "interjection": "int", "interj": "int", "phrase": "phr",
+    "expression": "phr", "idiom": "phr", "article": "phr",
+    "сущ": "n", "существительное": "n", "глаг": "v", "глагол": "v", "прил": "adj",
+    "прилагательное": "adj", "нареч": "adv", "наречие": "adv", "мест": "pron",
+    "местоимение": "pron", "предл": "prep", "предлог": "prep", "союз": "conj",
+    "числ": "num", "числительное": "num", "част": "part", "частица": "part",
+    "межд": "int", "междометие": "int", "фраза": "phr",
+    "isim": "n", "fiil": "v", "sifat": "adj", "zarf": "adv", "zamir": "pron",
+    "edat": "prep", "baglac": "conj", "sayi": "num", "unlem": "int", "deyim": "phr",
+}
+_EXTRA_ALIASES = {
+    "masc": "m", "masculine": "m", "м": "m", "м.р": "m", "мужской": "m", "eril": "m",
+    "fem": "f", "feminine": "f", "ж": "f", "ж.р": "f", "женский": "f", "disil": "f",
+    "neut": "n", "neuter": "n", "с": "n", "с.р": "n", "средний": "n", "notr": "n",
+    "plural": "pl", "pl.": "pl", "мн": "pl", "мн.ч": "pl", "cogul": "pl",
+    "impf": "ipf", "imperf": "ipf", "imperfective": "ipf", "несов": "ipf", "нсв": "ipf",
+    "perf": "pf", "perfective": "pf", "сов": "pf", "св": "pf",
+}
+_STRESSED_APOSTROPHE_RE = re.compile(r"[аеёиоуыэюя]'", re.IGNORECASE)
+_QUOTE_CHARS = " \"`«»"
+
+
+def _clean_headword(head: str) -> str:
+    """Modelin basliga sardigi tirnak / bosluklari at; VURGU isaretini koru.
+
+    Kesme isareti bu sozlugun vurgu isaretidir ve son hecesi vurgulu kelimelerde
+    (хорошо', вода', она') basligin SON karakteridir - sagdan korunmesi gerekir.
+    Sesliden sonra gelmeyen bir son kesme (дом') ya da basta olan kesme ('она')
+    vurgu olamaz; onlar tirnak sayilip atilir.
+    """
+    head = head.strip(_QUOTE_CHARS).lstrip("'")
+    while head.endswith("''"):                                  # 'хорошо'' -> хорошо'
+        head = head[:-1]
+    if head.endswith("'") and not _STRESSED_APOSTROPHE_RE.search(head[-2:]):
+        head = head[:-1].rstrip(_QUOTE_CHARS)
+    return head
+
+
+def ai_prompt(query: str, ui_lang: str = "tr") -> Tuple[str, str]:
+    """AI icin (sistem yonergesi, kullanici mesaji) cifti. Yanit yalnizca JSON dizisi olmali."""
+    direction = Dictionary.direction(query)
+    note_lang = _AI_NOTE_LANG.get(ui_lang, "Turkish")
+    system = (
+        "You are a precise Russian-English dictionary engine. You answer ONLY with a JSON array - "
+        "no prose, no markdown, no code fences, nothing before or after the array.\n"
+        "Each element is an object with exactly these keys:\n"
+        '  "headword": the Russian dictionary form (nominative singular for nouns, infinitive for '
+        "verbs) in Cyrillic, with an apostrophe placed immediately AFTER the stressed vowel, e.g. "
+        "приве'т, кни'га, говори'ть, хорошо'. One-syllable words and words containing ё take no "
+        "apostrophe. In multi-word phrases mark the stress of every word.\n"
+        '  "pos": one of n v adj adv pron prep conj num part int phr\n'
+        '  "extra": for nouns the gender m / f / n (pl for plural-only nouns); for verbs the aspect '
+        'ipf / pf; for everything else "".\n'
+        '  "translation": the English meanings, senses separated by "; " (for example "house; home").\n'
+        '  "example": one short natural Russian sentence in Cyrillic that uses the word (no stress marks).\n'
+        f'  "note": a short usage note or definition written in {note_lang} (at most 25 words).\n'
+        "Return between 1 and 5 objects, the most common sense or word first.\n"
+        "The query may be Russian or English (or occasionally another language written in Latin "
+        "letters). If the query is Russian, describe that word in its dictionary form. If it is not "
+        "Russian, return the Russian words that translate it. Never invent words; when unsure return "
+        "fewer entries. If the query is not a real word or phrase, return []."
+    )
+    user = (f"Query: {query.strip()}\n"
+            f"Query script: {'Cyrillic (Russian)' if direction == 'ru2en' else 'Latin (probably English)'}\n"
+            "JSON array:")
+    return system, user
+
+
+def _ai_str(obj: Dict[str, Any], key: str) -> str:
+    val = obj.get(key, "")
+    if val is None:
+        return ""
+    if isinstance(val, (list, tuple)):
+        val = "; ".join(str(v) for v in val if v is not None)
+    if not isinstance(val, str):
+        val = str(val)
+    val = re.sub(r"\s+", " ", val).strip()
+    limit = _AI_LIMITS.get(key)
+    return val[:limit] if limit else val
+
+
+def normalize_pos(pos: str) -> str:
+    """Model ciktisindaki tur etiketini sozlugun kodlarina indirge (bilinmeyen -> phr)."""
+    p = (pos or "").strip().lower().rstrip(".")
+    if p in POS_LABELS:
+        return p
+    p2 = _POS_ALIASES.get(p) or _POS_ALIASES.get(p.split()[0] if p else "")
+    if p2:
+        return p2
+    for key, code in _POS_ALIASES.items():
+        if p.startswith(key):
+            return code
+    return "phr"
+
+
+def normalize_extra(extra: str, pos: str) -> str:
+    """Cins / gorunus etiketini m f n pl ipf pf kumesine indirge (uyumsuz -> bos)."""
+    x = (extra or "").strip().lower().rstrip(".")
+    x = x.replace("ё", "е")
+    if x not in EXTRA_LABELS:
+        x = _EXTRA_ALIASES.get(x, _EXTRA_ALIASES.get(x.split()[0] if x else "", ""))
+    if pos == "n":
+        return x if x in ("m", "f", "n", "pl") else ""
+    if pos == "v":
+        return x if x in ("ipf", "pf") else ""
+    return ""                                   # gomulu veri kurali: cins/gorunus yalnizca isim ve fiilde
+
+
+def _extract_json_array(text: str) -> Optional[Any]:
+    """Kod citlerini at, ilk '[' ile son ']' arasini JSON olarak coz; olmazsa None."""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    raw = re.sub(r"^\s*```[a-zA-Z]*\s*", "", raw)
+    raw = re.sub(r"\s*```\s*$", "", raw)
+    start, end = raw.find("["), raw.rfind("]")
+    candidates = []
+    if start >= 0 and end > start:
+        candidates.append(raw[start:end + 1])
+    s2, e2 = raw.find("{"), raw.rfind("}")
+    if s2 >= 0 and e2 > s2:
+        candidates.append(raw[s2:e2 + 1])
+    for cand in candidates:
+        for attempt in (cand, re.sub(r",\s*([\]}])", r"\1", cand)):
+            try:
+                return json.loads(attempt)
+            except ValueError:
+                continue
+    return None
+
+
+def parse_ai_entries(text: str, limit: int = AI_MAX_ENTRIES) -> List[Entry]:
+    """Model ciktisini Entry listesine cevir. Cop ciktida istisna YOK: bos liste."""
+    try:
+        data = _extract_json_array(text)
+    except Exception:                                           # noqa: BLE001
+        return []
+    if isinstance(data, dict):
+        inner = data.get("entries") or data.get("results") or data.get("items")
+        data = inner if isinstance(inner, list) else [data]
+    if not isinstance(data, list):
+        return []
+    out: List[Entry] = []
+    seen = set()
+    for obj in data:
+        if not isinstance(obj, dict):
+            continue
+        try:
+            head = _ai_str(obj, "headword") or _ai_str(obj, "word") or _ai_str(obj, "ru")
+            trans = _ai_str(obj, "translation") or _ai_str(obj, "en") or _ai_str(obj, "meaning")
+            if head and trans and not C.has_cyrillic(head) and C.has_cyrillic(trans):
+                head, trans = trans, head                       # yon karistiysa duzelt
+            head = _clean_headword(head)
+            if not head or not trans or not C.has_cyrillic(head):
+                continue
+            head = head[:_AI_LIMITS["headword"]]
+            pos = normalize_pos(_ai_str(obj, "pos"))
+            extra = normalize_extra(_ai_str(obj, "extra") or _ai_str(obj, "gender")
+                                    or _ai_str(obj, "aspect"), pos)
+            example = _ai_str(obj, "example")
+            if example and _STRESSED_APOSTROPHE_RE.search(example):
+                example = mark_all(example)
+            note = _ai_str(obj, "note") or _ai_str(obj, "definition")
+            word, stress = split_stress(head)
+            if not word:
+                continue
+            key = (_norm(word), pos, _norm(trans))
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(Entry(word, stress, pos, extra, trans, SOURCE_AI, mark_all(head),
+                             example, note))
+        except Exception:                                       # noqa: BLE001
+            continue
+        if len(out) >= limit:
+            break
+    return out
+
+
+def ai_lookup(client, query: str, ui_lang: str = "tr", model: str = "") -> List[Entry]:
+    """Sorguyu AI'a sor ve yapisal maddeleri dondur.
+
+    Baglanti / model hatasi (AIError) cagirana yayilir ki sekme cevrimdisi
+    mesajini gosterebilsin; anlamsiz cikti ise sessizce bos liste olur.
+    """
+    query = (query or "").strip()
+    if not query or client is None:
+        return []
+    system, user = ai_prompt(query, ui_lang)
+    text = client.chat([{"role": "system", "content": system},
+                        {"role": "user", "content": user}],
+                       task="dictionary", temperature=0.1, max_tokens=900,
+                       model=model or None, timeout=AI_TIMEOUT)
+    return parse_ai_entries(text)
+
+
+# --------------------------------------------------------------------------
 # Fabrika
 # --------------------------------------------------------------------------
 def builtin_entries() -> List[Entry]:
@@ -332,15 +558,37 @@ def builtin_entries() -> List[Entry]:
     return parse_block(DATA, SOURCE_BUILTIN)
 
 
+def _row_field(row, index: int, key: str, default: str = "") -> str:
+    """Satir demet ya da sozluk olabilir (DictRepo.all() sozluk dondurur)."""
+    if isinstance(row, dict):
+        val = row.get(key, default)
+    else:
+        val = row[index] if len(row) > index else default
+    return val if val is not None else default
+
+
 def build_dictionary(user_rows: Iterable[Sequence] = ()) -> Dictionary:
-    """Gomulu + kullanici maddelerinden sozluk kur (OpenRussian ayrica yuklenir)."""
+    """Gomulu + kullanici/AI maddelerinden sozluk kur (OpenRussian ayrica yuklenir).
+
+    Satirlar `(ru, en[, pos[, extra[, source[, example[, note]]]]])` demetleri ya da
+    `dict_entries` sozlukleri olabilir; saklanan "source" degeri Entry.source'a
+    ("user" / "ai") aktarilir ki sekme maddeleri etiketleyebilsin.
+    """
     d = Dictionary(builtin_entries())
     users = []
     for r in user_rows:
-        ru, en = r[0], r[1]
-        pos = r[2] if len(r) > 2 else ""
-        extra = r[3] if len(r) > 3 else ""
+        ru, en = _row_field(r, 0, "ru"), _row_field(r, 1, "en")
+        if not ru or not en:
+            continue
+        pos = _row_field(r, 2, "pos")
+        extra = _row_field(r, 3, "extra")
+        source = _row_field(r, 4, "source", SOURCE_USER) or SOURCE_USER
+        if source not in (SOURCE_USER, SOURCE_AI):
+            source = SOURCE_USER
+        example = _row_field(r, 5, "example")
+        note = _row_field(r, 6, "note")
         word, stress = split_stress(ru)
-        users.append(Entry(word, stress, pos or "", extra or "", en, SOURCE_USER, mark_all(ru)))
+        users.append(Entry(word, stress, pos or "", extra or "", en, source, mark_all(ru),
+                           example or "", note or ""))
     d.extend(users)
     return d

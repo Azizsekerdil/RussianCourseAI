@@ -303,7 +303,7 @@ Ingilizce ile doldurulur ki kartlar hemen calissin; sonradan duzenleyebilirsiniz
 python -m pytest tests -q
 ```
 
-130 test: SM-2 aralik hesabi, RU<->EN sozluk motoru (veri butunlugu, iki yonlu arama, ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
+136 test: SM-2 aralik hesabi, RU<->EN sozluk motoru (veri butunlugu, iki yonlu arama, ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
 repositoryleri, metin normalizasyonu (ё / vurgu), gomulu icerik tutarliligi,
 uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi ve pencere/sayfa duman testi.
 Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz.

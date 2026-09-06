@@ -102,6 +102,25 @@ def split_stress(marked: str) -> tuple:
     return word, pos
 
 
+def repair_stress(marked: str) -> str:
+    """Sessiz harften sonraya konmus vurgu isaretini ayni kelimedeki en yakin onceki sesliye tasi.
+
+    Modeller bazen dumskrol'ling gibi yazar; dogru bicim dumskro'lling'dir. Onunde sesli
+    bulunmayan isaret atilir. Sesliden sonraki isaretler oldugu gibi kalir.
+    """
+    out: List[str] = []
+    for ch in marked or "":
+        if ch in _STRESS_MARKS:
+            i = len(out) - 1
+            while i >= 0 and out[i] not in _STRESS_MARKS and out[i] != " " and out[i].lower() not in C.VOWELS:
+                i -= 1
+            if i >= 0 and out[i].lower() in C.VOWELS:
+                out.insert(i + 1, "'")
+            continue
+        out.append(ch)
+    return "".join(out)
+
+
 def mark_all(marked: str) -> str:
     """Tum tirnak isaretlerini birlesik akut vurguya cevir (ё isaretlenmez)."""
     out: List[str] = []
@@ -349,6 +368,7 @@ def openrussian_dir() -> Path:
 # --------------------------------------------------------------------------
 AI_TIMEOUT = 90.0
 AI_MAX_ENTRIES = 5
+AI_MAX_TOKENS = 1200
 _AI_LIMITS = {"headword": 80, "translation": 240, "example": 300, "note": 400}
 _AI_NOTE_LANG = {"tr": "Turkish", "en": "English", "ru": "Russian"}
 _POS_ALIASES = {
@@ -506,7 +526,7 @@ def parse_ai_entries(text: str, limit: int = AI_MAX_ENTRIES) -> List[Entry]:
             trans = _ai_str(obj, "translation") or _ai_str(obj, "en") or _ai_str(obj, "meaning")
             if head and trans and not C.has_cyrillic(head) and C.has_cyrillic(trans):
                 head, trans = trans, head                       # yon karistiysa duzelt
-            head = _clean_headword(head)
+            head = repair_stress(_clean_headword(head))
             if not head or not trans or not C.has_cyrillic(head):
                 continue
             head = head[:_AI_LIMITS["headword"]]
@@ -515,7 +535,7 @@ def parse_ai_entries(text: str, limit: int = AI_MAX_ENTRIES) -> List[Entry]:
                                     or _ai_str(obj, "aspect"), pos)
             example = _ai_str(obj, "example")
             if example and _STRESSED_APOSTROPHE_RE.search(example):
-                example = mark_all(example)
+                example = mark_all(repair_stress(example))
             note = _ai_str(obj, "note") or _ai_str(obj, "definition")
             word, stress = split_stress(head)
             if not word:
@@ -543,11 +563,20 @@ def ai_lookup(client, query: str, ui_lang: str = "tr", model: str = "") -> List[
     if not query or client is None:
         return []
     system, user = ai_prompt(query, ui_lang)
-    text = client.chat([{"role": "system", "content": system},
-                        {"role": "user", "content": user}],
-                       task="dictionary", temperature=0.1, max_tokens=900,
-                       model=model or None, timeout=AI_TIMEOUT)
-    return parse_ai_entries(text)
+    messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+    # Dusunen modellerde (gemma-4, qwen3...) akil yurutme metni butceyi yiyip icerigi bos
+    # birakabilir; yerel sunucuya "dusunme" isteyen alan gonderilir (tanimayan sunucu 400
+    # verirse istemci alani atip yineler). Yine de bos + kesik yanit gelirse butce uc kat
+    # artirilarak bir kez daha denenir.
+    extra = {"reasoning_effort": "none"} if getattr(client, "is_local", False) else None
+    text = client.chat(messages, task="dictionary", temperature=0.1, max_tokens=AI_MAX_TOKENS,
+                       model=model or None, timeout=AI_TIMEOUT, extra=extra)
+    entries = parse_ai_entries(text)
+    if not entries and getattr(client, "last_finish_reason", "") == "length":
+        text = client.chat(messages, task="dictionary", temperature=0.1, max_tokens=AI_MAX_TOKENS * 3,
+                           model=model or None, timeout=AI_TIMEOUT * 2, extra=extra)
+        entries = parse_ai_entries(text)
+    return entries
 
 
 # --------------------------------------------------------------------------

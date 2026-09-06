@@ -143,8 +143,8 @@ DICT_AI_POLICIES = ("auto", "local", "alt", "off")
 
 # gorev -> tercih edilen model listesi (ilk kurulu olan secilir)
 MODEL_PROFILES: Dict[str, list] = {
-    "chat":      ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct", "llama-3.1-8b-instruct"],
-    "dictionary": ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct", "llama-3.1-8b-instruct"],
+    "chat":      ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct", "llama-3.1-8b-instruct", "gemma-4-12b-qat", "qwen3.6-35b-a3b"],
+    "dictionary": ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct", "gemma-4-12b-qat", "llama-3.1-8b-instruct", "qwen3.6-35b-a3b"],
     "grammar":   ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct"],
     "translate": ["qwen2.5-7b-instruct", "gemma-2-9b-it"],
     "correct":   ["qwen2.5-7b-instruct", "qwen2.5-14b-instruct"],

@@ -261,3 +261,94 @@ def test_settings_defaults_and_nim_migration(tmp_path, monkeypatch):
                                                     "dict_ai": "bogus"}), encoding="utf-8")
     data = C.load_settings()
     assert data["alt_enabled"] is False and data["dict_ai"] == "auto"
+
+
+def test_rank_models_skips_specialist_models_and_prefers_fitting_general_models():
+    from rca import ai_client as A
+    installed = ["qwen/qwen3.6-35b-a3b", "google/gemma-4-12b-qat", "qwen/qwen3-vl-8b", "biomistral-7b",
+                 "qwen2.5-math-7b-instruct", "moondream-2b-2025-04-14", "text-embedding-nomic-embed-text-v1.5"]
+    ranked = A.rank_models(installed, "dictionary")
+    assert ranked[0] == "google/gemma-4-12b-qat"                 # genel, 4-16B, sigar
+    assert "qwen2.5-math-7b-instruct" not in ranked              # matematik modeli sozluk icin secilmez
+    assert "text-embedding-nomic-embed-text-v1.5" not in ranked
+    assert A.rank_models(["text-embedding-x"], "chat") == ["text-embedding-x"]   # baska secenek yoksa yine de dondur
+    assert A.rank_models(["qwen2.5-7b-instruct", "gemma-4-12b-qat"], "chat")[0] == "qwen2.5-7b-instruct"  # tam tercih once
+    assert A.model_size_b("qwen/qwen3.6-35b-a3b") == 35.0 and A.model_size_b("gemma-4-12b-qat") == 12.0
+    assert A.is_specialist("qwen/qwen3-vl-8b") and not A.is_specialist("google/gemma-4-12b-qat")
+
+
+# --------------------------------------------------------------------------
+# Dusunen modeller (gemma-4 / qwen3): reasoning_effort alani, kesik yanit yinelemesi, vurgu onarimi
+# --------------------------------------------------------------------------
+def _client_for(mock_server, **kw):
+    from rca import ai_client as A
+    return A.AIClient(mock_server.base, **kw)
+
+
+def test_local_client_sends_reasoning_off_and_records_finish_reason(mock_server):
+    import json
+    from rca import dictionary as D
+    mock_server.reset(); mock_server.reasoning_tokens = 3
+    client = _client_for(mock_server)
+    assert client.is_local
+    entries = D.ai_lookup(client, "думскроллинг", "tr")
+    assert entries and entries[0].source == D.SOURCE_AI
+    body = json.loads(mock_server.chat_requests()[-1]["body"])
+    assert body.get("reasoning_effort") == "none" and body["max_tokens"] == D.AI_MAX_TOKENS
+    assert client.last_finish_reason == "stop" and client.last_reasoning_tokens == 3
+
+
+def test_remote_client_does_not_send_reasoning_field(mock_server):
+    import json
+    from rca import ai_client as A
+    from rca import dictionary as D
+    mock_server.reset()
+
+    class RemoteClient(A.AIClient):              # uzak uc taklidi (anahtarli, yerel degil)
+        is_local = property(lambda self: False)
+
+    client = RemoteClient(mock_server.base, api_key="k")
+    assert D.ai_lookup(client, "кошка", "tr")
+    body = json.loads(mock_server.chat_requests()[-1]["body"])
+    assert "reasoning_effort" not in body
+    assert A.AIClient(mock_server.base).is_local        # sinif ozelligi bozulmadi
+
+
+def test_server_rejecting_extra_fields_gets_a_retry_without_them(mock_server):
+    import json
+    from rca import dictionary as D
+    mock_server.reset(); mock_server.reject_fields = {"reasoning_effort"}
+    client = _client_for(mock_server)
+    entries = D.ai_lookup(client, "думскроллинг", "tr")
+    assert entries, "400 sonrasi ek alansiz yineleme basarili olmali"
+    reqs = mock_server.chat_requests()
+    assert len(reqs) == 2
+    assert "reasoning_effort" in json.loads(reqs[0]["body"]) and "reasoning_effort" not in json.loads(reqs[1]["body"])
+
+
+def test_truncated_empty_answer_is_retried_with_a_bigger_budget(mock_server):
+    import json
+    from rca import dictionary as D
+    mock_server.reset()
+    mock_server.queue = [("", "length"), (mock_server.content, "stop")]
+    client = _client_for(mock_server)
+    entries = D.ai_lookup(client, "прокрастинировать", "tr")
+    assert entries
+    reqs = mock_server.chat_requests()
+    assert len(reqs) == 2
+    assert json.loads(reqs[1]["body"])["max_tokens"] == D.AI_MAX_TOKENS * 3
+    # kesik olmayan bos yanit yinelenmez
+    mock_server.reset(); mock_server.queue = [("Sorry, I cannot help.", "stop")]
+    assert D.ai_lookup(client, "прокрастинировать", "tr") == [] and len(mock_server.chat_requests()) == 1
+
+
+def test_repair_stress_moves_marks_off_consonants():
+    from rca import dictionary as D
+    assert D.repair_stress("думскрол'линг") == "думскро'ллинг"
+    assert D.mark_all(D.repair_stress("думскрол'линг")) == "думскро́ллинг"
+    assert D.repair_stress("приве'т") == "приве'т" and D.repair_stress("хорошо'") == "хорошо'"
+    assert D.repair_stress("дом'") == "до'м" and D.repair_stress("'она") == "она"
+    assert D.repair_stress("откладыва'ть на пото'м") == "откладыва'ть на пото'м"
+    entries = D.parse_ai_entries('[{"headword": "думскрол\'линг", "pos": "n", "extra": "m", '
+                                 '"translation": "doomscrolling", "example": "Он часами занимается думскроллингом."}]')
+    assert entries and entries[0].display == "думскро́ллинг" and entries[0].headword == "думскроллинг"

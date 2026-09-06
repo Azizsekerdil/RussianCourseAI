@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -26,6 +27,49 @@ REACH_CACHE_S = 30.0                       # erisilebilirlik sonucu bu kadar sur
 
 class AIError(Exception):
     """AI katmanindaki beklenen hatalar (baglanti yok, model yok...)."""
+
+
+# Metin gorevleri icin uygun OLMAYAN model adi parcalari (gomme, matematik, gorsel, tibbi...).
+_SPECIALIST_HINTS = ("embed", "embedding", "rerank", "math", "coder", "code-", "moondream", "llava",
+                     "-vl", "vision", "bio", "medic", "whisper", "tts", "audio", "clip", "sd-", "stable-diffusion")
+_SIZE_RE = re.compile(r"(\d+(?:\.\d+)?)\s*b(?![a-z0-9])", re.IGNORECASE)
+
+
+def model_size_b(name: str) -> float:
+    """Model adindaki parametre sayisini (milyar) tahmin et; bulunamazsa 0."""
+    sizes = [float(x) for x in _SIZE_RE.findall(name or "")]
+    return max(sizes) if sizes else 0.0
+
+
+def is_specialist(name: str) -> bool:
+    """Sozluk/sohbet gibi metin gorevleri icin uygun olmayan bir model mi?"""
+    low = (name or "").lower()
+    return any(h in low for h in _SPECIALIST_HINTS)
+
+
+def rank_models(installed: List[str], task: str = "chat") -> List[str]:
+    """Kurulu modelleri gorev icin uygunluk sirasina koy (en iyisi basta).
+
+    Siralama: profil listesindeki tam eslesme > profil ailesi (qwen, llama...) >
+    genel model. Gomme/matematik/gorsel gibi uzman modeller yalnizca baska
+    secenek yoksa listeye girer. Es durumda 4-16B arasi (tipik bir bilgisayara
+    sigan) modeller once, cok buyuk modeller sonra gelir.
+    """
+    prefs = [p.lower() for p in C.MODEL_PROFILES.get(task, C.MODEL_PROFILES["chat"])]
+    families = [p.split("-")[0].split("/")[-1] for p in prefs]
+
+    def key(name: str):
+        low = name.lower()
+        exact = 0 if low in prefs else 1
+        family = 0 if any(f and f in low for f in families) else 1
+        size = model_size_b(low)
+        bucket = 0 if 4 <= size <= 16 else (1 if size and size < 4 else (2 if size else 1))
+        chatty = 0 if any(k in low for k in ("instruct", "-it", "chat", "assistant")) else 1
+        return (exact, family, bucket, chatty, installed.index(name))
+
+    general = [m for m in installed if not is_specialist(m)]
+    pool = general or list(installed)
+    return sorted(pool, key=key)
 
 
 class AIClient:
@@ -128,35 +172,39 @@ class AIClient:
         installed = self.models()
         if not installed:
             return None
-        prefs = C.MODEL_PROFILES.get(task, C.MODEL_PROFILES["chat"])
-        low = {m.lower(): m for m in installed}
-        for p in prefs:
-            if p.lower() in low:
-                return low[p.lower()]
-        for p in prefs:
-            for m in installed:
-                if p.split("-")[0].lower() in m.lower():
-                    return m
         if task == "vision":
             for m in installed:
-                if any(k in m.lower() for k in ("vl", "vision", "llava")):
+                if any(k in m.lower() for k in ("vl", "vision", "llava", "moondream")):
                     return m
             return None                      # gorsel modeli yoksa zorlamayiz
-        return installed[0]
+        ranked = rank_models(installed, task)
+        return ranked[0] if ranked else None
 
     # -- sohbet ------------------------------------------------------------
+    @property
+    def is_local(self) -> bool:
+        """Yerel / ozel ag adresi mi (LM Studio, Ollama...)? Anahtar gerektirmez."""
+        return not needs_key(self.base)
+
     def chat(self, messages: List[Dict[str, str]], task: str = "chat",
              temperature: float = 0.3, max_tokens: int = 800,
-             model: str = None, timeout: float = None) -> str:
+             model: str = None, timeout: float = None,
+             extra: Dict[str, Any] = None) -> str:
         """Sohbet tamamlama iste ve yalnizca metni dondur.
 
         Baglanti yoksa veya model bulunamazsa AIError firlatir - cagiran taraf
-        bunu kullaniciya sakin bir mesajla gosterir.
+        bunu kullaniciya sakin bir mesajla gosterir. `extra` istek govdesine
+        eklenen ek alanlardir (orn. reasoning_effort); sunucu bunlari 400 ile
+        reddederse istek bir kez onlarsiz yinelenir. Son yanitin bitis nedeni
+        `last_finish_reason`, akil yurutme token sayisi `last_reasoning_tokens`
+        alanlarinda tutulur (dusunen modellerde bos icerigi ayirt etmek icin).
         """
         mdl = model or self.resolve(task)
         if not mdl:
             raise AIError("model-yok")
         self.last_model = mdl
+        self.last_finish_reason = ""
+        self.last_reasoning_tokens = 0
         payload = {
             "model": mdl,
             "messages": messages,
@@ -164,14 +212,23 @@ class AIClient:
             "max_tokens": max_tokens,
             "stream": False,
         }
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        req = urllib.request.Request(
-            f"{self.base}/v1/chat/completions", data=body,
-            headers=self._headers({"Content-Type": "application/json"}))
+        if extra:
+            payload.update(extra)
         t0 = time.time()
         try:
-            with urllib.request.urlopen(req, timeout=timeout or TIMEOUT_CHAT) as r:
-                data = json.loads(r.read().decode("utf-8"))
+            data = self._post_chat(payload, timeout)
+        except urllib.error.HTTPError as e:
+            if extra and e.code in (400, 422):                 # ek alanlari tanimayan sunucu
+                for k in extra:
+                    payload.pop(k, None)
+                try:
+                    data = self._post_chat(payload, timeout)
+                except Exception as e2:                        # noqa: BLE001
+                    self._log(mdl, task, 0, 0, int((time.time() - t0) * 1000), False)
+                    raise AIError(str(e2)) from e2
+            else:
+                self._log(mdl, task, 0, 0, int((time.time() - t0) * 1000), False)
+                raise AIError(f"http {e.code}: {e.reason}") from e
         except urllib.error.URLError as e:
             self._log(mdl, task, 0, 0, int((time.time() - t0) * 1000), False)
             raise AIError(f"baglanti: {e}") from e
@@ -181,12 +238,25 @@ class AIClient:
 
         ms = int((time.time() - t0) * 1000)
         usage = data.get("usage") or {}
+        details = usage.get("completion_tokens_details") or {}
+        self.last_reasoning_tokens = int(details.get("reasoning_tokens") or 0)
         self._log(mdl, task, int(usage.get("prompt_tokens", 0)),
                   int(usage.get("completion_tokens", 0)), ms, True)
         try:
-            return (data["choices"][0]["message"]["content"] or "").strip()
+            choice = data["choices"][0]
+            self.last_finish_reason = str(choice.get("finish_reason") or "")
+            return (choice["message"]["content"] or "").strip()
         except Exception:
             return ""
+
+    def _post_chat(self, payload: Dict[str, Any], timeout: float = None) -> Dict[str, Any]:
+        """Tek bir chat/completions POST'u; HTTP hatalarini oldugu gibi yukari atar."""
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        req = urllib.request.Request(
+            f"{self.base}/v1/chat/completions", data=body,
+            headers=self._headers({"Content-Type": "application/json"}))
+        with urllib.request.urlopen(req, timeout=timeout or TIMEOUT_CHAT) as r:
+            return json.loads(r.read().decode("utf-8"))
 
     def _log(self, model: str, task: str, ptok: int, ctok: int, ms: int, ok: bool) -> None:
         """Token defterine yaz (istek metni yazilmaz)."""

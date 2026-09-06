@@ -55,6 +55,10 @@ class MockOpenAIServer:
         self.content = DEFAULT_CONTENT
         self.model_ids = ["mock-model"]
         self.delay = 0.0            # sohbet yaniti bu kadar saniye geciktirilir (yaris testleri)
+        self.finish_reason = "stop"  # sohbet yanitinin bitis nedeni ("length" = kesik yanit)
+        self.reasoning_tokens = 0    # dusunen model taklidi: usage.completion_tokens_details
+        self.reject_fields = set()   # istek govdesinde bu alanlardan biri varsa 400 dondur
+        self.queue: list = []        # sirayla verilecek (content, finish_reason) ciftleri; bosalinca .content
         self.lock = threading.Lock()
         outer = self
 
@@ -89,12 +93,22 @@ class MockOpenAIServer:
                         req = {}
                     if outer.delay:
                         time.sleep(outer.delay)
+                    bad = sorted(k for k in outer.reject_fields if k in req)
+                    if bad:
+                        self._send(400, {"error": {"message": f"Unrecognized request argument: {bad[0]}"}})
+                        return
+                    with outer.lock:
+                        content, finish = (outer.queue.pop(0) if outer.queue
+                                           else (outer.content, outer.finish_reason))
+                    usage = {"prompt_tokens": 42, "completion_tokens": 21, "total_tokens": 63}
+                    if outer.reasoning_tokens:
+                        usage["completion_tokens_details"] = {"reasoning_tokens": outer.reasoning_tokens}
                     self._send(200, {
                         "id": "chatcmpl-mock", "object": "chat.completion",
                         "model": req.get("model", "mock-model"),
-                        "choices": [{"index": 0, "finish_reason": "stop",
-                                     "message": {"role": "assistant", "content": outer.content}}],
-                        "usage": {"prompt_tokens": 42, "completion_tokens": 21, "total_tokens": 63},
+                        "choices": [{"index": 0, "finish_reason": finish,
+                                     "message": {"role": "assistant", "content": content}}],
+                        "usage": usage,
                     })
                 else:
                     self._send(404, {"error": "not found"})
@@ -128,6 +142,10 @@ class MockOpenAIServer:
     def reset(self) -> None:
         with self.lock:
             self.requests.clear()
+            self.queue.clear()
+        self.finish_reason = "stop"
+        self.reasoning_tokens = 0
+        self.reject_fields = set()
         self.content = DEFAULT_CONTENT
         self.model_ids = ["mock-model"]
         self.delay = 0.0

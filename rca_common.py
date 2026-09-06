@@ -20,7 +20,7 @@ from typing import Any, Dict
 # --------------------------------------------------------------------------
 APP_NAME = "Russian Course AI"
 APP_SLUG = "RussianCourseAI"
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 TARGET_LANG = "ru"          # hedef dil kodu (baska dile uyarlamak icin tek nokta)
 TARGET_LANG_NAME = "Rusca"
 

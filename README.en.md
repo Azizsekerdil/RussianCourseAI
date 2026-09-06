@@ -121,7 +121,7 @@ with autosave disabled, a selected AI entry can be saved with one click.
 python -m pytest -q
 ```
 
-The test suite (136 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN dictionary engine,
+The test suite (137 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN dictionary engine,
 the AI dictionary layer (a mock OpenAI-compatible server, provider resolution, the secrets store),
 content packages, multilingual text integrity, and UI smoke flows. No test touches the network,
 LM Studio, or Windows Credential Manager.

@@ -352,3 +352,9 @@ def test_repair_stress_moves_marks_off_consonants():
     entries = D.parse_ai_entries('[{"headword": "думскрол\'линг", "pos": "n", "extra": "m", '
                                  '"translation": "doomscrolling", "example": "Он часами занимается думскроллингом."}]')
     assert entries and entries[0].display == "думскро́ллинг" and entries[0].headword == "думскроллинг"
+
+
+def test_ai_translation_senses_are_deduplicated():
+    from rca import dictionary as D
+    entries = D.parse_ai_entries('[{"headword": "тест", "pos": "n", "extra": "m", "translation": "test; trial; test"}]')
+    assert entries and entries[0].translation == "test; trial"

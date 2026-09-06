@@ -527,6 +527,7 @@ def parse_ai_entries(text: str, limit: int = AI_MAX_ENTRIES) -> List[Entry]:
             if head and trans and not C.has_cyrillic(head) and C.has_cyrillic(trans):
                 head, trans = trans, head                       # yon karistiysa duzelt
             head = repair_stress(_clean_headword(head))
+            trans = "; ".join(dict.fromkeys(t.strip() for t in trans.split(";") if t.strip()))   # tekrar eden anlamlari at
             if not head or not trans or not C.has_cyrillic(head):
                 continue
             head = head[:_AI_LIMITS["headword"]]

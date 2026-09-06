@@ -232,10 +232,10 @@ async function main() {
     line(slide, "privacy-divider", 638, 212, 0, C.rule, 1).position = { left: 638, top: 212, width: 0, height: 350 };
     text(slide, "local-label", "LOCAL CORE", 62, 230, 470, 22, 14, { bold: true, color: C.blue });
     text(slide, "local-head", "Study data stays on your machine", 62, 280, 500, 72, 31, { bold: true });
-    text(slide, "local-copy", "İlerleme SQLite içinde yerel saklanır.\nAI, LM Studio üzerinden yerelde çalışabilir.\n\nПрогресс хранится локально в SQLite.\nИИ может работать локально через LM Studio.", 62, 382, 500, 170, 19, { color: C.muted });
+    text(slide, "local-copy", "İlerleme SQLite içinde yerel saklanır.\nSözlük ve AI öğretmen LM Studio ile yerelde çalışır.\n\nПрогресс хранится локально в SQLite.\nСловарь и ИИ работают локально через LM Studio.", 62, 382, 500, 170, 19, { color: C.muted });
     text(slide, "optional-label", "OPTIONAL NETWORK", 696, 230, 470, 22, 14, { bold: true, color: C.ink });
     text(slide, "optional-head", "Online features activate only by choice", 696, 280, 500, 72, 31, { bold: true });
-    text(slide, "optional-copy", "Kaynak indirmeleri ve NVIDIA NIM internet kullanır.\nCore learning remains available without them.\n\nЗагрузки ресурсов и NVIDIA NIM используют интернет.\nОсновное обучение доступно и без них.", 696, 382, 500, 170, 19, { color: C.muted });
+    text(slide, "optional-copy", "Kaynak indirmeleri ve alternatif AI ucu (NVIDIA NIM / özel OpenAI uyumlu URL) internet kullanır; anahtar Credential Manager'da.\nCore learning remains available without them.\n\nЗагрузки и альтернативный ИИ-узел (NVIDIA NIM) используют интернет.\nОсновное обучение доступно и без них.", 696, 382, 500, 170, 19, { color: C.muted });
     footer(slide, 6);
     notes(slide, [
       "D:/Russian/README.md (local LM Studio, optional NVIDIA NIM, and Resource Center network behavior)",
@@ -243,7 +243,7 @@ async function main() {
     ]);
   }
 
-  // 7 — Platforms & download: v1.0.0 release availability with the private-repo caveat.
+  // 7 — Platforms & download: v1.1.0 release availability with the private-repo caveat.
   {
     const slide = deck.slides.add();
     slide.background.fill = C.white;
@@ -251,9 +251,9 @@ async function main() {
     text(slide, "platform-subtitle", "Platformlar & İndirme  •  Платформы и загрузка", 42, 112, 1100, 30, 19, { color: C.muted });
     line(slide, "platform-rule", 42, 196, 1196, C.rule, 1);
     const rows = [
-      { label: "TÜRKÇE", color: C.ink, body: "Windows 10/11 (x64) + macOS (Apple Silicon) — İndirme: github.com/Azizsekerdil/RussianCourseAI/releases (v1.0.0) (özel repo)" },
-      { label: "ENGLISH", color: C.blue, body: "Windows 10/11 (x64) & macOS (Apple Silicon) — Download: GitHub Releases (v1.0.0)" },
-      { label: "РУССКИЙ", color: C.muted, body: "Windows 10/11 (x64) и macOS (Apple Silicon) — Загрузка: GitHub Releases (v1.0.0)" },
+      { label: "TÜRKÇE", color: C.ink, body: "Windows 10/11 (x64) + macOS (Apple Silicon) — İndirme: github.com/Azizsekerdil/RussianCourseAI/releases (v1.1.0) (özel repo)" },
+      { label: "ENGLISH", color: C.blue, body: "Windows 10/11 (x64) & macOS (Apple Silicon) — Download: GitHub Releases (v1.1.0)" },
+      { label: "РУССКИЙ", color: C.muted, body: "Windows 10/11 (x64) и macOS (Apple Silicon) — Загрузка: GitHub Releases (v1.1.0)" },
     ];
     for (const [i, row] of rows.entries()) {
       const y = 232 + i * 104;
@@ -264,13 +264,13 @@ async function main() {
     text(
       slide,
       "platform-footnote",
-      "Release v1.0.0 — iki paket: Windows zip + macOS zip. macOS paketi Apple Silicon (arm64) içindir ve notarize edilmemiştir; ilk açılışta sağ tık → Aç.\nDepo özel (private) — github.com/Azizsekerdil/RussianCourseAI bağlantısına yalnızca hesap sahibi erişebilir.",
+      "Release v1.1.0 — iki paket: Windows zip + macOS zip. macOS paketi Apple Silicon (arm64) içindir ve notarize edilmemiştir; ilk açılışta sağ tık → Aç.\nDepo özel (private) — github.com/Azizsekerdil/RussianCourseAI bağlantısına yalnızca hesap sahibi erişebilir.",
       42, 576, 1120, 84, 15,
       { color: C.muted },
     );
     footer(slide, 7);
     notes(slide, [
-      "https://github.com/Azizsekerdil/RussianCourseAI/releases/tag/v1.0.0 (v1.0.0 release with Windows and macOS zip assets; private repository)",
+      "https://github.com/Azizsekerdil/RussianCourseAI/releases/tag/v1.1.0 (v1.1.0 release with Windows and macOS zip assets; private repository)",
     ]);
   }
 

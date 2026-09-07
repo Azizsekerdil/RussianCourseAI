@@ -20,11 +20,7 @@ Sürüm 1.2.0 · Windows ve macOS masaüstü uygulaması · Arayüz dilleri: Tü
 
 Bu belge **Russian Course AI 1.2.0** sürümünün kullanım kılavuzudur. Program, Rusçayı A1'den C1'e çalışmak için tasarlanmış, tek pencerede 18 sayfa barındıran bir masaüstü çalışma istasyonudur.
 
-Nasıl okunur:
-
-- **Yeni başlıyorsanız** 2. ve 3. bölümü, sonra 4. bölümdeki `Aralikli Tekrar`, `Kelime Bankasi` ve `Sozluk RU-EN-TR` sayfalarını okuyun. Program yapay zekâ olmadan da tam kapasite çalışır.
-- **Sözlüğü yoğun kullanacaksanız** doğrudan 5. bölüme geçin.
-- **Yapay zekâyı bağlayacaksanız** 6. bölüm LM Studio kurulumunu, alternatif uç noktayı ve gizlilik kurallarını anlatır.
+Nasıl okunur: **yeni başlıyorsanız** 2. ve 3. bölümü, sonra 4. bölümdeki `Aralikli Tekrar`, `Kelime Bankasi` ve `Sozluk RU-EN-TR` sayfalarını okuyun — program yapay zekâ olmadan da tam kapasite çalışır. **Sözlüğü yoğun kullanacaksanız** doğrudan 5. bölüme geçin. **Yapay zekâyı bağlayacaksanız** 6. bölüme bakın.
 
 **Yazım notu.** Anlatım dili tam Türkçedir; `kod biçiminde` yazılmış etiketler ise ekranda **göründüğü gibi** aktarılmıştır. Arayüzün Türkçe metinlerinin çoğu şu an aksansız harflerle görüntülenir (`Kelime Bankasi`, `Sozluk RU-EN-TR`, `Ogrenci Takip`); düğmeleri ararken bu yazımı esas alın.
 
@@ -38,9 +34,7 @@ Nasıl okunur:
 2. Zip'i bir klasöre **tam olarak** açın.
 3. **`RussianCourseAI.exe`** dosyasını çift tıklayın.
 
-Kurulum gerekmez: yönetici hakkı, kayıt defteri girdisi ve kaldırma işlemi yoktur; klasörü silmeniz yeterlidir (verileriniz ayrı klasörde durur, bkz. 2.4).
-
-Kendi exe'nizi üretmek için depo kökünde `build.bat` çalıştırın: PyInstaller'ı denetler, simgeyi üretir, `dist\RussianCourseAI.exe` derler ve masaüstüne kısayol koyar. `build.bat /noshortcut` kısayolu atlar, `build.bat /onedir` tek dosya yerine klasör üretir (belirgin biçimde daha hızlı açılır).
+Kurulum gerekmez: yönetici hakkı, kayıt defteri girdisi ve kaldırma işlemi yoktur; klasörü silmeniz yeterlidir (verileriniz ayrı klasörde durur, bkz. 2.4). Kendi exe'nizi üretmek isterseniz depo kökünde `build.bat` çalıştırın; `build.bat /onedir` tek dosya yerine belirgin biçimde daha hızlı açılan bir klasör üretir.
 
 ### 2.2 macOS (zip)
 
@@ -50,7 +44,7 @@ macOS paketi Apple Silicon için üretilir ve **notarize edilmemiştir**; ilk a�
 2. `RussianCourseAI.app` uygulamasını `Uygulamalar` klasörüne taşıyın.
 3. Çift tıklamak yerine **sağ tıklayın → Aç**, çıkan uyarıda yine **Aç**'a basın.
 
-Bu onayı yalnızca bir kez vermeniz gerekir. Kendi paketinizi bir Mac üzerinde `./build_macos.sh` ile üretebilirsiniz; betik `dist/RussianCourseAI.app` ve `dist/RussianCourseAI-macOS.zip` dosyalarını oluşturur.
+Bu onayı bir kez vermeniz yeterlidir. Kendi paketinizi bir Mac üzerinde `./build_macos.sh` ile üretebilirsiniz.
 
 ### 2.3 Kaynaktan çalıştırma
 
@@ -88,11 +82,9 @@ RussianCourseAI.exe
 
 ## 3. Programın ilk açılışı
 
-Kurulum sihirbazı yoktur; her şey sessizce hazırlanır. Program ilk açılışta veri klasörlerini oluşturur, SQLite şemasını kurar, gömülü **A1 destesini** yükler (9 destede 125 kelime: `A1 Temel`, `Gunluk Hayat`, `Yiyecek`, `Fiiller`, `Hareket Fiilleri`, `Sifatlar`, `Sayilar`, `Zamirler`, `Edatlar`), `Ogrenci` adlı bir profil açar ve 1.360 maddelik vurgu işaretli, Türkçe karşılıklı gömülü sözlüğü belleğe alır.
+Kurulum sihirbazı yoktur. Program ilk açılışta veri klasörlerini oluşturur, SQLite şemasını kurar, gömülü **A1 destesini** yükler (9 destede 125 kelime: `A1 Temel`, `Gunluk Hayat`, `Yiyecek`, `Fiiller`, `Hareket Fiilleri`, `Sifatlar`, `Sayilar`, `Zamirler`, `Edatlar`), `Ogrenci` adlı bir profil açar ve 1.360 maddelik vurgu işaretli, Türkçe karşılıklı gömülü sözlüğü belleğe alır.
 
 Pencerede solda gruplu kenar çubuğu, üstte profil seçici, dil seçici ve yapay zekâ durum rozeti, altta veri klasörünün yolunu gösteren durum çubuğu vardır.
-
-Hemen gözden geçirmek isteyebileceğiniz ayarlar:
 
 | Ayar | Varsayılan | Nerede |
 |---|---|---|
@@ -103,7 +95,7 @@ Hemen gözden geçirmek isteyebileceğiniz ayarlar:
 
 Dil değişikliği anında uygulanır; tema değişikliğinin her yere işlemesi için program yeniden başlatılmalıdır ve `Ayarlar` bunu kaydettiğinizde hatırlatır.
 
-**Profil.** Üst çubuktaki açılır listeden profil seçilir, `+` düğmesi yeni profil açar. Tekrar geçmişi, sınavlar ve istatistikler profile özeldir; kelime bankası ve sözlük tüm profillerde ortaktır.
+**Profil.** Üst çubuktaki listeden profil seçilir, `+` düğmesi yeni profil açar. Tekrar geçmişi, sınavlar ve istatistikler profile özeldir; kelime bankası ve sözlük tüm profillerde ortaktır.
 
 ---
 
@@ -115,9 +107,9 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 #### Aralıklı Tekrar (`Aralikli Tekrar`)
 
-**Ne işe yarar.** Günlük tekrar merkezi. SM-2 / Leitner algoritması her kelimenin bir sonraki tekrar gününü hesaplar; pano kural tabanlıdır, yapay zekâ çağırmaz.
+**Ne işe yarar.** Günlük tekrar merkezi; SM-2 / Leitner algoritması her kelimenin bir sonraki tekrar gününü kendisi hesaplar ve pano yapay zekâ çağırmaz.
 
-**Nasıl kullanılır.** `Bugun` panosundaki altı karta bakın (`Bugun tekrar edilecek`, `Yanlislar`, `Denenmemis`, `Ogrenildi`, `Seri`, `Dogruluk`). `Mod` listesinden çalışma biçimini seçin: `Kart`, `Coktan secmeli`, `Yazarak`, `Dinleme`, `Eslestirme`; `Adet` kutusu oturum uzunluğudur. Sonra dört düğmeden birine basın: `Tekrar`, `Yanlis drill`, `Yeni kelime`, `Favoriler`. `Kart` modunda **Space** ile çevirin, **1 / 2 / 3** ile değerlendirin; diğer modlarda cevabı yazıp **Enter**'a basın.
+**Nasıl kullanılır.** `Bugun` panosundaki altı karta bakın (`Bugun tekrar edilecek`, `Yanlislar`, `Denenmemis`, `Ogrenildi`, `Seri`, `Dogruluk`). `Mod` listesinden biçimi seçin (`Kart`, `Coktan secmeli`, `Yazarak`, `Dinleme`, `Eslestirme`), `Adet` ile uzunluğu belirleyin, sonra `▶ Tekrar`, `✗ Yanlis drill`, `✚ Yeni kelime` ya da `★ Favoriler`'e basın. `Kart` modunda **Space** çevirir, **1 / 2 / 3** değerlendirir; `Yazarak` ve `Dinleme` modlarında cevabı yazıp **Enter**'a (ya da `Kontrol Et`'e) basın; `Coktan secmeli` ve `Eslestirme` modlarında doğru seçeneğe tıklayın.
 
 **İpucu.** Kenar çubuğundaki rozet bekleyen tekrar sayısını gösterir; boşsa o gün bitmiştir.
 
@@ -125,9 +117,9 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Ne işe yarar.** Öğrendiğiniz kelimelerin kalıcı deposu; tekrar, sınav ve istatistik sayfaları buradan beslenir.
 
-**Nasıl kullanılır.** Kutuya Türkçe, Rusça veya İngilizce yazıp `Ara`'ya basın. `Deste` ve `Frekans` (`hepsi`, `ilk 100`, `ilk 500`, `ilk 1000`) listeleriyle daraltın. Kelimeye **çift tıklayarak** dinleyin; sağ panelde IPA, örnek cümle, görünüş çifti ve istatistik görünür. Düğmeler: `🔊 Dinle`, `★ Favori`, `AI'a sor`, `Sil`, `+ Ekle`, `CSV Ice Aktar`, `CSV Disa Aktar`.
+**Nasıl kullanılır.** Kutuya Türkçe, Rusça veya İngilizce yazıp `Ara`'ya basın; `Deste` ve `Frekans` (`hepsi`, `ilk 100`, `ilk 500`, `ilk 1000`) ile daraltın. Kelimeye **çift tıklayarak** dinleyin; sağ panelde IPA, örnek cümle, görünüş çifti ve istatistik görünür. Düğmeler: `🔊 Dinle`, `★ Favori`, `AI'a sor`, `Sil`, `+ Ekle`, `CSV Ice Aktar`, `CSV Disa Aktar`.
 
-**İpucu.** İçe aktarma biçimi `kelime;anlam;ornek;deste`; başlık satırı isteğe bağlıdır (ilk sütunda Kiril yoksa atlanır).
+**İpucu.** İçe aktarma biçimi `kelime;anlam;ornek;deste`, başlık satırı isteğe bağlıdır.
 
 #### Sözlük RU-EN-TR (`Sozluk RU-EN-TR`)
 
@@ -135,37 +127,37 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 #### Sınav (`Sinav`)
 
-**Ne işe yarar.** Tanıma ile üretme farklı becerilerdir; sınav ikincisini ölçer ve puanlar.
+**Ne işe yarar.** Tanıma ile üretme farklı becerilerdir; sınav ikincisini ölçer.
 
-**Nasıl kullanılır.** `Sinav kur` kutusunda soru tiplerini işaretleyin: `Coktan secmeli (RU->TR)`, `Coktan secmeli (TR->RU)`, `Bosluk doldurma`, `Dogru hali sec`, `Fiili cek`, `Ceviri TR->RU`, `Ceviri RU->TR`, `Dinleme`, `Kelime dikte`. `Soru sayisi:` (5–60) ve `Kaynak:` (`Karisik`, `Vakti gelenler`, `Yanlislar`, `Yeni kelimeler`) seçip `▶ Basla`'ya basın; cevabı **Enter** ile onaylayın. Çeviri sorularında program eşdeğer cevapları tolere eder, kararsız kaldığında `Dogru say` / `Yanlis say` / `Yine de dogru say` düğmelerini sunar.
+**Nasıl kullanılır.** `Sinav kur` kutusunda soru tiplerini işaretleyin: `Coktan secmeli (RU->TR)`, `Coktan secmeli (TR->RU)`, `Bosluk doldurma`, `Dogru hali sec`, `Fiili cek`, `Ceviri TR->RU`, `Ceviri RU->TR`, `Dinleme`, `Kelime dikte`. `Soru sayisi:` (5–60) ve `Kaynak:` (`Karisik`, `Vakti gelenler`, `Yanlislar`, `Yeni kelimeler`) seçip `▶ Basla`'ya basın; cevabı **Enter** ile onaylayın. Program eşdeğer çevirileri tolere eder, kararsız kalınca `Dogru say` / `Yanlis say` / `Yine de dogru say` sunar.
 
-**İpucu.** Yanlış yaptığınız her kelime bankada "yanlış" işaretlenir ve `Yanlis drill` kuyruğuna girer.
+**İpucu.** Yanlış yaptığınız kelime bankada "yanlış" işaretlenir ve `Yanlis drill` kuyruğuna girer.
 
 ### 4.2 Laboratuvar (`Laboratuvar`)
 
 #### Kiril Lab (`Kiril Lab`)
 
-**Ne işe yarar.** Rusçadaki ilk duvar alfabedir; el yazısı (курсив) basılı harflere hiç benzemez.
+**Ne işe yarar.** Rusçadaki ilk duvar alfabedir; el yazısı (курсив) basılı harflere benzemez.
 
-**Nasıl kullanılır.** Dört sekme vardır: `Alfabe (33 harf)`, `Yazim / El yazisi`, `Karisan ciftler`, `Alistirma`. Yazım sekmesinde harfi seçip `▶ Yazim sirasini oynat`'a basın, tuvale kendiniz yazın, `Karsilastir`'a tıklayın; `Tuvali temizle` sıfırlar. Alıştırma sekmesinde `▶ 12 soruluk tur baslat` deyin.
+**Nasıl kullanılır.** Dört sekme: `Alfabe (33 harf)`, `Yazim / El yazisi`, `Karisan ciftler`, `Alistirma`. Yazım sekmesinde harfi seçip `▶ Yazim sirasini oynat`'a basın, tuvale kendiniz yazın, `Karsilastir`'a tıklayın; `Tuvali temizle` sıfırlar. Alıştırmada `▶ 12 soruluk tur baslat` deyin.
 
-**İpucu.** `Karisan ciftler` sekmesi ш/щ, б/в, и/й, ь/ъ gibi karıştırılan çiftleri yan yana gösterir.
+**İpucu.** `Karisan ciftler` sekmesi ш/щ, б/в, и/й, ь/ъ çiftlerini yan yana gösterir.
 
 #### Telaffuz & Vurgu (`Telaffuz & Vurgu`)
 
 **Ne işe yarar.** Rusçada vurgunun yeri anlamı değiştirir ve vurgusuz `о` [a] okunur.
 
-**Nasıl kullanılır.** Kelimeyi yazıp `Coz`'e basın ya da `Bankadan sec` ile seçin. Program heceleri, kaba IPA okunuşunu ve indirgeme kurallarını gösterir; `Vurgulu hece:` listesinden vurguyu düzeltir, `🔊 Dinle` ile seslendirirsiniz. Vosk modeli kuruluysa `● Kaydet ve karsilastir` düğmesi çıkar.
+**Nasıl kullanılır.** Kelimeyi yazıp `Coz`'e basın ya da `Bankadan sec` ile seçin; program heceleri, kaba IPA okunuşunu ve indirgeme kurallarını gösterir. `Vurgulu hece:` listesinden vurguyu düzeltin, `🔊 Dinle` ile seslendirin. Vosk modeli kuruluysa `● Kaydet ve karsilastir` çıkar.
 
-**İpucu.** Mikrofon bölümü kapalıysa nedeni orada yazar; Vosk `ru` modelini `%APPDATA%\RussianCourseAI\models\vosk-ru` klasörüne açmanız gerekir.
+**İpucu.** Mikrofon bölümü kapalıysa nedeni orada yazar; Vosk `ru` modelini `%APPDATA%\RussianCourseAI\models\vosk-ru` klasörüne açın.
 
 #### Dilbilgisi Lab (`Dilbilgisi Lab`)
 
 **Ne işe yarar.** Hâl, görünüş ve hareket fiilleri Türkçe konuşan biri için Rusçanın en zor üç bölgesidir.
 
-**Nasıl kullanılır.** Altı sekme: `Notlar (.md)`, `Hal Lab (Падежи)`, `Fiil Lab (Вид)`, `Hareket Fiilleri`, `Sayi & Olcu`, `Soz Dizimi`. Her lab aynı akışı izler: kural → tablo → canlı örnek → alıştırma. Sayfa altındaki `▶ 10 soruluk tur baslat` ile deneyin; `Soz Dizimi` sekmesinde cümle yazıp `Ayristir`'a basabilirsiniz.
+**Nasıl kullanılır.** Altı sekme: `Notlar (.md)`, `Hal Lab (Падежи)`, `Fiil Lab (Вид)`, `Hareket Fiilleri`, `Sayi & Olcu`, `Soz Dizimi`. Her lab kural → tablo → canlı örnek → alıştırma akışını izler; sayfa altındaki `▶ 10 soruluk tur baslat` ile deneyin, `Soz Dizimi`'nde cümle yazıp `Ayristir`'a basın.
 
-**İpucu.** `Notlar (.md)` sekmesi program dizinindeki `grammar/*.md` dosyalarını okur; kendi notlarınızı oraya ekleyebilirsiniz.
+**İpucu.** `Notlar (.md)` sekmesi `grammar/*.md` dosyalarını okur; kendi notlarınızı oraya ekleyebilirsiniz.
 
 ### 4.3 Oku (`Oku`)
 
@@ -173,7 +165,7 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Ne işe yarar.** Ders dosyalarınızı ağaç görünümünde listeler ve hangilerini bitirdiğinizi takip eder.
 
-**Nasıl kullanılır.** `Kok klasor:` varsayılan olarak `Resources` klasörüdür; `Degistir` ile başkasını seçin. Arama kutusuna yazdıkça liste süzülür. Dosyayı seçip **Space**'e basmak ya da `☐/☑ Bitirdim (Space)` düğmesi işareti değiştirir. Diğer düğmeler: `PDF Okuyucuda ac`, `Varsayilan programda ac`, `Klasoru goster`, `Yazdir`.
+**Nasıl kullanılır.** `Kok klasor:` varsayılan olarak `Resources` klasörüdür; `Degistir` ile başkasını seçin, arama kutusuna yazdıkça liste süzülür. Dosyayı seçip **Space**'e basmak ya da `☐/☑ Bitirdim (Space)` işareti değiştirir. Diğer düğmeler: `PDF Okuyucuda ac`, `Varsayilan programda ac`, `Klasoru goster`, `Yazdir`.
 
 **İpucu.** İşaretler profile göre saklanır.
 
@@ -181,17 +173,17 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Ne işe yarar.** Ders kitabını programdan çıkmadan okumanızı, işaretlemenizi ve seçtiğiniz parçayı yapay zekâya sormanızı sağlar.
 
-**Nasıl kullanılır.** `📂 PDF ac` ile dosyayı açın; `◀` / `▶` ile sayfa değiştirin, `Git...` ile numara verin, `−` / `+` ya da `Genislige sigdir` ile ölçekleyin. Araçlar: `✏ Kalem`, `🖍 Isaretleme`, `🔤 Metin`, `🧽 Silgi`, `⬚ Metin sec`. `⬚ Metin sec` ile parça seçince sağ panelden `AI'a acikla`, `Sozlukte ara`, `🔊` veya `Bankaya ekle` deyin. `Sayfa notu` kutusuna yazıp `Notlari kaydet`'e basın; `Isaretli PDF disa aktar` işaretleri gömülü yeni bir PDF yazar, `Sayfayi temizle` o sayfayı sıfırlar.
+**Nasıl kullanılır.** `📂 PDF ac` ile dosyayı açın; `◀` / `▶`, `Git...`, `−` / `+` ve `Genislige sigdir` ile gezinin. Araçlar: `✏ Kalem`, `🖍 Isaretleme`, `🔤 Metin`, `🧽 Silgi`, `⬚ Metin sec`. Metin seçince sağ panelden `AI'a acikla`, `Sozlukte ara`, `🔊` veya `Bankaya ekle` deyin. `Sayfa notu` yazıp `Notlari kaydet`'e basın; `Isaretli PDF disa aktar` işaretleri gömülü yeni bir PDF yazar, `Sayfayi temizle` o sayfayı sıfırlar.
 
-**İpucu.** Bu sayfa `pymupdf` gerektirir. Seçtiğiniz metni `AI Ogretmen` sayfasında `PDF'teki secimi al` ile de kullanabilirsiniz.
+**İpucu.** Bu sayfa `pymupdf` gerektirir; seçtiğiniz metni `AI Ogretmen` sayfasında `PDF'teki secimi al` ile de kullanabilirsiniz.
 
 #### Kaynak Merkezi (`Kaynak Merkezi`)
 
-**Ne işe yarar.** Yalnızca açık lisanslı (kamu malı veya Creative Commons) materyali listeler ve indirir; lisansı belirsiz hiçbir şey katalogda yer almaz.
+**Ne işe yarar.** Yalnızca açık lisanslı (kamu malı veya Creative Commons) materyali listeler ve indirir; lisansı belirsiz hiçbir şey kataloğa girmez.
 
-**Nasıl kullanılır.** Tür süzgecinden `Tumu`, `E-kitap`, `Ses`, `Sozluk / veri`, `Web` ya da `Video` seçin, arama kutusuyla daraltın. Sağ panelde sağlayıcı, lisans ve atıf zorunluluğu yazar. `Indir`'e basın; dosya `Resources/Indirilenler` altına, yanında `LISANS.txt` ile iner. İndirilmiş bir PDF'i `📕 PDF Okuyucuda ac` ile açar, indirilmiş bir OpenRussian sözlüğünü `Aktar` ile kelime bankasına alırsınız.
+**Nasıl kullanılır.** Tür süzgecinden `Tumu`, `E-kitap`, `Ses`, `Sozluk / veri`, `Web` ya da `Video` seçin. Sağ panelde sağlayıcı, lisans ve atıf zorunluluğu yazar. `Indir`'e basın; dosya `Resources/Indirilenler` altına, yanında `LISANS.txt` ile iner. İndirilmiş bir PDF'i `📕 PDF Okuyucuda ac` ile açar, bir OpenRussian sözlüğünü `Aktar` ile kelime bankasına alırsınız.
 
-**İpucu.** Sözlüğün OpenRussian katmanı için gereken dosyalar buradan, `Sozluk / veri` türünden indirilir.
+**İpucu.** Sözlüğün OpenRussian katmanı için gereken dosyalar `Sozluk / veri` türünden indirilir.
 
 ### 4.4 Pratik (`Pratik`)
 
@@ -199,23 +191,23 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Ne işe yarar.** Bir cümlenin *neden* yanlış olduğunu soracağınız, bilgisayarınızda çalışan öğretmen.
 
-**Nasıl kullanılır.** `Gorev:` listesinden seçin: `Dilbilgisi acikla`, `Ceviri RU -> TR`, `Ceviri TR -> RU`, `Yazi duzelt`, `Serbest soru`. `Model:` varsayılan olarak `(otomatik)`'tir; `Modelleri tara` ile elle de seçebilirsiniz. Metni yazıp **Ctrl+Enter**'a ya da `▶ Sor`'a basın. Yanıtı `🔊 Yaniti oku` ile dinleyin, `Temizle` ile alanı boşaltın; görme modeli kuruluysa `🖼 Gorsel / OCR` resim okutur.
+**Nasıl kullanılır.** `Gorev:` listesinden seçin: `Dilbilgisi acikla`, `Ceviri RU -> TR`, `Ceviri TR -> RU`, `Yazi duzelt`, `Serbest soru`. `Model:` varsayılan `(otomatik)`'tir; `Modelleri tara` ile elle de seçebilirsiniz. Metni yazıp **Ctrl+Enter**'a ya da `▶ Sor`'a basın; yanıtı `🔊 Yaniti oku` ile dinleyin, `Temizle` ile alanı boşaltın. Görme modeli kuruluysa `🖼 Gorsel / OCR` resim okutur.
 
 **İpucu.** `Yazi duzelt` yanıtı sabit düzendedir: HATA / KURAL / DOGRU / NEDEN.
 
 #### Konuşma Pratiği (`Konusma Pratigi`)
 
-**Ne işe yarar.** CEFR seviyenize kilitlenmiş rol yapma diyaloglarıyla yazılı konuşma pratiği yaptırır.
+**Ne işe yarar.** CEFR seviyenize kilitlenmiş rol yapma diyaloglarıyla konuşma pratiği yaptırır.
 
 **Nasıl kullanılır.** `Senaryo:` listesinden birini seçin (`Kafede siparis`, `Otel resepsiyonu`, `Doktorda`, `Magazada alisveris`, `Yol sormak`, `Is gorusmesi`, `Tanisma`, `Telefonda randevu`), `Seviye:` kutusundan A1–C1 seçin, `▶ Oturumu baslat`'a basın. Rusça yazıp `Gonder`'e basın; bitirince `⏹ Bitir ve rapor al` deyin.
 
-**İpucu.** `Yanitlari seslendir` işaretliyken cevaplar sesli okunur; oturum sonu raporu hata dökümü ve öğrenmeniz gereken 5 kelimeyi verir.
+**İpucu.** Oturum sonu raporu hata dökümünü ve öğrenmeniz gereken 5 kelimeyi verir.
 
 #### El Yazısı (`El Yazisi`)
 
 **Ne işe yarar.** Kiril el yazısı kas hafızası ister; bu tahta onu çalışmak içindir.
 
-**Nasıl kullanılır.** `Kalem:` kaydırıcısıyla kalınlığı, `Renk:` listesinden rengi ayarlayın; `Kilavuz:` listesinden bir harf seçerseniz arkada soluk şablon belirir. Kalemle ya da fareyle yazın; `Geri al`, `Temizle`, `PNG kaydet` hazırdır. `🤖 Ne yazdim?` yazdığınızı görme modeline okutur.
+**Nasıl kullanılır.** `Kalem:` kaydırıcısıyla kalınlığı, `Renk:` listesinden rengi ayarlayın; `Kilavuz:` listesinden bir harf seçerseniz arkada soluk şablon belirir. Kalemle ya da fareyle yazın; `Geri al`, `Temizle` ve `PNG kaydet` hazırdır, `🤖 Ne yazdim?` yazdığınızı görme modeline okutur.
 
 **İpucu.** `PNG kaydet` ve `🤖 Ne yazdim?` için `pillow` gerekir.
 
@@ -223,9 +215,9 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 #### Öğrenci Takip (`Ogrenci Takip`)
 
-**Ne işe yarar.** Seçili profilin ilerlemesini ölçer; veri yoksa tahmin yürütmez, `Yeterli veri yok` der.
+**Ne işe yarar.** Seçili profilin ilerlemesini ölçer; veri yoksa tahmin yürütmez: grafikte `Bu donemde veri yok`, trendde `Trend icin en az 2 sinav gerekir`, `Zayif konular` bölümünde `Konu verisi yok - dilbilgisi laboratuvarlarindan veya sinavdan alistirma yapin.` ve ustalık tablosunda `(veri yok)` yazar.
 
-**Nasıl kullanılır.** Kartlar, `Son 30 gun - dogru cevap sayisi` grafiği, `Sinav puani trendi`, `Zayif konular` ve `Kelime ustaligi (en dusuk 25)` tablosu otomatik hesaplanır. `Yenile` yeniden hesaplar; `📄 Haftalik Ozet` tarayıcıda A4 yazdırılabilir tek sayfa rapor açar.
+**Nasıl kullanılır.** Kartlar, `Son 30 gun - dogru cevap sayisi` grafiği, `Sinav puani trendi`, `Zayif konular` ve `Kelime ustaligi (en dusuk 25)` tablosu otomatik hesaplanır. `Yenile` yeniden hesaplar; `📄 Haftalik Ozet` tarayıcıda A4 yazdırılabilir rapor açar.
 
 **İpucu.** Profil değiştirince sayfa kendini tazeler; iki öğrencinin verisi karışmaz.
 
@@ -233,31 +225,31 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Ne işe yarar.** Hazırladığınız desteleri başka bir makineye ya da başka birine taşır.
 
-**Nasıl kullanılır.** `Disa aktar` bölümünde `Paket adi:` ve `Yazar:` alanlarını doldurun, `Kaynak deste:` seçin, isterseniz `Kendi ilerlememi de ekle` kutusunu işaretleyip `📦 .rupack olustur`'a basın. Eski uyumluluk için `{ } .json olustur` da vardır. Gelen paketi `📂 Paket ac (.rupack / .json)` ile alın.
+**Nasıl kullanılır.** `Paket adi:` ve `Yazar:` alanlarını doldurun, `Kaynak deste:` seçin, isterseniz `Kendi ilerlememi de ekle` işaretleyip `📦 .rupack olustur`'a basın; eski uyumluluk için `{ } .json olustur` vardır. Gelen paketi `📂 Paket ac (.rupack / .json)` ile alın.
 
-**İpucu.** `.rupack`, içinde `paket.json` ile isteğe bağlı `audio/` ve `images/` klasörleri bulunan bir ZIP dosyasıdır.
+**İpucu.** `.rupack`, içinde `paket.json` ile isteğe bağlı `audio/` ve `images/` bulunan bir ZIP dosyasıdır.
 
 #### Token Defteri (`Token Defteri`)
 
-**Ne işe yarar.** Yapay zekâ kullanımınızı şeffaf gösterir; yalnızca sayaçları tutar (model adı, görev türü, token sayıları, süre). Gönderdiğiniz metinler kaydedilmez.
+**Ne işe yarar.** Yapay zekâ kullanımınızı şeffaf gösterir; yalnızca sayaçları tutar (model adı, görev türü, token sayıları, süre). Metinler kaydedilmez.
 
-**Nasıl kullanılır.** Üstteki kartlar bugün / 7 gün / 30 gün / tüm zamanlar özetini verir. `Grupla:` seçenekleriyle (`Modele gore`, `Ise gore`, `Gune gore`) tabloyu değiştirin; `CSV Disa Aktar` dışa aktarır, `Defteri temizle` kayıtları siler.
+**Nasıl kullanılır.** Kartlar bugün / 7 gün / 30 gün / tüm zamanlar özetini verir. `Grupla:` seçenekleriyle (`Modele gore`, `Ise gore`, `Gune gore`) tabloyu değiştirin; `CSV Disa Aktar` dışa aktarır, `Defteri temizle` kayıtları siler.
 
-**İpucu.** Alternatif uç noktayı açtığınızda dışarıya ne kadar istek gittiğini görmenin en kolay yolu budur.
+**İpucu.** Alternatif uç noktayı açtığınızda dışarıya ne kadar istek gittiğini buradan görürsünüz.
 
 #### Kılavuz (`Kilavuz`)
 
 **Ne işe yarar.** Program içinde, tamamen çevrimdışı bir rehber; her ekranı NEDEN · NASIL · FAYDA düzeninde anlatır.
 
-**Nasıl kullanılır.** Sayfayı yukarıdan aşağı okuyun; sonunda `Gizlilik` maddeleri ve kısayol tablosu vardır. `🖨 Yazdirilabilir surum` aynı içeriği A4 için biçimlenmiş HTML olarak tarayıcıda açar.
+**Nasıl kullanılır.** Sayfayı yukarıdan aşağı okuyun; sonunda `Gizlilik` maddeleri ve kısayol tablosu vardır. `🖨 Yazdirilabilir surum` aynı içeriği A4 için biçimlenmiş HTML olarak açar.
 
-**İpucu.** Elinizdeki belge daha ayrıntılıdır; program içi kılavuz ise sürümle birlikte gelir ve internet gerektirmez.
+**İpucu.** Elinizdeki belge daha ayrıntılıdır; program içi kılavuz internet gerektirmez.
 
 #### Ayarlar (`Ayarlar`)
 
 **Ne işe yarar.** Arayüz, ses, yapay zekâ, profil ve veri ayarlarının tek yeri.
 
-**Nasıl kullanılır.** Beş bölüm vardır: `Arayuz` (`Dil:`, `Tema:`, `Gunluk hedef:`, `CEFR seviyesi:`), `Ses` (`Seslendirme acik`, `Hiz:` 80–260, `Test et`), `Yapay zeka (yerel)` (`AI ozellikleri acik`, `LM Studio adresi:`, `Baglantiyi dene`, `Varsayilan model:`), `Alternatif uc (OpenAI uyumlu - INTERNET)` (bkz. 6. bölüm) ve `Profiller` / `Veri` (`Yeni profil`, `Secili profili sil`, `Veri klasorunu ac`, `Ilerlemeyi sifirla (bu profil)`, `Eksik seed kelimeleri geri yukle`). Değişiklikler `Kaydet` ile yazılır.
+**Nasıl kullanılır.** Sayfa başlıklı bölümlerden oluşur: `Arayuz` (`Dil:`, `Tema:`, `Gunluk hedef:`, `CEFR seviyesi:`), `Ses` (`Seslendirme acik`, `Hiz:` 80–260, `Test et`), `Yapay zeka (yerel)` (`AI ozellikleri acik`, `LM Studio adresi:`, `Baglantiyi dene`, `Varsayilan model:`), `Alternatif uc (OpenAI uyumlu - INTERNET)` (bkz. 6. bölüm), `Profiller` (`Yeni profil`, `Secili profili sil`) ve `Veri` (`Veri klasorunu ac`, `Ilerlemeyi sifirla (bu profil)`, `Eksik seed kelimeleri geri yukle`). Değişiklikler `Kaydet` ile yazılır.
 
 **İpucu.** Dil anında değişir; tema için yeniden başlatma gerekir ve program bunu hatırlatır.
 
@@ -279,13 +271,13 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 | `RU → TR` | Yalnızca Rusça başlık, hedef Türkçe | Rusça kelimenin Türkçesini isterken; eksik karşılık yapay zekâya sorulur |
 | `TR → RU` | Yalnızca Türkçe karşılıklar | Türkçe kelimenin Rusçasını ararken |
 
-Sabit yönde **yalnızca** o yönün kaynak tarafı taranır; bu, hem Türkçeye hem İngilizceye benzeyen sorgularda listeyi temiz tutar. Arama kutusunun sağındaki küçük etiket, aramanın **etkin** yönünü gösterir; `Otomatik`'te motorun kararını oradan görürsünüz.
+Sabit yönde **yalnızca** o yönün kaynak tarafı taranır; bu, hem Türkçeye hem İngilizceye benzeyen sorgularda listeyi temiz tutar. Arama kutusunun sağındaki küçük etiket aramanın **etkin** yönünü gösterir; `Otomatik`'te motorun kararını oradan görürsünüz.
 
 ### 5.2 Türkçe sütunu ve detay paneli
 
-Liste altı sütunludur: `Rusca`, `Ingilizce`, `Türkçe`, `Tur`, `Cins / Gorunus`, `Kaynak`. Türkçe hedefli bir yön seçiliyse `Türkçe` sütunu başlığın hemen sağına alınır.
+Liste altı sütunludur: `Rusca`, `Ingilizce`, `Türkçe`, `Tur`, `Cins / Gorunus`, `Kaynak`. Türkçe içeren bir yön (`RU → TR` ya da `TR → RU`) seçiliyse `Türkçe` sütunu başlığın hemen sağına alınır.
 
-Sağdaki detay paneli vurgu işaretli başlığı büyük puntoyla, altında kaba IPA okunuşunu, tür ve cins/görünüş etiketini, `Ingilizce:` ve `Türkçe:` satırlarını, varsa örnek cümleyi ve notu gösterir. Kelime bankanızda aynı kelime varsa 📚 işaretiyle bankadaki anlam ve deste görünür. Altta `Son aramalar` listesi (son 12 sorgu) ve `AI yaniti` dökümü bulunur. Listeye **çift tıklamak** kelimeyi seslendirir.
+Detay paneli vurgu işaretli başlığı, kaba IPA okunuşunu, tür ve cins/görünüş etiketini, `Ingilizce:` ve `Türkçe:` satırlarını, varsa örnek cümleyi ve notu gösterir. Kelime bankanızda aynı kelime varsa 📚 işaretiyle bankadaki anlam ve deste görünür. Altta `Son aramalar` (son 12 sorgu) ve `AI yaniti` dökümü bulunur; listeye **çift tıklamak** kelimeyi seslendirir.
 
 ### 5.3 Arama kuralları
 
@@ -298,16 +290,11 @@ Motor her maddeye puan verir ve sonuçları puana göre sıralar:
 | Önek: bir anlam ya da alan sorguyla başlıyorsa | 60 |
 | Kelime içinde: sorgu bir kelimenin başında geçiyorsa | 30 |
 | Alt dize (en az 3 harflik sorgu için) | 10 |
+| Yalnızca ASCII / büyük harf katlamasıyla eşleşme (Türkçe taraf) | doğrudan puanın %59'u: tam 59, önek 35, kelime içinde 17, alt dize 5 |
 
-Eşit puanda Türkçe hedefli yönlerde **Türkçe karşılığı olan** madde öne gelir, sonra kısa başlık, sonra alfabetik sıra.
+Eşit puanda, Türkçe içeren yönlerde (`RU → TR` ve `TR → RU`) **Türkçe karşılığı olan** madde öne gelir, sonra kısa başlık, sonra alfabetik sıra. Katlanmış eşleşme yalnızca Türkçe tarafta ve yalnızca doğrudan karşılaştırma boş dönerse denenir; bu yüzden `ask` sorgusu İngilizce `to ask` maddesini Türkçe `aşk`ın önüne koyar.
 
-Karşılaştırma öncesi hem sorgu hem alan normalleştirilir:
-
-- Büyük/küçük harf farkı yok sayılır; `İ` düz `i`ye indirgenir (`İstanbul` = `istanbul`).
-- **Vurgu işareti** yok sayılır: `приве'т` de `привет` de aynı maddeye ulaşır.
-- **ё → е** eşitlenir: `ёлка` ve `елка` aynıdır.
-- Türkçeye özgü `ç ğ ı ö ş ü` harfleri **korunur**; `Otomatik` yönde Türkçe tarafına yönelmenin ipucudur.
-- Kiril/Latin ayrımı yalnızca `Otomatik` yönde anlamlıdır: Kiril harf görülünce motor `RU → EN` tarafına geçer.
+Karşılaştırma öncesi hem sorgu hem alan normalleştirilir: büyük/küçük harf farkı yok sayılır ve `İ` düz `i`ye indirgenir (`İstanbul` = `istanbul`); **vurgu işareti** yok sayılır (`приве'т` de `привет` de aynı maddeye ulaşır); **ё → е** eşitlenir (`ёлка` = `елка`); Türkçeye özgü `ç ğ ı ö ş ü` harfleri ekranda hep doğru yazımıyla görünür, ama karşılaştırmada ASCII karşılıklarına katlanır: `sinav`, `SINAV` ve `sınav` aynı maddeye ulaşır (`ç→c`, `ğ→g`, `ı/İ→i`, `ö→o`, `ş→s`, `ü→u`). Türkçe harf içeren sorgu yine `Otomatik` yönde Türkçe tarafına yönelmenin ipucudur. Kiril/Latin ayrımı yalnızca `Otomatik` yönde anlamlıdır: Kiril harf görülünce motor `RU → EN` tarafına geçer.
 
 İki harf yazdığınızda liste kendiliğinden süzülür; **Enter** aramayı kesinleştirir, geçmişe yazar ve gerekirse yapay zekâyı devreye sokar. `🎲 Rastgele kelime` gömülü çekirdekten rastgele bir madde açar.
 
@@ -317,7 +304,7 @@ Karşılaştırma öncesi hem sorgu hem alan normalleştirilir:
 |---|---|
 | `gomulu` | Programla gelen, vurgu işaretli, Türkçe karşılıklı 1.360 maddelik çekirdek |
 | `kullanici` | `Madde ekle` ile girdiğiniz ya da CSV/TSV ile aktardığınız maddeler |
-| `OpenRussian` | Kaynak Merkezi'nden indirilip yüklenen açık lisanslı veri (çevirileri İngilizcedir) |
+| `OpenRussian` | İndirilip yüklenen açık lisanslı veri (çevirileri İngilizcedir) |
 | `AI` | Yapay zekâdan gelen madde; kaydedilince yerel sözlüğe geçer |
 
 ### 5.5 AI ile eksik karşılığın doldurulması
@@ -327,13 +314,13 @@ Politika `Kapali` değilse sözlük iki durumda kendiliğinden modele başvurur:
 1. **Sonuç yoksa.** Sorgu arka planda modele gider; model her madde için vurgu işaretli başlık, tür, cins/görünüş, **hem İngilizce hem Türkçe** karşılık, kısa bir Rusça örnek cümle ve arayüz dilinizde bir not döndürür. Gelen maddeler listenin başına `AI` etiketiyle eklenir.
 2. **Türkçe karşılık eksikse.** `RU → TR` yönünde bulunan ilk maddenin Türkçesi boşsa, model yalnızca o boşluğu doldurmak için sorulur; gelen karşılık **kopya satır oluşturmadan** mevcut maddeye işlenir.
 
-`AI'a sor` düğmesi, yerel sonuç bulunsa bile aramayı elle modele gönderir. Arayüz kilitlenmez: sorgu arka planda çalışır, bekleme metni `AI'a soruluyor...` görünür; yeni bir arama başlatırsanız eski yanıt sessizce atılır.
+`🤖 AI'a sor` düğmesi, yerel sonuç bulunsa bile aramayı elle modele gönderir. Arayüz kilitlenmez: sorgu arka planda çalışır, `AI'a soruluyor...` bekleme metni görünür ve yeni bir arama başlatırsanız eski yanıt sessizce atılır.
 
-**Kaydetme.** `AI sonuclarini sozluge kaydet` seçeneği varsayılan olarak açıktır: gelen maddeler `ai` kaynağıyla yerel veritabanına yazılır ve bir sonraki arama **anında ve çevrimdışı** çalışır. Kapatırsanız maddeler yalnızca ekranda kalır; beğendiğinizi `💾 Sozluge kaydet` ile tek tek kaydedersiniz. Bu düğme yalnızca kaydedilmemiş bir madde ya da kaydedilmemiş bir Türkçe dolgu seçiliyken görünür.
+**Kaydetme.** `AI sonuclarini sozluge kaydet` varsayılan olarak açıktır: gelen maddeler `ai` kaynağıyla yerel veritabanına yazılır ve bir sonraki arama **anında ve çevrimdışı** çalışır. Kapatırsanız maddeler yalnızca ekranda kalır; beğendiğinizi `💾 Sozluge kaydet` ile tek tek kaydedersiniz. Bu düğme yalnızca kaydedilmemiş bir madde ya da Türkçe dolgu seçiliyken görünür.
 
 ### 5.6 Kelime bankasına ekleme
 
-`📚 Kelime bankasina ekle` seçili maddeyi çalışma dolaşımınıza alır. Bankaya yazılan anlam **Türkçe karşılığın ilk anlamıdır**; Türkçe yoksa İngilizcenin ilki kullanılır. Vurgu konumu, tür (isimlerde cinsiyet birleştirilerek) ve varsa örnek cümle birlikte aktarılır; deste adı `Sozluk` olur. `Kopyala` düğmesi maddeyi `başlık — İngilizce — Türkçe` biçiminde panoya alır.
+`📚 Kelime bankasina ekle` seçili maddeyi çalışma dolaşımınıza alır. Bankaya yazılan anlam **Türkçe karşılığın ilk anlamıdır**; Türkçe yoksa İngilizcenin ilki kullanılır. Vurgu konumu, tür (isimlerde cinsiyet birleştirilerek) ve varsa örnek cümle birlikte aktarılır, deste adı `Sozluk` olur. `Kopyala` maddeyi `başlık — İngilizce — Türkçe` biçiminde panoya alır; Türkçe karşılık yoksa yalnızca `başlık — İngilizce` kopyalanır.
 
 ### 5.7 CSV içe / dışa aktarma
 
@@ -350,12 +337,12 @@ Politika `Kapali` değilse sözlük iki durumda kendiliğinden modele başvurur:
 
 ```csv
 ru,en,tr,pos,extra,source
-до'м,house; home,ev; yuva,n,m,user
+дом,house; home,ev; yuva,n,m,user
 кни'га,book,kitap,n,f,user
 говори'ть,to speak; to talk,konuşmak; söylemek,v,ipf,user
 ```
 
-`CSV/TSV ice aktar` hem virgül hem sekme ayırıcısını tanır. Başlık satırı varsa sütunlar **adıyla** eşlenir, sıra serbesttir ve Türkçe/İngilizce/Rusça eş anlamlı başlıklar kabul edilir (`Rusça`, `Türkçe`, `English`, `Tur`, `Kaynak`…). Başlık yoksa eski konumsal düzen geçerlidir: `ru, en[, pos[, extra]]`. Rusça ve İngilizce alanları zorunludur; ters yazılmışsa program düzeltir.
+`CSV/TSV ice aktar` hem virgül hem sekme ayırıcısını tanır. Başlık satırı varsa sütunlar **adıyla** eşlenir, sıra serbesttir ve eş anlamlı başlıklar kabul edilir (`Rusça`, `Türkçe`, `English`, `Tur`, `Kaynak`…); başlık yoksa eski konumsal düzen geçerlidir: `ru, en[, pos[, extra]]`. Rusça ve İngilizce alanları zorunludur, ters yazılmışsa program düzeltir.
 
 ### 5.8 Madde ekleme
 
@@ -364,7 +351,7 @@ ru,en,tr,pos,extra,source
 ### 5.9 OpenRussian yükleme
 
 1. `Kaynak Merkezi` sayfasında tür süzgecinden `Sozluk / veri`'yi seçin.
-2. OpenRussian dosyalarını (isimler, fiiller, sıfatlar, diğerleri) indirin; `Resources/Indirilenler/Sozluk` klasörüne `openrussian_*.tsv` adıyla inerler.
+2. OpenRussian dosyalarını indirin; `Resources/Indirilenler/Sozluk` klasörüne `openrussian_*.tsv` adıyla inerler.
 3. Sözlük sayfasında `OpenRussian'i yukle`'ye basın. Dosyalar zaten oradaysa sayfa açılırken **kendiliğinden** yüklenir.
 
 Yükleme arka planda çalışır ve toplam madde sayısını on binlere çıkarır. Dosya yoksa program `OpenRussian dosyalari yok. Kaynak Merkezi'nden 'Sozluk / veri' bolumunu indirin.` uyarısını verir.
@@ -389,13 +376,9 @@ Yerel adres API anahtarı istemez: `localhost`, `127.0.0.1`, `.local`, `.lan` ve
 
 ### 6.2 Model seçimi
 
-Program her göreve bir model profili tanımlar ve **kurulu** modeller arasından en uygununu kendisi seçer. Sözlük profilinin tercih sırası: `qwen2.5-7b-instruct`, `qwen2.5-14b-instruct`, `gemma-4-12b-qat`, `llama-3.1-8b-instruct`, `qwen3.6-35b-a3b`. Kurallar:
+Program her göreve bir model profili tanımlar ve **kurulu** modeller arasından en uygununu kendisi seçer. Sözlük profilinin tercih sırası: `qwen2.5-7b-instruct`, `qwen2.5-14b-instruct`, `gemma-4-12b-qat`, `llama-3.1-8b-instruct`, `qwen3.6-35b-a3b`. Profildeki **tam eşleşme** önce gelir, sonra aynı aile (qwen, llama…), sonra genel modeller; eşitlikte **4–16 milyar parametreli** ve adında `instruct`, `-it`, `chat`, `assistant` geçen modeller öne alınır.
 
-- Profildeki **tam eşleşme** önce gelir, sonra aynı aile (qwen, llama…), sonra genel modeller.
-- **Uzman modeller atlanır:** adında `embed`, `rerank`, `math`, `coder`, `code-`, `vision`, `-vl`, `llava`, `moondream`, `whisper`, `tts`, `audio`, `clip`, `bio`, `medic` geçenler metin görevlerine uygun değildir ve ancak başka seçenek yoksa listeye girer. Görsel/OCR görevinde tam tersi geçerlidir: orada yalnızca görme modeli aranır.
-- Eşitlikte **4–16 milyar parametreli** modeller öne alınır; adında `instruct`, `-it`, `chat` geçenler tercih edilir.
-
-Model bulunamazsa özellik çökmez; arayüz sakin bir uyarı gösterir.
+**Uzman modeller atlanır:** adında `embed`, `embedding`, `rerank`, `math`, `coder`, `code-`, `vision`, `-vl`, `llava`, `moondream`, `whisper`, `tts`, `audio`, `clip`, `sd-`, `stable-diffusion`, `bio`, `medic` geçenler metin görevlerine uygun değildir ve ancak başka seçenek yoksa listeye girer; görsel/OCR görevinde ise yalnızca görme modeli aranır. Model bulunamazsa özellik çökmez, arayüz sakin bir uyarı gösterir.
 
 ### 6.3 Alternatif uç nokta
 
@@ -473,25 +456,25 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 | Çift tık | Kelime bankası ve sözlük listelerinde seçili kelimeyi dinle |
 | `Esc` | Madde / kelime ekleme penceresini kapat |
 
-**İpuçları.** Üst çubuktaki yapay zekâ rozetine tıklamak bağlantıyı yeniden yoklar. Sayfa başlığının yanındaki gri metin o sayfaya özgü ipucudur. Sözlükte iki harf yazınca liste süzülür; tam sonuç ve gerekirse yapay zekâ için **Enter**'a basın. Dil değiştirmek için `Ayarlar`'a gitmek zorunda değilsiniz. `PDF Okuyucu`'da seçtiğiniz metin `AI Ogretmen` sayfasında `PDF'teki secimi al` ile hazır gelir.
+**İpuçları.** Üst çubuktaki yapay zekâ rozetine tıklamak bağlantıyı yeniden yoklar. Sayfa başlığının yanındaki gri metin o sayfaya özgü ipucudur. Sözlükte iki harf yazınca liste süzülür; tam sonuç ve gerekirse yapay zekâ için **Enter**'a basın. `PDF Okuyucu`'da seçtiğiniz metin `AI Ogretmen` sayfasında `PDF'teki secimi al` ile hazır gelir.
 
 ---
 
 ## 9. Sorun giderme
 
-**LM Studio'ya bağlanılmıyor.** *Neden:* Local Server başlatılmamış, adres farklı ya da `AI ozellikleri acik` kapalı. *Çözüm:* LM Studio'da **Local Server**'ı başlatın, `Ayarlar` → `LM Studio adresi:` alanının `http://127.0.0.1:1234` olduğunu doğrulayıp `Baglantiyi dene`'ye basın. Program `Baglanti yok. LM Studio'yu acip Local Server'i baslatin.` derse sunucu gerçekten kapalıdır; bağlantı olmadan da program tam çalışır.
+**LM Studio'ya bağlanılmıyor.** *Neden:* Local Server başlatılmamış, adres farklı ya da `AI ozellikleri acik` kapalı. *Çözüm:* LM Studio'da **Local Server**'ı başlatın, `LM Studio adresi:` alanının `http://127.0.0.1:1234` olduğunu doğrulayıp `Baglantiyi dene`'ye basın. Program `Baglanti yok. LM Studio'yu acip Local Server'i baslatin.` derse sunucu gerçekten kapalıdır; bağlantı olmadan da program tam çalışır.
 
-**AI boş yanıt veriyor.** *Neden:* "Düşünen" modeller (gemma-4, qwen3 gibi) akıl yürütme metnini token bütçesine yazıp içeriği boş bırakabilir; ya da seçilen model uzman bir modeldir. *Çözüm:* Program bunu hafifletir — yerel sunucuya düşünmeyi kapatan bir alan gönderir, yanıt kesilmişse bütçeyi üç katına çıkarıp bir kez daha dener. Yine boşsa LM Studio'ya `qwen2.5-7b-instruct` gibi bir yönerge modeli yükleyin; `Modelleri tara` ile kurulu modelleri görebilirsiniz.
+**AI boş yanıt veriyor.** *Neden:* "Düşünen" modeller (gemma-4, qwen3 gibi) akıl yürütme metnini token bütçesine yazıp içeriği boş bırakabilir; ya da seçilen model uzman bir modeldir. *Çözüm:* Program bunu **sözlük sorgularında** hafifletir — yerel sunucuya düşünmeyi kapatan bir alan gönderir, yanıt kesilmişse bütçeyi üç katına çıkarıp bir kez daha dener. Diğer sayfalarda (`AI Ogretmen`, `Konusma Pratigi`) böyle bir yeniden deneme yoktur. Yine boşsa `qwen2.5-7b-instruct` gibi bir yönerge modeli yükleyin; `Modelleri tara` kurulu modelleri gösterir.
 
-**Türkçe karşılık yok.** *Neden:* Madde OpenRussian katmanındandır (çevirileri İngilizce) ya da `tr` alanı boştur. *Çözüm:* Yönü `RU → TR` yapıp **Enter**'a basın; politika `Kapali` değilse program eksik karşılığı modele sorar ve kopya oluşturmadan mevcut maddeye işler. Yapay zekâ istemiyorsanız `+ Madde ekle` ile Türkçesini kendiniz yazın veya `tr` sütunlu bir CSV içe aktarın.
+**Türkçe karşılık yok.** *Neden:* Madde OpenRussian katmanındandır (çevirileri İngilizce) ya da `tr` alanı boştur. *Çözüm:* Yönü `RU → TR` yapıp **Enter**'a basın; politika `Kapali` değilse program eksik karşılığı modele sorar ve kopya oluşturmadan mevcut maddeye işler. Yapay zekâ istemiyorsanız `+ Madde ekle` ile Türkçesini kendiniz yazın.
 
 **macOS "açılamıyor" uyarısı.** *Neden:* Uygulama notarize edilmemiştir; Gatekeeper tanımadığı geliştiricinin uygulamasını doğrudan açmaz. *Çözüm:* Çift tıklamayın; **sağ tıklayın → Aç**, çıkan uyarıda yine **Aç**'a basın. Onay bir kez verilir.
 
-**Ses çıkmıyor.** *Neden:* Seslendirme motoru kurulu değil (`pyttsx3` eksik), `Seslendirme acik` kapalı ya da sistemde Rusça ses paketi yok. *Çözüm:* `Ayarlar` → `Ses` bölümündeki durum satırını okuyup `Test et`'e basın. Motor yoksa `pip install pyttsx3` kurun; Windows'ta ayrıca sistem ayarlarından Rusça konuşma paketi ekleyin (Rusça ses yoksa telaffuz yaklaşık olur).
+**Ses çıkmıyor.** *Neden:* Seslendirme motoru kurulu değil (`pyttsx3` eksik), `Seslendirme acik` kapalı ya da sistemde Rusça ses paketi yok. *Çözüm:* `Ayarlar` → `Ses` bölümündeki durum satırını okuyup `Test et`'e basın; motor yoksa `pip install pyttsx3` kurun ve Windows ayarlarından Rusça konuşma paketi ekleyin.
 
-**exe açılmıyor.** *Neden:* Zip tam açılmamış, antivirüs dosyayı karantinaya almış ya da tek dosyalık paket ilk açılışta kendini geçici klasöre açıyor. *Çözüm:* Zip'i gerçekten bir klasöre çıkarıp `RussianCourseAI.exe`'yi oradan çalıştırın; ilk açılış birkaç saniye sürebilir. `build.bat /onedir` ile üretilen klasör sürümü belirgin biçimde daha hızlı açılır. Veritabanı açılamazsa program hatalı dosyanın yolunu gösterir; o dosyayı taşıyıp programı yeniden başlatın.
+**exe açılmıyor.** *Neden:* Zip tam açılmamış, antivirüs dosyayı karantinaya almış ya da tek dosyalık paket kendini geçici klasöre açıyor. *Çözüm:* Zip'i gerçekten bir klasöre çıkarıp `RussianCourseAI.exe`'yi oradan çalıştırın; ilk açılış birkaç saniye sürebilir. Veritabanı açılamazsa program hatalı dosyanın yolunu gösterir; o dosyayı taşıyıp yeniden başlatın.
 
-**Veriler nerede.** *Neden:* Program dizini ile veri dizini bilinçli olarak ayrıdır; böylece güncelleme ilerlemenizi silmez. *Çözüm:* Windows'ta `%APPDATA%\RussianCourseAI`, diğer sistemlerde `~/.russiancourseai`. En kolay yol `Ayarlar` → `Veri klasorunu ac`; yol durum çubuğunun sağ ucunda da yazar. `RCA_HOME` tanımlıysa veriler orada tutulur.
+**Veriler nerede.** *Neden:* Program dizini ile veri dizini bilinçli olarak ayrıdır; böylece güncelleme ilerlemenizi silmez. *Çözüm:* Windows'ta `%APPDATA%\RussianCourseAI`, diğer sistemlerde `~/.russiancourseai`; `Ayarlar` → `Veri klasorunu ac` doğrudan oraya götürür. `RCA_HOME` tanımlıysa veriler orada tutulur.
 
 ---
 
@@ -499,36 +482,36 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 
 | Sürüm | Öne çıkanlar |
 |---|---|
-| **v1.0.0** | İlk sürüm: 18 sayfa, üç dilli arayüz (TR/EN/RU), çevrimdışı çalışma, SM-2 aralıklı tekrar, sınav motoru, Kiril ve dilbilgisi laboratuvarları, PDF okuyucu, kelime bankası, açık lisanslı Kaynak Merkezi, yerel LM Studio öğretmeni, macOS paketi |
+| **v1.0.0** | İlk sürüm: 17 sayfa, üç dilli arayüz, çevrimdışı çalışma, SM-2 aralıklı tekrar, sınav motoru, Kiril ve dilbilgisi laboratuvarları, PDF okuyucu, kelime bankası, açık lisanslı Kaynak Merkezi, yerel LM Studio öğretmeni, macOS paketi |
 | **v1.1.0** | `Sozluk RU-EN-TR` sayfası: iki yönlü Rusça–İngilizce sözlük, gömülü çekirdek veri, OpenRussian katmanı ve **yapay zekâ bağlantısı** (LM Studio ya da alternatif OpenAI uyumlu uç); API anahtarı Credential Manager'da saklanır |
-| **v1.1.1** | Sözlük yapay zekâ düzeltmeleri: düşünen modellerde boş yanıt, görev bazlı model seçimi, yanlış konumlanmış vurgu işaretinin onarımı |
+| **v1.1.1** | Sözlük yapay zekâ düzeltmeleri: düşünen modellerde boş yanıt, görev bazlı model seçimi, vurgu işaretinin onarımı |
 | **v1.1.2** | Sözlük cilası: `Cins / Gorunus` alanı, etkin yön etiketi, araç çubuğundan politika seçimi, tekrar eden anlamların ayıklanması |
-| **v1.2.0** | **Yön seçimi ve Türkçe üçüncü dil:** `Otomatik / RU→EN / EN→RU / RU→TR / TR→RU` seçicisi, listede ve detay panelinde `Türkçe` sütunu, gömülü 1.360 maddenin tamamına Türkçe karşılık, eksik Türkçenin yapay zekâ ile kopya oluşturmadan doldurulması, `tr` sütunlu CSV aktarımı ve eski veritabanlarına `tr` sütunu göçü |
+| **v1.2.0** | **Yön seçimi ve Türkçe üçüncü dil:** `Otomatik / RU→EN / EN→RU / RU→TR / TR→RU` seçicisi, listede ve detay panelinde `Türkçe` sütunu, gömülü 1.360 maddenin tamamına Türkçe karşılık, eksik Türkçenin kopya oluşturmadan doldurulması, `tr` sütunlu CSV aktarımı ve eski veritabanlarına `tr` sütunu göçü |
 
 ---
 
 ## 11. Sık sorulan sorular
 
-**Programı internetsiz kullanabilir miyim?** Evet. Çekirdek işleyişin tamamı çevrimdışıdır. Ağ yalnızca iki isteğe bağlı durumda kullanılır: alternatif yapay zekâ uç noktasını açtığınızda ve Kaynak Merkezi'nden dosya indirdiğinizde.
+**Programı internetsiz kullanabilir miyim?** Evet; çekirdek işleyişin tamamı çevrimdışıdır. Ağ yalnızca alternatif yapay zekâ uç noktasını açtığınızda ve Kaynak Merkezi'nden dosya indirdiğinizde kullanılır.
 
 **Yapay zekâ olmadan program işe yarar mı?** Fazlasıyla. Aralıklı tekrar, sınav, kelime bankası, 1.360 maddelik gömülü sözlük, laboratuvarlar ve ilerleme takibi yapay zekâsız tam çalışır.
 
-**Kelime bankası ile sözlük arasındaki fark nedir?** `Kelime Bankasi` sizin çalıştığınız, tekrar ve sınav kuyruğunu besleyen kişisel destenizdir; `Sozluk RU-EN-TR` ise okurken başvurduğunuz genel sözlüktür. Beğendiğiniz maddeyi `📚 Kelime bankasina ekle` ile bankaya taşırsınız.
+**Kelime bankası ile sözlük arasındaki fark nedir?** `Kelime Bankasi` tekrar ve sınav kuyruğunu besleyen kişisel destenizdir; `Sozluk RU-EN-TR` ise okurken başvurduğunuz genel sözlüktür. Beğendiğiniz maddeyi `📚 Kelime bankasina ekle` ile bankaya taşırsınız.
 
-**Hangi yönü seçmeliyim?** Emin değilseniz `Otomatik` bırakın. Rusça bir kelimenin Türkçesini istiyorsanız `RU → TR`, Türkçe bir kelimenin Rusçasını arıyorsanız `TR → RU` seçin; sabit yön karışık eşleşmeleri eler.
+**Hangi yönü seçmeliyim?** Emin değilseniz `Otomatik` bırakın. Rusça bir kelimenin Türkçesini istiyorsanız `RU → TR`, tersi için `TR → RU` seçin; sabit yön karışık eşleşmeleri eler.
 
-**Vurgu işaretini nasıl yazmalıyım?** Aramada gerekmez. Kendiniz madde eklerken vurguyu, vurgulu sesli harften **hemen sonra** bir kesme işaretiyle belirtin: `приве'т`, `кни'га`, `хорошо'`. Tek heceli kelimeler ve içinde `ё` geçenler işaretlenmez.
+**Vurgu işaretini nasıl yazmalıyım?** Aramada gerekmez. Madde eklerken vurguyu, vurgulu sesli harften **hemen sonra** bir kesme işaretiyle belirtin: `приве'т`, `кни'га`, `хорошо'`. Tek heceli kelimeler ve içinde `ё` geçenler işaretlenmez.
 
 **`ё` yerine `е` yazarsam bulur mu?** Bulur; karşılaştırma öncesi `ё` her zaman `е`ye indirgenir.
 
-**API anahtarım nerede saklanıyor?** Windows'ta Credential Manager'da, diğer sistemlerde ayar klasöründeki `secrets.json` dosyasında. `settings.json`'a asla yazılmaz ve arayüzde görüntülenmez. `RUSSIANCOURSEAI_API_KEY` ortam değişkeniyle hiç kaydetmeden de çalışabilirsiniz.
+**API anahtarım nerede saklanıyor?** Windows'ta Credential Manager'da, diğer sistemlerde ayar klasöründeki `secrets.json` dosyasında; `settings.json`'a asla yazılmaz ve arayüzde görüntülenmez.
 
 **Yapay zekâya gönderdiğim metinler saklanıyor mu?** Hayır. `Token Defteri` yalnızca model adını, görev türünü, token sayılarını ve süreyi tutar.
 
-**Verilerimi başka bir bilgisayara nasıl taşırım?** Veri klasörünü olduğu gibi kopyalayın. Yalnızca desteler için `Paketler` sayfasından `.rupack` üretin; yalnızca sözlük için `CSV disa aktar` kullanın.
+**Verilerimi başka bir bilgisayara nasıl taşırım?** Veri klasörünü olduğu gibi kopyalayın; yalnızca desteler için `.rupack`, yalnızca sözlük için `CSV disa aktar` kullanın.
 
-**Aynı bilgisayarda iki kişi çalışabilir mi?** Evet; üst çubuktaki `+` ile ikinci profil açın. Tekrar geçmişi, sınavlar ve istatistikler ayrılır, kelime bankası ve sözlük ortak kalır.
+**Aynı bilgisayarda iki kişi çalışabilir mi?** Evet; `+` ile ikinci profil açın. Tekrar geçmişi, sınavlar ve istatistikler ayrılır, kelime bankası ve sözlük ortak kalır.
 
-**OpenRussian'ı yüklemek zorunda mıyım?** Hayır. Gömülü 1.360 madde A1–B1 düzeyini karşılar ve anında çalışır; OpenRussian kapsamı on binlerce maddeye çıkarmak isteyenler içindir.
+**OpenRussian'i yüklemek zorunda mıyım?** Hayır. Gömülü 1.360 madde A1–B1'i karşılar ve anında çalışır; OpenRussian on binlerce madde isteyenler içindir.
 
 **Programı kaldırırsam verilerim silinir mi?** Hayır; program klasörünü silmek verilerinize dokunmaz. Verileri de silmek isterseniz 7. bölümdeki veri klasörünü elle kaldırın.

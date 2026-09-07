@@ -26,3 +26,6 @@ tmp/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Kullanim kilavuzunun ara HTML ciktisi (PDF ondan uretilir)
+docs/*.html

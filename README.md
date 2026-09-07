@@ -5,6 +5,8 @@
 [Üç dilli tanıtım PDF'i](output/pdf/Russian-Course-AI-Trilingual.pdf) ·
 [Düzenlenebilir PowerPoint](docs/presentation/Russian-Course-AI-Trilingual.pptx)
 
+[Kullanim kilavuzu (Turkce)](docs/KULLANIM_KILAVUZU.md) - kurulum, 18 ekran, sozluk, yapay zeka, sorun giderme.
+
 Windows uzerinde **%100 cevrimdisi** calisan, Rusca'yi A1'den C1'e (ТРКИ-3) goturmek
 icin tasarlanmis masaustu dil ogrenme istasyonu.
 

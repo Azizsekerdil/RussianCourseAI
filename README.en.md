@@ -5,6 +5,8 @@
 [Trilingual promotional PDF](output/pdf/Russian-Course-AI-Trilingual.pdf) ·
 [Editable PowerPoint](docs/presentation/Russian-Course-AI-Trilingual.pptx)
 
+[User guide (English)](docs/USER_GUIDE.md) - installation, all 18 pages, the dictionary, AI setup, and troubleshooting.
+
 Russian Course AI is a Windows desktop learning workspace for studying Russian
 from A1 through C1. It brings structured review, vocabulary, grammar,
 pronunciation, reading, writing, exams, progress tracking, and an optional local

@@ -1,6 +1,6 @@
 # Russian Course AI — User Guide
 
-Version 1.2.0 · Windows and macOS desktop application · Interface languages: Türkçe / English / Русский
+Version 1.2.1 · Windows and macOS desktop application · Interface languages: Türkçe / English / Русский
 
 - [1. About this guide](#1-about-this-guide)
 - [2. Installation](#2-installation)
@@ -18,7 +18,7 @@ Version 1.2.0 · Windows and macOS desktop application · Interface languages: T
 
 ## 1. About this guide
 
-This document is the user guide for **Russian Course AI 1.2.0**. The program is a desktop workspace for studying Russian from A1 to C1, holding 18 pages in a single window.
+This document is the user guide for **Russian Course AI 1.2.1**. The program is a desktop workspace for studying Russian from A1 to C1, holding 18 pages in a single window.
 
 How to read it: **if you are starting out**, read sections 2 and 3, then the `Aralikli Tekrar`, `Kelime Bankasi` and `Sozluk RU-EN-TR` pages in section 4 — the program works at full capacity without any AI. **If you will use the dictionary heavily**, go straight to section 5. **If you want to connect the AI**, see section 6.
 
@@ -487,6 +487,7 @@ The privacy rules: no data leaves the machine during core operation; the AI runs
 | **v1.1.1** | Dictionary AI fixes: empty answers from thinking models, task-based model selection, repair of misplaced stress marks |
 | **v1.1.2** | Dictionary polish: the `Cins / Gorunus` field, the effective-direction label, policy selection from the toolbar, removal of repeated senses |
 | **v1.2.0** | **Direction selection and Turkish as a third language:** the `Otomatik / RU→EN / EN→RU / RU→TR / TR→RU` selector, a `Türkçe` column in the list and detail panel, Turkish glosses for all 1,360 built-in entries, filling a missing Turkish gloss with the AI without creating duplicates, CSV import/export with a `tr` column, and a `tr` column migration for older databases |
+| **v1.2.1** | **ASCII and upper-case support in Turkish search:** `sinav`, `SINAV` and `sınav` return the same results; `cok` → `çok`, `ogrenci` → `öğrenci`, `gormek` → `görmek`. Folded matches rank below direct matches, so a user typing `ask` still gets the English gloss first, and the displayed spelling never changes. This **user guide** (`docs/USER_GUIDE.md`, Turkish `docs/KULLANIM_KILAVUZU.md`) was added to the repository, and its PDF is published as a release asset |
 
 ---
 

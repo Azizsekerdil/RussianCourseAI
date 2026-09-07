@@ -1,6 +1,6 @@
 # Russian Course AI — Kullanım Kılavuzu
 
-Sürüm 1.2.0 · Windows ve macOS masaüstü uygulaması · Arayüz dilleri: Türkçe / English / Русский
+Sürüm 1.2.1 · Windows ve macOS masaüstü uygulaması · Arayüz dilleri: Türkçe / English / Русский
 
 - [1. Bu kılavuz hakkında](#1-bu-kılavuz-hakkında)
 - [2. Kurulum](#2-kurulum)
@@ -18,7 +18,7 @@ Sürüm 1.2.0 · Windows ve macOS masaüstü uygulaması · Arayüz dilleri: Tü
 
 ## 1. Bu kılavuz hakkında
 
-Bu belge **Russian Course AI 1.2.0** sürümünün kullanım kılavuzudur. Program, Rusçayı A1'den C1'e çalışmak için tasarlanmış, tek pencerede 18 sayfa barındıran bir masaüstü çalışma istasyonudur.
+Bu belge **Russian Course AI 1.2.1** sürümünün kullanım kılavuzudur. Program, Rusçayı A1'den C1'e çalışmak için tasarlanmış, tek pencerede 18 sayfa barındıran bir masaüstü çalışma istasyonudur.
 
 Nasıl okunur: **yeni başlıyorsanız** 2. ve 3. bölümü, sonra 4. bölümdeki `Aralikli Tekrar`, `Kelime Bankasi` ve `Sozluk RU-EN-TR` sayfalarını okuyun — program yapay zekâ olmadan da tam kapasite çalışır. **Sözlüğü yoğun kullanacaksanız** doğrudan 5. bölüme geçin. **Yapay zekâyı bağlayacaksanız** 6. bölüme bakın.
 
@@ -487,6 +487,7 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 | **v1.1.1** | Sözlük yapay zekâ düzeltmeleri: düşünen modellerde boş yanıt, görev bazlı model seçimi, vurgu işaretinin onarımı |
 | **v1.1.2** | Sözlük cilası: `Cins / Gorunus` alanı, etkin yön etiketi, araç çubuğundan politika seçimi, tekrar eden anlamların ayıklanması |
 | **v1.2.0** | **Yön seçimi ve Türkçe üçüncü dil:** `Otomatik / RU→EN / EN→RU / RU→TR / TR→RU` seçicisi, listede ve detay panelinde `Türkçe` sütunu, gömülü 1.360 maddenin tamamına Türkçe karşılık, eksik Türkçenin kopya oluşturmadan doldurulması, `tr` sütunlu CSV aktarımı ve eski veritabanlarına `tr` sütunu göçü |
+| **v1.2.1** | **Türkçe aramada ASCII ve büyük harf desteği:** `sinav`, `SINAV` ve `sınav` aynı sonucu verir; `cok` → `çok`, `ogrenci` → `öğrenci`, `gormek` → `görmek`. Katlanarak bulunan eşleşmeler doğrudan eşleşmelerin altına sıralanır, böylece `ask` yazan kullanıcı önce İngilizce karşılığı görür; gösterilen yazım değişmez. Ayrıca bu **kullanım kılavuzu** (`docs/KULLANIM_KILAVUZU.md`, İngilizcesi `docs/USER_GUIDE.md`) depoya eklendi ve PDF sürümü sürüm ek dosyası olarak yayımlandı |
 
 ---
 

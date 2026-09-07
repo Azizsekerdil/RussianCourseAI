@@ -243,7 +243,7 @@ async function main() {
     ]);
   }
 
-  // 7 — Platforms & download: v1.2.0 release availability with the private-repo caveat.
+  // 7 — Platforms & download: v1.2.1 release availability with the private-repo caveat.
   {
     const slide = deck.slides.add();
     slide.background.fill = C.white;
@@ -251,9 +251,9 @@ async function main() {
     text(slide, "platform-subtitle", "Platformlar & İndirme  •  Платформы и загрузка", 42, 112, 1100, 30, 19, { color: C.muted });
     line(slide, "platform-rule", 42, 196, 1196, C.rule, 1);
     const rows = [
-      { label: "TÜRKÇE", color: C.ink, body: "Windows 10/11 (x64) + macOS (Apple Silicon) — İndirme: github.com/Azizsekerdil/RussianCourseAI/releases (v1.2.0) (özel repo)" },
-      { label: "ENGLISH", color: C.blue, body: "Windows 10/11 (x64) & macOS (Apple Silicon) — Download: GitHub Releases (v1.2.0)" },
-      { label: "РУССКИЙ", color: C.muted, body: "Windows 10/11 (x64) и macOS (Apple Silicon) — Загрузка: GitHub Releases (v1.2.0)" },
+      { label: "TÜRKÇE", color: C.ink, body: "Windows 10/11 (x64) + macOS (Apple Silicon) — İndirme: github.com/Azizsekerdil/RussianCourseAI/releases (v1.2.1) (özel repo)" },
+      { label: "ENGLISH", color: C.blue, body: "Windows 10/11 (x64) & macOS (Apple Silicon) — Download: GitHub Releases (v1.2.1)" },
+      { label: "РУССКИЙ", color: C.muted, body: "Windows 10/11 (x64) и macOS (Apple Silicon) — Загрузка: GitHub Releases (v1.2.1)" },
     ];
     for (const [i, row] of rows.entries()) {
       const y = 232 + i * 104;
@@ -264,13 +264,13 @@ async function main() {
     text(
       slide,
       "platform-footnote",
-      "Release v1.2.0 — iki paket: Windows zip + macOS zip. macOS paketi Apple Silicon (arm64) içindir ve notarize edilmemiştir; ilk açılışta sağ tık → Aç.\nDepo özel (private) — github.com/Azizsekerdil/RussianCourseAI bağlantısına yalnızca hesap sahibi erişebilir.",
+      "Release v1.2.1 — iki paket: Windows zip + macOS zip. macOS paketi Apple Silicon (arm64) içindir ve notarize edilmemiştir; ilk açılışta sağ tık → Aç.\nDepo özel (private) — github.com/Azizsekerdil/RussianCourseAI bağlantısına yalnızca hesap sahibi erişebilir.",
       42, 576, 1120, 84, 15,
       { color: C.muted },
     );
     footer(slide, 7);
     notes(slide, [
-      "https://github.com/Azizsekerdil/RussianCourseAI/releases/tag/v1.2.0 (v1.2.0 release with Windows and macOS zip assets; private repository)",
+      "https://github.com/Azizsekerdil/RussianCourseAI/releases/tag/v1.2.1 (v1.2.1 release with Windows and macOS zip assets; private repository)",
     ]);
   }
 

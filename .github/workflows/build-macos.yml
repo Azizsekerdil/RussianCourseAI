@@ -2,10 +2,19 @@ name: macOS Paketi
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: >-
+          Zip'in yuklenecegi surum etiketi (or. v1.3.0).
+          Bos birakilirsa zip yalnizca is akisi ciktisi olarak saklanir.
+        required: false
+        default: ''
 
 jobs:
   macos:
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,8 +27,24 @@ jobs:
           ./build_macos.sh
       - name: Lisans denetimi (yayımlanan zip MIT koşullarıyla dağıtılabilir mi?)
         run: python tools/check_build_licence.py dist/RussianCourseAI-macOS.zip
+      # Zip'i DOGRUDAN surume yukle. Artifact deposu hesap genelinde bir kotaya
+      # tabidir ve doldugunda upload-artifact adimi derlemeyi bosuna kirar;
+      # surum ek dosyasi ise kalici adres oldugu icin asil dagitim yolu budur.
+      - name: Zip'i surume yukle
+        if: github.event.inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.event.inputs.release_tag }}" \
+            dist/RussianCourseAI-macOS.zip --clobber \
+            -R "${{ github.repository }}"
+
+      # Artifact yalnizca kolaylik icindir: kota dolu olsa bile derleme basarili
+      # sayilir, cunku zip yukaridaki adimda zaten surume yuklenmistir.
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: RussianCourseAI-macOS
           path: dist/RussianCourseAI-macOS.zip
           if-no-files-found: error
+          retention-days: 7

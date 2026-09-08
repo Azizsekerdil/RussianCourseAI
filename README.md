@@ -102,7 +102,8 @@ dugmeler gri kalir, program acilmaya ve diger ozellikler calismaya devam eder:
 
 | Paket | Kapatilan ozellik |
 |---|---|
-| `pymupdf` | PDF goruntuleme, isaretleme, metin secimi |
+| `pypdfium2` | PDF goruntuleme, metin secimi |
+| `pypdf` | Isaretlemeleri gomulu PDF'i disa aktarma |
 | `pyttsx3` | Cevrimdisi seslendirme (yedek: Windows System.Speech) |
 | `pillow` | El yazisi PNG kaydi, "ne yazdim?" gorsel sorusu |
 | `pymorphy3` | Kesin morfoloji etiketleri (yedek: sonek tabanli yaklasik etiketleme) |
@@ -235,6 +236,7 @@ rca/
   tts.py                  seslendirme + konusma tanima sarmalayicilari
   i18n.py                 TR / EN / RU arayuz metinleri + AI sistem yonergeleri
   library.py              acik lisansli kaynak katalogu + indirici + ice aktarici
+  pdf_backend.py          PDF arka ucu: pypdfium2 ile cizim/metin, pypdf ile isaretli PDF
   ui_util.py              tema, kenar cubugu, yuvarlak kartlar, grafikler, thread kuyrugu
   tabs/                   18 sayfa, her biri tek bir LazyTab sinifi
   dictionary.py           RU<->EN/TR sozluk motoru (yon secimi, gomulu + kullanici + OpenRussian + AI katmanlari)
@@ -248,6 +250,8 @@ Resources/Indirilenler/   Kaynak Merkezinden inen dosyalar + LISANS.txt
 tests/                    pytest paketi
 PROMPT.md                 bu programi ureten birlestirilmis prompt
 KAYNAKLAR.md              kaynak taramasi: lisans dogrulamalari ve elenenler
+LICENSE                   MIT lisans metni
+THIRD_PARTY_NOTICES.md    ucuncu taraf bilesenlerin dogrulanmis lisanslari
 ```
 
 Mimari kurallari:
@@ -307,9 +311,9 @@ Ingilizce ile doldurulur ki kartlar hemen calissin; sonradan duzenleyebilirsiniz
 python -m pytest tests -q
 ```
 
-156 test: SM-2 aralik hesabi, RU<->EN/TR sozluk motoru (veri butunlugu, yon secimli ve otomatik arama, Turkce sorgu, tr sutunlu CSV ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, Ingilizce + Turkce karsilik, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
+177 test: SM-2 aralik hesabi, RU<->EN/TR sozluk motoru (veri butunlugu, yon secimli ve otomatik arama, Turkce sorgu, tr sutunlu CSV ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, Ingilizce + Turkce karsilik, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
 repositoryleri, metin normalizasyonu (ё / vurgu), gomulu icerik tutarliligi,
-uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi ve pencere/sayfa duman testi.
+uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi, PDF arka ucu (sayfa sayisi/olcusu, zoom ile olceklenen cizim, sol-ust kokenli kelime kutulari, isaretli PDF'in geri acilmasi) ve pencere/sayfa duman testi.
 Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz.
 
 ---
@@ -334,3 +338,17 @@ Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz.
 noktasidir. Ardindan `rca/seed_words.py` icindeki desteyi ve `rca/content.py` icindeki
 icerik paketlerini hedef dile gore doldurun; arayuz, aralikli tekrar, sinav motoru ve
 istatistik katmanlari dilden bagimsiz calisir.
+
+---
+
+## Lisans
+
+Bu proje **MIT Lisansi** ile dagitilir - tam metin: [`LICENSE`](LICENSE).
+
+Kullanilan ve ikili pakete gomulen ucuncu taraf bilesenlerin gercek lisanslari
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) dosyasindadir. PDF katmani
+izin verici lisanslidir (`pypdfium2`: Apache-2.0 / BSD-3-Clause, `pypdf`:
+BSD-3-Clause); depoda AGPL lisansli hicbir bilesen yoktur. Iki bilesen dikkat
+ister: `pyttsx3` (GPL-3.0) ve `certifi` (MPL-2.0) - ayrintilar bildirim
+dosyasindadir. Kaynak Merkezi'nden indirilen materyal depoya dahil degildir ve
+kendi acik lisansini korur.

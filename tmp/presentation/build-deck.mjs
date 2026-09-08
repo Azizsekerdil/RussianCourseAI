@@ -1,10 +1,13 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import { Presentation, PresentationFile } from "@oai/artifact-tool";
 
-const OUT = "D:/Russian/docs/presentation/Russian-Course-AI-Trilingual.pptx";
-const PREVIEW_DIR = "D:/Russian/tmp/presentation/rendered";
-const HERO = "D:/Russian/docs/presentation/assets/russian-course-ai-hero.png";
-const SCREENSHOT = "D:/Russian/docs/presentation/assets/russian-course-ai-screenshot.png";
+// Repo koku: betik <root>/tmp/presentation icinde durur; RCA_ROOT ile disaridan da verilebilir.
+const ROOT = process.env.RCA_ROOT ?? path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "..", "..");
+const OUT = path.join(ROOT, "docs/presentation/Russian-Course-AI-Trilingual.pptx");
+const PREVIEW_DIR = path.join(ROOT, "tmp/presentation/rendered");
+const HERO = path.join(ROOT, "docs/presentation/assets/russian-course-ai-hero.png");
+const SCREENSHOT = path.join(ROOT, "docs/presentation/assets/russian-course-ai-screenshot.png");
 
 const C = {
   white: "#FFFFFF",
@@ -77,7 +80,7 @@ async function writeBlob(path, blob) {
 
 async function main() {
   await fs.mkdir(PREVIEW_DIR, { recursive: true });
-  await fs.mkdir("D:/Russian/docs/presentation", { recursive: true });
+  await fs.mkdir(path.join(ROOT, "docs/presentation"), { recursive: true });
 
   const heroBytes = await fs.readFile(HERO);
   const screenshotBytes = await fs.readFile(SCREENSHOT);
@@ -109,8 +112,8 @@ async function main() {
     });
     footer(slide, 1);
     notes(slide, [
-      "D:/Russian/README.md (product positioning and supported levels)",
-      "D:/Russian/docs/presentation/assets/russian-course-ai-hero.png (AI-generated original cover visual)",
+      path.join(ROOT, "README.md (product positioning and supported levels)"),
+      path.join(ROOT, "docs/presentation/assets/russian-course-ai-hero.png (AI-generated original cover visual)"),
     ]);
   }
 
@@ -132,7 +135,7 @@ async function main() {
     });
     text(slide, "screen-footer", "02", 1180, 680, 56, 18, 13, { color: "#AEB8CA", align: "right" });
     notes(slide, [
-      "D:/Russian/docs/presentation/assets/russian-course-ai-screenshot.png (user-supplied product screenshot)",
+      path.join(ROOT, "docs/presentation/assets/russian-course-ai-screenshot.png (user-supplied product screenshot)"),
     ]);
   }
 
@@ -156,8 +159,8 @@ async function main() {
     }
     footer(slide, 3);
     notes(slide, [
-      "D:/Russian/rca/i18n.py (Turkish, English, and Russian interface catalog)",
-      "D:/Russian/Russian_Course_AI.pyw (instant and persistent language switching)",
+      path.join(ROOT, "rca/i18n.py (Turkish, English, and Russian interface catalog)"),
+      path.join(ROOT, "Russian_Course_AI.pyw (instant and persistent language switching)"),
     ]);
   }
 
@@ -183,8 +186,8 @@ async function main() {
     }
     footer(slide, 4);
     notes(slide, [
-      "D:/Russian/rca/tabs/srs_tab.py (daily review workflow and five study modes)",
-      "D:/Russian/Russian_Course_AI.pyw (learning, lab, read, practice, and system navigation groups)",
+      path.join(ROOT, "rca/tabs/srs_tab.py (daily review workflow and five study modes)"),
+      path.join(ROOT, "Russian_Course_AI.pyw (learning, lab, read, practice, and system navigation groups)"),
     ]);
   }
 
@@ -216,9 +219,9 @@ async function main() {
     });
     footer(slide, 5);
     notes(slide, [
-      "D:/Russian/Russian_Course_AI.pyw (18 entries in TAB_SPECS)",
-      "D:/Russian/rca/dictionary.py + rca/dict_data.py (RU-EN-TR dictionary with direction switch, 1,360 built-in entries with Turkish glosses, OpenRussian layer)",
-      "D:/Russian/README.md (feature descriptions)",
+      path.join(ROOT, "Russian_Course_AI.pyw (18 entries in TAB_SPECS)"),
+      path.join(ROOT, "rca/dictionary.py + rca/dict_data.py (RU-EN-TR dictionary with direction switch, 1,360 built-in entries with Turkish glosses, OpenRussian layer)"),
+      path.join(ROOT, "README.md (feature descriptions)"),
     ]);
   }
 
@@ -238,8 +241,8 @@ async function main() {
     text(slide, "optional-copy", "Kaynak indirmeleri ve alternatif AI ucu (NVIDIA NIM / özel OpenAI uyumlu URL) internet kullanır; anahtar Credential Manager'da.\nCore learning remains available without them.\n\nЗагрузки и альтернативный ИИ-узел (NVIDIA NIM) используют интернет.\nОсновное обучение доступно и без них.", 696, 382, 500, 170, 19, { color: C.muted });
     footer(slide, 6);
     notes(slide, [
-      "D:/Russian/README.md (local LM Studio, optional NVIDIA NIM, and Resource Center network behavior)",
-      "D:/Russian/rca/db.py (SQLite persistence)",
+      path.join(ROOT, "README.md (local LM Studio, optional NVIDIA NIM, and Resource Center network behavior)"),
+      path.join(ROOT, "rca/db.py (SQLite persistence)"),
     ]);
   }
 
@@ -286,7 +289,7 @@ async function main() {
     text(slide, "close-action", "INSTALL  •  LEARN  •  REVIEW", 42, 614, 620, 28, 18, { bold: true, color: C.blue });
     text(slide, "close-meta", "Windows 10/11 + macOS  •  A1-C1  •  TR / EN / RU", 700, 614, 538, 28, 17, { color: C.muted, align: "right" });
     footer(slide, 8);
-    notes(slide, ["D:/Russian/README.md (installation, learning levels, and feature overview)"]);
+    notes(slide, [path.join(ROOT, "README.md (installation, learning levels, and feature overview)")]);
   }
 
   for (const [index, slide] of deck.slides.items.entries()) {

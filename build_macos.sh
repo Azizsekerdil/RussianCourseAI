@@ -15,7 +15,11 @@ rm -rf build/macos "dist/RussianCourseAI.app"
 mkdir -p build/macos
 
 # vosk==0.3.45'in macOS (arm64) icin PyPI dagitimi yok; macOS'ta 0.3.44 kullanilir.
-sed 's/^vosk==0\.3\.45$/vosk==0.3.44/' requirements.txt > build/macos/requirements-macos.txt
+# pyttsx3 GPL-3.0'dir: dagitilan .app saf MIT kalsin diye derleme ortamina hic
+# kurulmaz (bkz. THIRD_PARTY_NOTICES.md). macOS'ta seslendirme zaten isletim
+# sisteminin `say` komutuyla yapilir, ozellik kaybi yoktur.
+sed -e 's/^vosk==0\.3\.45$/vosk==0.3.44/' -e '/^pyttsx3==/d' \
+  requirements.txt > build/macos/requirements-macos.txt
 
 "$PYTHON_BIN" -m pip install --upgrade pip
 "$PYTHON_BIN" -m pip install -r build/macos/requirements-macos.txt
@@ -48,6 +52,7 @@ DATA_ARGS=()
   --hidden-import rca.dictionary \
   --hidden-import rca.dict_data \
   --hidden-import rca.ai_client \
+  --hidden-import rca.pdf_backend \
   --hidden-import rca.tabs.dictionary_tab \
   --hidden-import rca.tabs.vocab_tab \
   --hidden-import rca.tabs.srs_tab \
@@ -67,6 +72,7 @@ DATA_ARGS=()
   --hidden-import rca.tabs.guide_tab \
   --hidden-import rca.tabs.settings_tab \
   --exclude-module pytest --exclude-module matplotlib \
+  --exclude-module pyttsx3 \
   "$PROJECT_ROOT/Russian_Course_AI.pyw"
 
 APP_PATH="dist/RussianCourseAI.app"

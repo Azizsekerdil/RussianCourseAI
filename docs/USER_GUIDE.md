@@ -60,7 +60,7 @@ The core needs no external packages (tkinter, sqlite3, urllib). For the optional
 pip install -r requirements.txt
 ```
 
-A missing package never stops the program; only the related buttons stay greyed out: `pymupdf` (PDF), `pyttsx3` (speech), `pillow` (handwriting PNG and image questions), `pymorphy3` (exact morphology), `vosk` + `sounddevice` (microphone pronunciation), `truststore` / `certifi` (Library downloads).
+A missing package never stops the program; only the related buttons stay greyed out: `pypdfium2` + `pypdf` (PDF), `pyttsx3` (speech), `pillow` (handwriting PNG and image questions), `pymorphy3` (exact morphology), `vosk` + `sounddevice` (microphone pronunciation), `truststore` / `certifi` (Library downloads).
 
 ### 2.4 Where your data is kept
 
@@ -175,7 +175,7 @@ The order below is the sidebar's own order.
 
 **How to use it.** Open a file with `📂 PDF ac`, then navigate with `◀` / `▶`, `Git...`, `−` / `+` and `Genislige sigdir`. The tools are `✏ Kalem`, `🖍 Isaretleme`, `🔤 Metin`, `🧽 Silgi` and `⬚ Metin sec`. After selecting text, use `AI'a acikla`, `Sozlukte ara`, `🔊` or `Bankaya ekle` in the right panel. Type into `Sayfa notu` and press `Notlari kaydet`; `Isaretli PDF disa aktar` writes a new PDF with the annotations embedded, and `Sayfayi temizle` clears the current page.
 
-**Tip.** This page needs `pymupdf`; the text you select is also available on the `AI Ogretmen` page through `PDF'teki secimi al`.
+**Tip.** This page needs `pypdfium2` (viewing/text) and `pypdf` (annotated export); the text you select is also available on the `AI Ogretmen` page through `PDF'teki secimi al`.
 
 #### Library (`Kaynak Merkezi`)
 
@@ -516,3 +516,21 @@ The privacy rules: no data leaves the machine during core operation; the AI runs
 **Do I have to load OpenRussian?** No. The built-in 1,360 entries cover A1–B1 and work instantly; OpenRussian is for those who want tens of thousands of entries.
 
 **Will uninstalling delete my data?** No; deleting the program folder does not touch your data. To remove the data as well, delete the data folder from section 7 by hand.
+
+
+---
+
+## 12. Licence
+
+Russian Course AI is released under the **MIT License**; the full text is in the
+`LICENSE` file at the repository root. You may use, modify and redistribute the
+program freely as long as the copyright and licence notice is kept.
+
+The verified licences of every third-party component the program uses or bundles into
+the `.exe` / `.app` package are listed in `THIRD_PARTY_NOTICES.md`. The PDF stack is
+permissively licensed (`pypdfium2`: Apache-2.0 / BSD-3-Clause, `pypdf`: BSD-3-Clause)
+and the project contains no AGPL-licensed component. Two components need attention:
+`pyttsx3` (GPL-3.0) and `certifi` (MPL-2.0); the notices file explains what they mean.
+
+Material you download from the Library is not covered by the program's licence but by
+its own open licence, and a `LISANS.txt` is written next to every download.

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """PDF Okuyucu / Not Alma sekmesi.
 
-PyMuPDF (fitz) kuruluysa tam ozellikli calisir. Kurulu degilse sekme acilir
-ama kullaniciya nasil kuracagi soylenir - program COKMEZ.
+Cizim ve metin `pypdfium2`, isaretli kopyanin yazimi `pypdf` uzerinden
+yapilir (bkz. `rca.pdf_backend`). Bunlar kuruluysa sekme tam ozellikli
+calisir; kurulu degilse sekme yine acilir, kullaniciya nasil kuracagi
+soylenir - program COKMEZ.
 """
 from __future__ import annotations
 
@@ -12,6 +14,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 import rca_common as C
+from rca import pdf_backend
 from rca.ui_util import LazyTab, style_text
 
 TOOLS = [("pen", "✏ Kalem"), ("mark", "🖍 Isaretleme"), ("text", "🔤 Metin"),
@@ -121,10 +124,19 @@ class PdfTab(LazyTab):
         self.status = ttk.Label(root, text="", style="Dim.TLabel")
         self.status.pack(anchor="w")
 
-        if not self._fitz():
+        # Iki kutuphane iki AYRI yetenegi surer: pypdfium2 goruntuleme ve metin,
+        # pypdf ise yalnizca isaretli disa aktarma. Yalnizca pypdf eksikken
+        # goruntuleme sorunsuz calisir, bu yuzden durum satiri paket listesine
+        # degil gercekten kapanan yetenege gore yazilir.
+        if not pdf_backend.can_view():
             self.status.configure(
-                text="PyMuPDF kurulu degil - PDF goruntuleme kapali.  Kurmak icin: "
-                     "pip install pymupdf",
+                text="pypdfium2 kurulu degil - PDF goruntuleme kapali.  "
+                     f"Kurmak icin: {pdf_backend.VIEW_HINT}",
+                foreground=p["warn"])
+        elif not pdf_backend.can_export():
+            self.status.configure(
+                text="pypdf kurulu degil - isaretli PDF disa aktarma kapali.  "
+                     f"Kurmak icin: {pdf_backend.EXPORT_HINT}",
                 foreground=p["warn"])
         last = self.app.settings.get("last_pdf", "")
         if last and Path(last).exists():
@@ -132,13 +144,9 @@ class PdfTab(LazyTab):
 
     # ------------------------------------------------------------------
     @staticmethod
-    def _fitz():
-        """PyMuPDF modulunu dondur (yoksa None)."""
-        try:
-            import fitz                       # type: ignore
-            return fitz
-        except Exception:
-            return None
+    def _backend():
+        """PDF arka ucunu dondur (goruntuleme mumkun degilse None)."""
+        return pdf_backend if pdf_backend.can_view() else None
 
     def open_dialog(self) -> None:
         """Dosya secme penceresi."""
@@ -149,17 +157,19 @@ class PdfTab(LazyTab):
 
     def load_pdf(self, path: str) -> None:
         """PDF'i ac ve ilk sayfayi goster."""
-        fitz = self._fitz()
-        if not fitz:
+        if not self._backend():
             messagebox.showinfo(C.APP_NAME,
-                                "PDF goruntulemek icin PyMuPDF gerekli:\n\n"
-                                "pip install pymupdf")
+                                "PDF goruntulemek icin pypdfium2 gerekli:\n\n"
+                                f"{pdf_backend.VIEW_HINT}")
             return
         try:
-            self.doc = fitz.open(path)
+            doc = pdf_backend.open_document(path)
         except Exception as e:                       # noqa: BLE001
             messagebox.showerror(C.APP_NAME, f"PDF acilamadi:\n{e}")
             return
+        if self.doc is not None:
+            self.doc.close()
+        self.doc = doc
         self.path = path
         self.page_no = 0
         self.app.settings["last_pdf"] = path
@@ -196,20 +206,22 @@ class PdfTab(LazyTab):
         """Sayfayi tuval genisligine sigdir."""
         if not self.doc:
             return
-        page = self.doc[self.page_no]
+        page_w = self.doc.page_size(self.page_no)[0] or 1.0
         w = self.canvas.winfo_width() or 800
-        self.set_zoom((w - 20) / page.rect.width)
+        self.set_zoom((w - 20) / page_w)
 
     # ------------------------------------------------------------------
     def render(self) -> None:
         """Gecerli sayfayi ciz ve kayitli isaretlemeleri uygula."""
         if not self.doc:
             return
-        fitz = self._fitz()
-        page = self.doc[self.page_no]
-        mat = fitz.Matrix(self.zoom, self.zoom)
-        pix = page.get_pixmap(matrix=mat, alpha=False)
-        self._img = tk.PhotoImage(data=pix.tobytes("ppm"))
+        try:
+            pix = self.doc.render(self.page_no, self.zoom)
+        except Exception as e:                       # noqa: BLE001
+            self.status.configure(text=f"Sayfa cizilemedi: {e}",
+                                  foreground=self.palette()["err"])
+            return
+        self._img = tk.PhotoImage(data=pix.data)
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, image=self._img, anchor="nw", tags="page")
         self.canvas.configure(scrollregion=(0, 0, pix.width, pix.height))
@@ -217,7 +229,7 @@ class PdfTab(LazyTab):
         self.zoom_var.set(f"{self.zoom * 100:.0f}%")
 
         try:
-            self._page_words = page.get_text("words")
+            self._page_words = self.doc.words(self.page_no)
         except Exception:
             self._page_words = []
 
@@ -229,7 +241,8 @@ class PdfTab(LazyTab):
                 self._replay(n)
         self.status.configure(
             text=f"{Path(self.path).name} · sayfa {self.page_no + 1} · "
-                 f"{len(self._page_words)} kelime · arac: {self.tool.get()}")
+                 f"{len(self._page_words)} kelime · arac: {self.tool.get()}",
+            foreground=self.palette()["fg_dim"])
 
     def _replay(self, note) -> None:
         """Kayitli cizim/isaretlemeyi tuvale geri koy."""
@@ -427,8 +440,12 @@ class PdfTab(LazyTab):
 
     def export_pdf(self) -> None:
         """Isaretlemeleri gomulu yeni bir PDF yaz."""
-        fitz = self._fitz()
-        if not fitz or not self.doc:
+        if not self.doc:
+            return
+        if not pdf_backend.can_export():
+            messagebox.showinfo(C.APP_NAME,
+                                "Isaretli PDF yazmak icin pypdf gerekli:\n\n"
+                                f"{pdf_backend.EXPORT_HINT}")
             return
         out = filedialog.asksaveasfilename(
             title="Isaretli PDF", defaultextension=".pdf",
@@ -438,35 +455,11 @@ class PdfTab(LazyTab):
         if not out:
             return
         try:
-            doc = fitz.open(self.path)
             rows = self.repos.db.query(
                 "SELECT * FROM pdf_notes WHERE pdf_path=? ORDER BY page, id", (self.path,))
-            for r in rows:
-                if r["page"] >= len(doc):
-                    continue
-                page = doc[r["page"]]
-                try:
-                    data = json.loads(r["payload"]) if r["kind"] != "note" else None
-                except Exception:
-                    continue
-                if r["kind"] == "mark" and data:
-                    x0, y0, x1, y1 = data["rect"]
-                    page.draw_rect(fitz.Rect(x0, y0, x1, y1),
-                                   color=None, fill=(1, 0.9, 0.4), fill_opacity=0.35)
-                elif r["kind"] == "pen" and data:
-                    pts = data["points"]
-                    for i in range(0, len(pts) - 3, 2):
-                        page.draw_line(fitz.Point(pts[i], pts[i + 1]),
-                                       fitz.Point(pts[i + 2], pts[i + 3]),
-                                       color=(0.85, 0.2, 0.2), width=1.5)
-                elif r["kind"] == "text" and data:
-                    page.insert_text(fitz.Point(data["x"], data["y"] + 10),
-                                     data["text"], fontsize=10, color=(0.85, 0.2, 0.2))
-                elif r["kind"] == "note":
-                    page.insert_text(fitz.Point(30, 30), "[not] " + r["payload"][:120],
-                                     fontsize=8, color=(0.2, 0.4, 0.8))
-            doc.save(out)
-            doc.close()
-            self.app.set_status(f"Disa aktarildi: {out}")
+            notes = [{"page": r["page"], "kind": r["kind"], "payload": r["payload"]}
+                     for r in rows]
+            n = pdf_backend.export_annotated(self.path, out, notes)
+            self.app.set_status(f"Disa aktarildi ({n} isaret): {out}")
         except Exception as e:                       # noqa: BLE001
             messagebox.showerror(C.APP_NAME, f"Yazilamadi:\n{e}")

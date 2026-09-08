@@ -41,7 +41,7 @@ internet gerekmez.
   modellere karşı çözümlensin.
 - **Ses:** çevrimdışı TTS (pyttsx3/SAPI5, yedek olarak Windows System.Speech) ve çevrimdışı
   ASR (Vosk `ru` modeli). Model yoksa ilgili düğmeler gri kalsın, program açılmaya devam etsin.
-- **Kütüphaneler (hepsi isteğe bağlı):** PyMuPDF (PDF), pymorphy3 (morfoloji), Pillow,
+- **Kütüphaneler (hepsi isteğe bağlı):** pypdfium2 + pypdf (PDF), pymorphy3 (morfoloji), Pillow,
   Tesseract (`rus`) OCR. Grafikler harici kütüphane olmadan tkinter Canvas ile çizilsin.
 - **Kod düzeni:** tek dev dosya yok. Giriş `Russian_Course_AI.pyw` (yalnız pencere + sekme
   kurulumu), ortak sabitler `rca_common.py` (`APP_NAME`, `VERSION`, yollar, tema, model

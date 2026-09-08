@@ -16,10 +16,17 @@ truststore==0.10.4
 certifi==2026.5.20
 
 # --- PDF okuyucu / isaretleme ---
-pymupdf==1.24.10
+# pypdfium2: sayfa cizimi ve metin (Apache-2.0 VEYA BSD-3-Clause)
+# pypdf: isaretli PDF yazimi (BSD-3-Clause)
+pypdfium2==5.13.0
+pypdf==6.13.2
 
-# --- cevrimdisi seslendirme (Windows SAPI5) ---
-pyttsx3==2.90
+# --- cevrimdisi seslendirme ---
+# EK PAKET GEREKMEZ: Windows'ta PowerShell System.Speech, macOS'ta yerlesik `say`
+# kullanilir. Daha ayrintili ses/hiz denetimi isterseniz pyttsx3'u KENDINIZ kurun;
+# GPL-3.0 lisansli oldugu icin bu MIT projenin dagitilan paketlerine dahil edilmez
+# (bkz. THIRD_PARTY_NOTICES.md, "pyttsx3 hakkinda"):
+#   pip install pyttsx3
 
 # --- simge uretimi, el yazisi PNG kaydi, gorsel islemleri ---
 pillow==10.4.0

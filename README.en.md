@@ -126,10 +126,10 @@ with autosave disabled, a selected AI entry can be saved with one click.
 python -m pytest -q
 ```
 
-The test suite (156 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN-TR dictionary engine
+The test suite (177 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN-TR dictionary engine
 (direction selector, auto direction with Turkish queries, CSV with the `tr` column), the AI dictionary layer (a mock OpenAI-compatible server,
 English + Turkish glosses, provider resolution, the secrets store),
-content packages, multilingual text integrity, and UI smoke flows. No test touches the network,
+content packages, multilingual text integrity, the PDF backend (page count and size, rendering that scales with the zoom, top-left word boxes, and an annotated export that pypdf can reopen), and UI smoke flows. No test touches the network,
 LM Studio, or Windows Credential Manager.
 
 ## Project structure
@@ -143,7 +143,23 @@ tests/                  Unit and UI smoke tests
 assets/                 Application icon assets
 docs/presentation/      Editable promotional presentation and visual assets
 output/pdf/             Final promotional PDF
+LICENSE                 MIT licence text
+THIRD_PARTY_NOTICES.md  Verified licences of third-party components
 ```
 
 Downloaded learning resources and generated application builds are intentionally
 excluded from version control.
+
+## License
+
+This project is released under the **MIT License** - full text in
+[`LICENSE`](LICENSE).
+
+The verified licences of every third-party component that is used or bundled in
+the distributed binaries are listed in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). The PDF stack is permissively
+licensed (`pypdfium2`: Apache-2.0 / BSD-3-Clause, `pypdf`: BSD-3-Clause) and the
+repository contains no AGPL-licensed component. Two components need attention:
+`pyttsx3` (GPL-3.0) and `certifi` (MPL-2.0) - see the notices file for what that
+means when you ship a frozen binary. Material downloaded from the Library is not
+part of the repository and keeps its own open licence.

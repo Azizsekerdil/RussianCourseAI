@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-
 """Cevrimdisi seslendirme sarmalayicisi.
 
-Sira: pyttsx3 (Windows SAPI5) -> PowerShell System.Speech -> sessiz.
-Hicbiri yoksa program COKMEZ; `available()` False doner ve dugmeler gri kalir.
-Konusma her zaman ayri bir threadde yapilir, arayuz kilitlenmez.
+Sira: pyttsx3 (Windows SAPI5) -> PowerShell System.Speech (Windows)
+-> `say` (macOS) -> sessiz. Hicbiri yoksa program COKMEZ; `available()`
+False doner ve dugmeler gri kalir. Konusma her zaman ayri bir threadde
+yapilir, arayuz kilitlenmez.
+
+Not: pyttsx3 GPL-3.0 lisanslidir ve dagitilan `.exe` / `.app` paketlerine
+BILEREK dahil edilmez (bkz. THIRD_PARTY_NOTICES.md). Bu yuzden isletim
+sisteminin kendi motorlarina dusen yedek yollar birinci sinif yollardir,
+yalnizca acil durum cikisi degildir.
 """
 from __future__ import annotations
 
 import queue
+import shutil
 import subprocess
 import sys
 import threading
@@ -51,6 +58,24 @@ class Speaker:
         if sys.platform.startswith("win"):
             self.backend = "powershell"
             self.voice_name = "System.Speech"
+        elif sys.platform == "darwin" and shutil.which("say"):
+            self.backend = "say"
+            self.voice_name = self._pick_macos_voice()
+
+    @staticmethod
+    def _pick_macos_voice() -> str:
+        """`say -v ?` ciktisindan Rusca bir ses sec (yoksa bos dizge)."""
+        try:
+            done = subprocess.run(["say", "-v", "?"], capture_output=True,
+                                  text=True, timeout=10)
+        except Exception:
+            return ""
+        for line in (done.stdout or "").splitlines():
+            # Bicim:  "Milena              ru_RU    # Zdravstvuyte!"
+            parts = line.split()
+            if len(parts) >= 2 and parts[1].lower().startswith("ru"):
+                return parts[0]
+        return ""
 
     @staticmethod
     def _pick_russian_voice(eng) -> Optional[object]:
@@ -72,7 +97,7 @@ class Speaker:
 
     def has_russian_voice(self) -> bool:
         """Sistemde Rusca ses var mi? (yoksa telaffuz yaklasik olur)"""
-        return bool(self.voice_name) and self.backend == "pyttsx3"
+        return bool(self.voice_name) and self.backend in ("pyttsx3", "say")
 
     def say(self, text: str) -> None:
         """Metni kuyruga at (arayuzu bloklamaz)."""
@@ -110,6 +135,10 @@ class Speaker:
             return f"pyttsx3 / SAPI5 - ses: {self.voice_name}"
         if self.backend == "pyttsx3":
             return "pyttsx3 / SAPI5 - Rusca ses bulunamadi, varsayilan ses kullanilacak."
+        if self.backend == "say":
+            if self.voice_name:
+                return f"macOS `say` - ses: {self.voice_name}"
+            return "macOS `say` - Rusca ses bulunamadi, varsayilan ses kullanilacak."
         return "Windows System.Speech (PowerShell) - Rusca ses varsa kullanilir."
 
     # -- ic dongu ----------------------------------------------------------
@@ -125,6 +154,8 @@ class Speaker:
                     self.engine.runAndWait()
                 elif self.backend == "powershell":
                     self._speak_powershell(text)
+                elif self.backend == "say":
+                    self._speak_say(text, self.voice_name, self.rate)
             except Exception:
                 pass                        # seslendirme hatasi programi durdurmaz
 
@@ -141,6 +172,19 @@ class Speaker:
         subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
                        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
                        capture_output=True, timeout=60)
+
+    @staticmethod
+    def _speak_say(text: str, voice: str, rate: int) -> None:
+        """macOS'un `say` komutuyla seslendir (pyttsx3 yoksa yedek yol).
+
+        Metin argüman olarak degil `--` sonrasinda verilir; boylece tire ile
+        baslayan bir kelime secenek sanilmaz.
+        """
+        cmd = ["say", "-r", str(int(rate))]
+        if voice:
+            cmd += ["-v", voice]
+        cmd += ["--", text]
+        subprocess.run(cmd, capture_output=True, timeout=60)
 
 
 class ASR:

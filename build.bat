@@ -50,6 +50,10 @@ set ICONARG=
 if exist assets\app.ico set ICONARG=--icon assets\app.ico
 
 echo [4/5] Derleniyor... (birkac dakika surebilir)
+REM  pyttsx3 GPL-3.0 lisanslidir. Ikili paket MIT kosullariyla dagitildigi icin
+REM  --exclude-module pyttsx3 ile disarida birakilir; seslendirme Windows'un
+REM  System.Speech (PowerShell) yedegine duser, ozellik kaybi olmaz.
+REM  Ayrintili gerekce: THIRD_PARTY_NOTICES.md, "pyttsx3 hakkinda".
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
 if exist RussianCourseAI.spec del /q RussianCourseAI.spec
@@ -65,6 +69,7 @@ python -m PyInstaller ^
     --hidden-import rca.dictionary ^
     --hidden-import rca.dict_data ^
     --hidden-import rca.ai_client ^
+    --hidden-import rca.pdf_backend ^
     --hidden-import rca.tabs.dictionary_tab ^
     --hidden-import rca.tabs.vocab_tab ^
     --hidden-import rca.tabs.srs_tab ^
@@ -85,6 +90,7 @@ python -m PyInstaller ^
     --hidden-import rca.tabs.settings_tab ^
     --exclude-module pytest ^
     --exclude-module matplotlib ^
+    --exclude-module pyttsx3 ^
     Russian_Course_AI.pyw
 if errorlevel 1 goto :hata
 

@@ -60,7 +60,7 @@ python Russian_Course_AI.pyw
 pip install -r requirements.txt
 ```
 
-Eksik paket programı durdurmaz, yalnızca ilgili düğmeler gri kalır: `pymupdf` (PDF), `pyttsx3` (seslendirme), `pillow` (el yazısı PNG ve görsel soru), `pymorphy3` (kesin morfoloji), `vosk` + `sounddevice` (mikrofonla telaffuz), `truststore` / `certifi` (Kaynak Merkezi indirmeleri).
+Eksik paket programı durdurmaz, yalnızca ilgili düğmeler gri kalır: `pypdfium2` + `pypdf` (PDF), `pyttsx3` (seslendirme), `pillow` (el yazısı PNG ve görsel soru), `pymorphy3` (kesin morfoloji), `vosk` + `sounddevice` (mikrofonla telaffuz), `truststore` / `certifi` (Kaynak Merkezi indirmeleri).
 
 ### 2.4 Verileriniz nerede tutulur
 
@@ -175,7 +175,7 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Nasıl kullanılır.** `📂 PDF ac` ile dosyayı açın; `◀` / `▶`, `Git...`, `−` / `+` ve `Genislige sigdir` ile gezinin. Araçlar: `✏ Kalem`, `🖍 Isaretleme`, `🔤 Metin`, `🧽 Silgi`, `⬚ Metin sec`. Metin seçince sağ panelden `AI'a acikla`, `Sozlukte ara`, `🔊` veya `Bankaya ekle` deyin. `Sayfa notu` yazıp `Notlari kaydet`'e basın; `Isaretli PDF disa aktar` işaretleri gömülü yeni bir PDF yazar, `Sayfayi temizle` o sayfayı sıfırlar.
 
-**İpucu.** Bu sayfa `pymupdf` gerektirir; seçtiğiniz metni `AI Ogretmen` sayfasında `PDF'teki secimi al` ile de kullanabilirsiniz.
+**İpucu.** Bu sayfa `pypdfium2` (goruntuleme/metin) ve `pypdf` (isaretli disa aktarma) gerektirir; seçtiğiniz metni `AI Ogretmen` sayfasında `PDF'teki secimi al` ile de kullanabilirsiniz.
 
 #### Kaynak Merkezi (`Kaynak Merkezi`)
 
@@ -516,3 +516,21 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 **OpenRussian'i yüklemek zorunda mıyım?** Hayır. Gömülü 1.360 madde A1–B1'i karşılar ve anında çalışır; OpenRussian on binlerce madde isteyenler içindir.
 
 **Programı kaldırırsam verilerim silinir mi?** Hayır; program klasörünü silmek verilerinize dokunmaz. Verileri de silmek isterseniz 7. bölümdeki veri klasörünü elle kaldırın.
+
+
+---
+
+## 12. Lisans
+
+Russian Course AI **MIT Lisansi** ile dagitilir; tam metin deponun kokundeki `LICENSE`
+dosyasindadir. Programi serbestce kullanabilir, degistirebilir ve dagitabilirsiniz;
+tek kosul telif ve lisans bildiriminin korunmasidir.
+
+Programin kullandigi ve `.exe` / `.app` paketine gomulen ucuncu taraf bilesenlerin
+dogrulanmis lisanslari `THIRD_PARTY_NOTICES.md` dosyasindadir. PDF katmani izin verici
+lisanslidir (`pypdfium2`: Apache-2.0 / BSD-3-Clause, `pypdf`: BSD-3-Clause) ve projede
+AGPL lisansli hicbir bilesen yoktur. Iki bilesen dikkat ister: `pyttsx3` (GPL-3.0) ve
+`certifi` (MPL-2.0); ne anlama geldikleri bildirim dosyasinda aciklanmistir.
+
+Kaynak Merkezi'nden indirdiginiz materyal programin lisansina degil, kendi acik
+lisansina tabidir ve her indirmenin yaninda bir `LISANS.txt` olusturulur.

@@ -11,7 +11,8 @@ dist/
 *.spec
 
 # Downloaded course material and local user data
-Resources/Indirilenler/
+Resources/*
+!Resources/BURAYA_DERS_KOYUN.txt
 data/
 settings/
 logs/

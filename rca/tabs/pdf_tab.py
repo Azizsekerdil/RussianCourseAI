@@ -438,6 +438,21 @@ class PdfTab(LazyTab):
             self.repos.notes.clear_page(self.path, self.page_no)
             self.render()
 
+    @staticmethod
+    def _note_texts(notes: list) -> list:
+        """Isaretlemelerin SAYFAYA YAZILAN metinlerini topla."""
+        out = []
+        for row in notes:
+            kind, payload = row.get("kind"), row.get("payload")
+            if kind == "note":
+                out.append(str(payload))
+            elif kind == "text":
+                try:
+                    out.append(str(json.loads(payload).get("text", "")))
+                except Exception:                # noqa: BLE001
+                    continue
+        return out
+
     def export_pdf(self) -> None:
         """Isaretlemeleri gomulu yeni bir PDF yaz."""
         if not self.doc:
@@ -460,6 +475,13 @@ class PdfTab(LazyTab):
             notes = [{"page": r["page"], "kind": r["kind"], "payload": r["payload"]}
                      for r in rows]
             n = pdf_backend.export_annotated(self.path, out, notes)
-            self.app.set_status(f"Disa aktarildi ({n} isaret): {out}")
+            status = f"Disa aktarildi ({n} isaret): {out}"
+            if any(not pdf_backend.drawn_text_is_complete(t)
+                   for t in self._note_texts(notes)):
+                # Sayfaya cizilen kopya Base-14 Helvetica'dir; Kiril ve bazi
+                # Turkce harfler orada '?' olur, tam metin yorum panelindedir.
+                status += ("   (Kiril/Turkce not metni sayfa uzerinde '?' "
+                           "gorunur; tam hali okuyucunun yorum panelindedir.)")
+            self.app.set_status(status)
         except Exception as e:                       # noqa: BLE001
             messagebox.showerror(C.APP_NAME, f"Yazilamadi:\n{e}")

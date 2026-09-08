@@ -4,8 +4,13 @@
 Bu dosya, programın kullandığı veya dağıtılan ikili paketlere (`.exe` / `.app`) gömülen
 üçüncü taraf bileşenlerini, gerçek lisanslarıyla birlikte listeler.
 
-Her lisans, sürüm sabitlemesinin (`requirements.txt`) belirttiği sürümün kendi paket
-meta verisinden ya da paketle birlikte gelen lisans dosyasından okunarak doğrulanmıştır.
+Her lisans, sabitlenen sürümün **yayımcı meta verisinden** doğrulanmıştır: paket kurulu
+olduğunda `importlib.metadata` ile okunan `License` / `License-Expression` alanından ve
+paketle gelen lisans dosyalarından, kurulu olmadığında ise PyPI'ın aynı sürüm için
+yayımladığı meta veriden. Kurulu paketler için bu doğrulama tekrar edilebilir:
+`tests/test_licenses.py` her satırı kurulu dağıtımın meta verisiyle karşılaştırır ve
+kurulu olmayan paketleri atlar (`python -m pytest tests/test_licenses.py -v` çıktısı
+hangi satırın gerçekten doğrulandığını, hangisinin atlandığını gösterir).
 
 > **Not.** Programın çekirdeği hiçbir harici pakete ihtiyaç duymaz; aşağıdakilerin
 > tamamı isteğe bağlıdır. Kurulu olmayan bir paket yalnızca ilgili düğmeleri devre dışı
@@ -78,17 +83,30 @@ verir. Vosk kurulu değilse bu dosyaların hiçbiri ikili pakete girmez.
 
 | Bileşen | Sürüm | Lisans | Ne için kullanılır |
 |---|---|---|---|
-| [pyttsx3](https://github.com/nateshmbhat/pyttsx3) | 2.90 | **GPL-3.0** (paketin içindeki `LICENSE` dosyası GNU GPL v3 metnidir; PyPI sınıflandırıcısı da GPLv3 der) | Çevrimdışı seslendirme (Windows SAPI5 sarmalayıcısı) |
+| [pyttsx3](https://github.com/nateshmbhat/pyttsx3) | 2.90 (artık `requirements.txt`'te **sabitlenmez**) | **GPL-3.0** (paketin içindeki `LICENSE` dosyası GNU GPL v3 metnidir; PyPI sınıflandırıcısı da GPLv3 der) | İsteğe bağlı seslendirme sarmalayıcısı — **dağıtılan pakete GİRMEZ** |
 | [certifi](https://github.com/certifi/python-certifi) | 2026.5.20 | **MPL-2.0** | Kaynak Merkezi indirmelerinde yedek kök sertifika deposu |
 
 **pyttsx3 hakkında.** Bu depo MIT lisanslıdır ve MIT kaynak kodunu GPL'li bir kitaplıkla
 birlikte kullanmak serbesttir; ancak **ikisini tek bir çalıştırılabilir dosyada
 birleştirip dağıtırsanız**, o birleşik ikili paketin GPL-3.0 koşullarına uyması gerekir
 (kaynak kodun sunulması dâhil). Depo kaynağının MIT kalması etkilenmez.
-pyttsx3 isteğe bağlıdır: programda `pyttsx3` yoksa seslendirme Windows'un
-`System.Speech` yedeğine düşer. `.exe` / `.app` paketini saf MIT koşullarıyla dağıtmak
-istiyorsanız derleme ortamına pyttsx3 kurmayın (ya da PyInstaller'a
-`--exclude-module pyttsx3` verin).
+
+Bu yüzden pyttsx3 dağıtılan `.exe` / `.app` paketlerinin **dışında tutulur**; bu, iki
+yerde birden zorlanır:
+
+1. `requirements.txt` pyttsx3'ü kurmaz (yalnızca yorum satırında anlatır), bu yüzden
+   `build_macos.sh`'in kurduğu ortamda paket bulunmaz;
+2. `build.bat` ve `build_macos.sh` PyInstaller'a `--exclude-module pyttsx3` verir, yani
+   derleme makinesinde paket ayrıca kurulu olsa bile pakete alınmaz;
+3. her iki betik de (ve macOS iş akışı, yüklemeden hemen önce)
+   `tools/check_build_licence.py` ile üretilen paketin baytlarını tarar. Pakette
+   pyttsx3'ün ya da kaldırılmış AGPL PDF katmanının izi bulunursa derleme
+   **başarısız olur** — böylece eski bir `dist/` ağacı yanlışlıkla yayımlanamaz.
+
+Seslendirme bu durumda işletim sisteminin kendi motoruyla yapılır: Windows'ta
+`System.Speech` (PowerShell), macOS'ta yerleşik `say` komutu (bkz. `rca/tts.py`).
+pyttsx3'ü kendi makinenize kurarsanız program onu kullanır — ama o zaman ürettiğiniz
+ikili paketi **MIT değil GPL-3.0** koşullarıyla dağıtmanız gerekir.
 
 **certifi hakkında.** MPL-2.0 dosya bazlı bir copyleft'tir: yalnızca certifi'nin kendi
 dosyalarında yaptığınız **değişiklikler** aynı lisansla paylaşılmak zorundadır. Paketi

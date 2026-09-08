@@ -98,6 +98,10 @@ if not exist dist\RussianCourseAI.exe (
     if not exist dist\RussianCourseAI\RussianCourseAI.exe goto :hata
 )
 
+echo      Lisans denetimi (MIT olarak dagitilabilir mi?)...
+python tools\check_build_licence.py
+if errorlevel 1 goto :hata
+
 echo [5/5] Masaustu kisayolu...
 if "%SHORTCUT%"=="1" (
     powershell -NoProfile -ExecutionPolicy Bypass -File tools\make_shortcut.ps1

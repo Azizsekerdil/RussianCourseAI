@@ -78,6 +78,17 @@ DATA_ARGS=()
 APP_PATH="dist/RussianCourseAI.app"
 [[ -d "$APP_PATH" ]] || { echo "HATA: $APP_PATH oluşturulamadı."; exit 1; }
 
+# Lisans metinleri paketin ICINDE gitsin: MIT ve ucuncu taraf bildirimi
+# .app paketinin Resources klasorune kopyalanir, boylece ZIP'i acan kullanici
+# ikili dosyayla ayni yerde lisansi da bulur (Windows zip'inde de ayni ikisi var).
+RES_DIR="$APP_PATH/Contents/Resources"
+mkdir -p "$RES_DIR"
+cp LICENSE THIRD_PARTY_NOTICES.md "$RES_DIR/"
+
+# Paket MIT kosullariyla dagitilabilir mi? (AGPL PyMuPDF / GPL pyttsx3 izi var mi)
+"$PYTHON_BIN" tools/check_build_licence.py "$APP_PATH"
+
+rm -f "dist/RussianCourseAI-macOS.zip"
 ditto -c -k --keepParent "$APP_PATH" "dist/RussianCourseAI-macOS.zip"
 echo "Tamamlandı: $APP_PATH"
 echo "Dağıtım ZIP'i: dist/RussianCourseAI-macOS.zip"

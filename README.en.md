@@ -159,7 +159,10 @@ The verified licences of every third-party component that is used or bundled in
 the distributed binaries are listed in
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). The PDF stack is permissively
 licensed (`pypdfium2`: Apache-2.0 / BSD-3-Clause, `pypdf`: BSD-3-Clause) and the
-repository contains no AGPL-licensed component. Two components need attention:
-`pyttsx3` (GPL-3.0) and `certifi` (MPL-2.0) - see the notices file for what that
-means when you ship a frozen binary. Material downloaded from the Library is not
-part of the repository and keeps its own open licence.
+repository contains no AGPL-licensed component. The only copyleft component in
+the distributed `.exe` / `.app` is `certifi` (MPL-2.0, which - as long as it is
+not modified - only requires carrying its licence text). GPL-3.0 licensed
+`pyttsx3` is neither installed by `requirements.txt` nor bundled into the binary
+(`--exclude-module pyttsx3`); speech falls back to the operating system's own
+engine. Material downloaded from the Library is not part of the repository and
+keeps its own open licence.

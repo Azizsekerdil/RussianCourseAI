@@ -1,6 +1,6 @@
 # Russian Course AI — User Guide
 
-Version 1.2.1 · Windows and macOS desktop application · Interface languages: Türkçe / English / Русский
+Version 1.3.0 · Windows and macOS desktop application · Interface languages: Türkçe / English / Русский
 
 - [1. About this guide](#1-about-this-guide)
 - [2. Installation](#2-installation)
@@ -13,12 +13,13 @@ Version 1.2.1 · Windows and macOS desktop application · Interface languages: T
 - [9. Troubleshooting](#9-troubleshooting)
 - [10. Release notes summary](#10-release-notes-summary)
 - [11. Frequently asked questions](#11-frequently-asked-questions)
+- [12. Licence](#12-licence)
 
 ---
 
 ## 1. About this guide
 
-This document is the user guide for **Russian Course AI 1.2.1**. The program is a desktop workspace for studying Russian from A1 to C1, holding 18 pages in a single window.
+This document is the user guide for **Russian Course AI 1.3.0**. The program is a desktop workspace for studying Russian from A1 to C1, holding 18 pages in a single window.
 
 How to read it: **if you are starting out**, read sections 2 and 3, then the `Aralikli Tekrar`, `Kelime Bankasi` and `Sozluk RU-EN-TR` pages in section 4 — the program works at full capacity without any AI. **If you will use the dictionary heavily**, go straight to section 5. **If you want to connect the AI**, see section 6.
 
@@ -60,7 +61,7 @@ The core needs no external packages (tkinter, sqlite3, urllib). For the optional
 pip install -r requirements.txt
 ```
 
-A missing package never stops the program; only the related buttons stay greyed out: `pypdfium2` + `pypdf` (PDF), `pyttsx3` (speech), `pillow` (handwriting PNG and image questions), `pymorphy3` (exact morphology), `vosk` + `sounddevice` (microphone pronunciation), `truststore` / `certifi` (Library downloads).
+A missing package never stops the program; only the related buttons stay greyed out: `pypdfium2` + `pypdf` (PDF), `pillow` (handwriting PNG and image questions), `pymorphy3` (exact morphology), `vosk` + `sounddevice` (microphone pronunciation), `truststore` / `certifi` (Library downloads).
 
 ### 2.4 Where your data is kept
 
@@ -176,6 +177,8 @@ The order below is the sidebar's own order.
 **How to use it.** Open a file with `📂 PDF ac`, then navigate with `◀` / `▶`, `Git...`, `−` / `+` and `Genislige sigdir`. The tools are `✏ Kalem`, `🖍 Isaretleme`, `🔤 Metin`, `🧽 Silgi` and `⬚ Metin sec`. After selecting text, use `AI'a acikla`, `Sozlukte ara`, `🔊` or `Bankaya ekle` in the right panel. Type into `Sayfa notu` and press `Notlari kaydet`; `Isaretli PDF disa aktar` writes a new PDF with the annotations embedded, and `Sayfayi temizle` clears the current page.
 
 **Tip.** This page needs `pypdfium2` (viewing/text) and `pypdf` (annotated export); the text you select is also available on the `AI Ogretmen` page through `PDF'teki secimi al`.
+
+**Cyrillic and Turkish characters in note text.** In the output of `Isaretli PDF disa aktar` the **full text of your note is always preserved** and shows up complete in your PDF reader's comment/annotation pane. The copy that is **drawn onto the page**, however, uses the built-in Helvetica font and can only show Western European characters: Cyrillic letters and Turkish letters such as `ı`, `ş`, `ğ` and `İ` appear as `?` on the page itself. If you take notes in Cyrillic, read them in the comment pane; highlights, pen strokes and yellow marks are unaffected.
 
 #### Library (`Kaynak Merkezi`)
 
@@ -470,7 +473,7 @@ The privacy rules: no data leaves the machine during core operation; the AI runs
 
 **macOS says the app "cannot be opened".** *Cause:* the application is not notarized, and Gatekeeper will not open an unrecognized developer's app directly. *Fix:* do not double-click; **right-click → Open** and press **Open** again in the warning. You confirm this only once.
 
-**There is no sound.** *Cause:* no speech engine is installed (`pyttsx3` missing), `Seslendirme acik` is off, or the system has no Russian voice. *Fix:* read the status line in `Ayarlar` → `Ses` and press `Test et`; if there is no engine run `pip install pyttsx3`, and add a Russian speech package in Windows settings.
+**There is no sound.** *Cause:* `Seslendirme acik` is off, the system has no Russian voice, or the operating system's speech engine cannot be reached. *Fix:* read the status line in `Ayarlar` → `Ses` and press `Test et`; speech needs no extra package (`System.Speech` on Windows, `say` on macOS), but you do have to add a Russian speech package in your operating system's settings.
 
 **The exe will not start.** *Cause:* the zip was not fully extracted, an antivirus quarantined the file, or the single-file build is unpacking itself into a temporary folder. *Fix:* extract the zip into a real folder and run `RussianCourseAI.exe` from there; the first launch can take a few seconds. If the database cannot be opened, the program shows the path of the offending file — move it and restart.
 
@@ -488,6 +491,7 @@ The privacy rules: no data leaves the machine during core operation; the AI runs
 | **v1.1.2** | Dictionary polish: the `Cins / Gorunus` field, the effective-direction label, policy selection from the toolbar, removal of repeated senses |
 | **v1.2.0** | **Direction selection and Turkish as a third language:** the `Otomatik / RU→EN / EN→RU / RU→TR / TR→RU` selector, a `Türkçe` column in the list and detail panel, Turkish glosses for all 1,360 built-in entries, filling a missing Turkish gloss with the AI without creating duplicates, CSV import/export with a `tr` column, and a `tr` column migration for older databases |
 | **v1.2.1** | **ASCII and upper-case support in Turkish search:** `sinav`, `SINAV` and `sınav` return the same results; `cok` → `çok`, `ogrenci` → `öğrenci`, `gormek` → `görmek`. Folded matches rank below direct matches, so a user typing `ask` still gets the English gloss first, and the displayed spelling never changes. This **user guide** (`docs/USER_GUIDE.md`, Turkish `docs/KULLANIM_KILAVUZU.md`) was added to the repository, and its PDF is published as a release asset |
+| **v1.3.0** | **MIT licence and a permissive PDF stack:** the PDF reader now uses `pypdfium2` (page rendering + text) and `pypdf` (writing annotated PDFs); AGPL-licensed **PyMuPDF** was removed. The project is released under the **MIT License**, `LICENSE` and `THIRD_PARTY_NOTICES.md` were added to the repository and ship inside the zip you download. The packages are built in a clean virtual environment: only the libraries listed in `requirements.txt` enter the bundle, so the download is smaller |
 
 ---
 
@@ -529,8 +533,10 @@ program freely as long as the copyright and licence notice is kept.
 The verified licences of every third-party component the program uses or bundles into
 the `.exe` / `.app` package are listed in `THIRD_PARTY_NOTICES.md`. The PDF stack is
 permissively licensed (`pypdfium2`: Apache-2.0 / BSD-3-Clause, `pypdf`: BSD-3-Clause)
-and the project contains no AGPL-licensed component. Two components need attention:
-`pyttsx3` (GPL-3.0) and `certifi` (MPL-2.0); the notices file explains what they mean.
+and the project contains no AGPL-licensed component. The only copyleft component in the
+package you download is `certifi` (MPL-2.0), which carries no extra obligation as long
+as it is not modified. GPL-3.0 licensed `pyttsx3` is deliberately left out; speech uses
+`System.Speech` on Windows and the built-in `say` command on macOS.
 
 Material you download from the Library is not covered by the program's licence but by
 its own open licence, and a `LISANS.txt` is written next to every download.

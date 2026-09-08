@@ -39,7 +39,7 @@ internet gerekmez.
   `qwen2.5-7b-instruct`; görsel/OCR için ayrı vision profili; **isteğe bağlı** NVIDIA NIM
   ücretsiz uçları. Model bulunamazsa **özellik çökmesin**, kalite düşsün — profiller kurulu
   modellere karşı çözümlensin.
-- **Ses:** çevrimdışı TTS (pyttsx3/SAPI5, yedek olarak Windows System.Speech) ve çevrimdışı
+- **Ses:** çevrimdışı TTS (Windows System.Speech, macOS `say`; kuruluysa pyttsx3/SAPI5) ve çevrimdışı
   ASR (Vosk `ru` modeli). Model yoksa ilgili düğmeler gri kalsın, program açılmaya devam etsin.
 - **Kütüphaneler (hepsi isteğe bağlı):** pypdfium2 + pypdf (PDF), pymorphy3 (morfoloji), Pillow,
   Tesseract (`rus`) OCR. Grafikler harici kütüphane olmadan tkinter Canvas ile çizilsin.

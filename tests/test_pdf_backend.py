@@ -206,6 +206,55 @@ def test_words_use_top_left_origin(repo_pdf: Path) -> None:
     assert words[-1][1] > first[1]
 
 
+def test_word_boxes_are_line_height_not_glyph_tight(repo_pdf: Path) -> None:
+    """Kutular satir yuksekligindedir, harfin murekkebini siki siki sarmaz.
+
+    pdfium'un varsayilan (tight) karakter kutusu yalnizca cizilen murekkebi
+    kapsar; bir satirin kutusunu ~8 nokta kisaltir ve fareyle dikdortgen
+    secimini gereksiz hassas hale getirir. Arka uc bu yuzden `loose` kutuyu
+    ister. Test, dar kutuya geri donulursa bunu yakalar: her kelimenin
+    bildirilen kutusu, ayni karakterlerin dar kutusunu ICERMELI ve belirgin
+    bicimde daha yuksek olmalidir.
+    """
+    pdfium = pytest.importorskip("pypdfium2")
+
+    doc = B.open_document(str(repo_pdf))
+    try:
+        words = doc.words(0)
+        geom = doc.geometry(0)
+    finally:
+        doc.close()
+
+    raw = pdfium.PdfDocument(str(repo_pdf))
+    try:
+        textpage = raw[0].get_textpage()
+        tight = []
+        for i in range(textpage.count_chars()):
+            char = textpage.get_text_range(i, 1)
+            if not char or char.isspace():
+                continue
+            tight.append(geom.view_rect(textpage.get_charbox(i)))
+        textpage.close()
+    finally:
+        raw.close()
+
+    assert words and tight
+    taller = 0
+    for x0, y0, x1, y1, *_rest in words:
+        inside = [b for b in tight if b[0] >= x0 - 0.6 and b[2] <= x1 + 0.6
+                  and b[1] >= y0 - 0.6 and b[3] <= y1 + 0.6]
+        if not inside:
+            continue                            # cakisan/dondurulmus yerlesim
+        ink_top = min(b[1] for b in inside)
+        ink_bottom = max(b[3] for b in inside)
+        # Dar kutu her zaman bildirilen kutunun icinde kalmali.
+        assert y0 <= ink_top + 0.6 and y1 >= ink_bottom - 0.6
+        if (y1 - y0) > (ink_bottom - ink_top) + 2.0:
+            taller += 1
+    assert taller > len(words) * 0.5, (
+        "kelime kutulari harf murekkebine yapisik - satir kutusu bekleniyordu")
+
+
 def test_words_of_blank_page_is_empty(simple_pdf: Path) -> None:
     """Bos sayfa bos kelime listesi verir (cokmez)."""
     doc = B.open_document(str(simple_pdf))
@@ -344,6 +393,29 @@ def test_export_keeps_unicode_note_text(simple_pdf: Path, tmp_path: Path) -> Non
     assert text in str(obj["/Contents"])
 
 
+def test_backend_reports_text_the_page_font_cannot_draw() -> None:
+    """Sayfaya cizilen kopyanin eksik kalacagi metin ONCEDEN bildirilebilir.
+
+    Gorunum akisi Base-14 Helvetica + WinAnsiEncoding'dir: Kiril ve Turkce
+    `i-noktasiz / s-cedilli / g-yumusak` harfleri sayfada '?' olur. Tam metin
+    `/Contents`'te durur, ama arayuz kullaniciyi uyarabilmek icin bunu
+    onceden bilmek zorundadir - kilavuzda da bu sinir anlatilir.
+    """
+    assert B.drawn_text_is_complete("Ruscada gunluk konusma - cok iyi!")
+    assert B.drawn_text_is_complete("Rusca aciklama")
+    assert not B.drawn_text_is_complete("Привет мир")
+    assert not B.drawn_text_is_complete("aciklama: isik, gunes, sagir".replace("i", "ı"))
+    assert not B.drawn_text_is_complete("yumuşak")
+
+
+def test_manuals_document_the_annotation_font_limit() -> None:
+    """Kilavuzlar, sayfa uzerindeki not metninin sinirini kullaniciya soyler."""
+    tr = (ROOT / "docs" / "KULLANIM_KILAVUZU.md").read_text(encoding="utf-8")
+    en = (ROOT / "docs" / "USER_GUIDE.md").read_text(encoding="utf-8")
+    assert "Kiril" in tr and "Helvetica" in tr
+    assert "Cyrillic" in en and "Helvetica" in en
+
+
 # --------------------------------------------------------------------------
 # Regresyon: AGPL bagimliligi geri gelmesin
 # --------------------------------------------------------------------------
@@ -370,6 +442,62 @@ def test_requirements_pin_the_permissive_pdf_stack() -> None:
     assert not _FORBIDDEN.search(text), "requirements.txt hala PyMuPDF istiyor"
     assert re.search(r"^pypdfium2==\d", text, re.MULTILINE)
     assert re.search(r"^pypdf==\d", text, re.MULTILINE)
+
+
+#: Belgelerde "pymupdf" gecebilir - ama yalnizca surum notlarinda, "kaldirildi"
+#: anlaminda. Kurulum onerisi olarak gecmesi ya da `fitz` adinin gorunmesi hata.
+_DOC_FORBIDDEN = (
+    re.compile(r"pip install[^\n]*pymupdf", re.IGNORECASE),
+    re.compile(r"\bfitz\b", re.IGNORECASE),
+)
+
+
+def test_documentation_never_recommends_pymupdf() -> None:
+    """Kullaniciya okutulan hicbir belge AGPL katmanini kurmasini soylemez."""
+    docs = [ROOT / "README.md", ROOT / "README.en.md", ROOT / "requirements.txt",
+            ROOT / "THIRD_PARTY_NOTICES.md"]
+    docs += sorted((ROOT / "docs").glob("*.md"))
+    hits = []
+    for path in docs:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for pattern in _DOC_FORBIDDEN:
+            for match in pattern.finditer(text):
+                line = text.count("\n", 0, match.start()) + 1
+                hits.append(f"{path.relative_to(ROOT)}:{line}: {match.group(0)}")
+    assert not hits, "Belgeler hala PyMuPDF'i oneriyor:\n" + "\n".join(hits)
+
+
+def test_manuals_name_the_permissive_pdf_stack() -> None:
+    """Her iki kilavuz da PDF sayfasi icin pypdfium2 + pypdf ister."""
+    for name in ("KULLANIM_KILAVUZU.md", "USER_GUIDE.md"):
+        text = (ROOT / "docs" / name).read_text(encoding="utf-8")
+        assert "pypdfium2" in text and "pypdf" in text, name
+
+
+@pytest.mark.parametrize("md_name,pdf_name", [
+    ("KULLANIM_KILAVUZU.md", "KULLANIM_KILAVUZU.pdf"),
+    ("USER_GUIDE.md", "USER_GUIDE.pdf"),
+])
+def test_shipped_manual_pdf_matches_its_markdown(md_name: str, pdf_name: str) -> None:
+    """Dagitilan kilavuz PDF'i, kaynak `.md`'nin bugunku halinden uretilmis mi?
+
+    Bu tam olarak kacan hatadir: `.md` ve `.html` yenilenmis, ama depoda
+    izlenen ve kullanicinin okudugu PDF'ler eski surumde kalmis; yani
+    kaldirilan bagimliligi anlatip yeni lisans bolumunu hic icermiyorlardi.
+    Denetim `tools/build_manuals.py` icindeki uretim hattiyla ayni koddur -
+    kirmizi yanarsa cozum `python tools/build_manuals.py` calistirmaktir.
+    """
+    sys.path.insert(0, str(ROOT / "tools"))
+    try:
+        import build_manuals
+    finally:
+        sys.path.pop(0)
+    problems = build_manuals.check_pdf(ROOT / "docs" / pdf_name,
+                                       ROOT / "docs" / md_name)
+    assert not problems, ("Kilavuz PDF'i kaynagindan eski. Cozum: "
+                          "python tools/build_manuals.py\n" + "\n".join(problems))
 
 
 def test_repository_has_mit_license_and_notices() -> None:

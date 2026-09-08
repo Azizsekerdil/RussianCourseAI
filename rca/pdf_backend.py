@@ -344,9 +344,9 @@ def _charbox(textpage, index: int):
     pdfium'un varsayilan kutusu yalnizca harfin murekkebini sarar; bu da
     kelime kutularini satir yuksekliginden ~8 nokta kisa yapar ve fareyle
     dikdortgen secimini gereksiz yere hassas hale getirir. ``loose=True``
-    ise yazi tipinin tam ust/alt sinirlarini kullanir - eski PyMuPDF
-    tabanli surumun dondurdugu satir kutularinin ayni. Cok eski bir
-    pypdfium2 bu secenegi tanimazsa dar kutuya duseriz.
+    ise yazi tipinin tam ust/alt sinirlarini kullanir; boylece kutular
+    satir yuksekligiyle ortusur. Cok eski bir pypdfium2 bu secenegi
+    tanimazsa dar kutuya duseriz.
     """
     try:
         return textpage.get_charbox(index, loose=True)
@@ -476,12 +476,31 @@ def _ops_color(rgb: Sequence[float], stroke: bool = False) -> str:
     return "%.3f %.3f %.3f %s" % (rgb[0], rgb[1], rgb[2], "RG" if stroke else "rg")
 
 
+def drawn_text_is_complete(text: str) -> bool:
+    """Metin, sayfaya CIZILEN kopyada eksiksiz gorunur mu?
+
+    Gorunum akisi Base-14 Helvetica + WinAnsiEncoding kullanir; bu kume
+    Kiril harflerini ve Turkce ``i-noktasiz / s-cedilli / g-yumusak``
+    harflerini icermez, onlar sayfada '?' olur. Metnin tam Unicode hali
+    her zaman annotation'in ``/Contents`` alanindadir (okuyucunun yorum
+    panelinde eksiksiz gorunur), yani veri kaybolmaz - yalnizca sayfa
+    uzerindeki kopya eksiktir. Arayuz bunu kullaniciya soyleyebilsin diye
+    bu yardimci disariya aciktir.
+    """
+    try:
+        text.encode("cp1252")
+        return True
+    except (UnicodeEncodeError, LookupError):
+        return False
+
+
 def _pdf_string(text: str) -> str:
     """Metni PDF ``( )`` dizgesine kacisla.
 
     Gomulu Helvetica yalnizca WinAnsi kapsar; Kiril gibi disarida kalan
-    harfler '?' olur. Notun tam Unicode hali her zaman annotation'in
-    ``/Contents`` alaninda saklanir, yani veri kaybolmaz.
+    harfler '?' olur (bkz. :func:`drawn_text_is_complete`). Notun tam
+    Unicode hali her zaman annotation'in ``/Contents`` alaninda saklanir,
+    yani veri kaybolmaz.
     """
     raw = text.encode("cp1252", "replace").decode("cp1252")
     out = []

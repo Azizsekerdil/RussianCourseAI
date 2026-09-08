@@ -260,8 +260,9 @@ class SettingsTab(LazyTab):
         """Ses motorunu dene."""
         if not self.app.speaker or not self.app.speaker.available():
             messagebox.showinfo(C.APP_NAME, "Ses motoru bulunamadi.\n\n"
-                                            "Kurmak icin: pip install pyttsx3\n"
-                                            "Windows ayarlarindan Rusca ses paketi ekleyin.")
+                                            "Windows'ta System.Speech, macOS'ta `say` "
+                                            "kullanilir; isletim sisteminizin ses "
+                                            "ayarlarindan Rusca ses paketi ekleyin.")
             return
         self.app.speaker.set_rate(int(self.rate.get()))
         self.app.speaker.say("Здравствуйте! Это тест русского голоса.")

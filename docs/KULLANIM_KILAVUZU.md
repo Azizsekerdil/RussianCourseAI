@@ -1,6 +1,6 @@
 # Russian Course AI — Kullanım Kılavuzu
 
-Sürüm 1.2.1 · Windows ve macOS masaüstü uygulaması · Arayüz dilleri: Türkçe / English / Русский
+Sürüm 1.3.0 · Windows ve macOS masaüstü uygulaması · Arayüz dilleri: Türkçe / English / Русский
 
 - [1. Bu kılavuz hakkında](#1-bu-kılavuz-hakkında)
 - [2. Kurulum](#2-kurulum)
@@ -13,12 +13,13 @@ Sürüm 1.2.1 · Windows ve macOS masaüstü uygulaması · Arayüz dilleri: Tü
 - [9. Sorun giderme](#9-sorun-giderme)
 - [10. Sürüm notları özeti](#10-sürüm-notları-özeti)
 - [11. Sık sorulan sorular](#11-sık-sorulan-sorular)
+- [12. Lisans](#12-lisans)
 
 ---
 
 ## 1. Bu kılavuz hakkında
 
-Bu belge **Russian Course AI 1.2.1** sürümünün kullanım kılavuzudur. Program, Rusçayı A1'den C1'e çalışmak için tasarlanmış, tek pencerede 18 sayfa barındıran bir masaüstü çalışma istasyonudur.
+Bu belge **Russian Course AI 1.3.0** sürümünün kullanım kılavuzudur. Program, Rusçayı A1'den C1'e çalışmak için tasarlanmış, tek pencerede 18 sayfa barındıran bir masaüstü çalışma istasyonudur.
 
 Nasıl okunur: **yeni başlıyorsanız** 2. ve 3. bölümü, sonra 4. bölümdeki `Aralikli Tekrar`, `Kelime Bankasi` ve `Sozluk RU-EN-TR` sayfalarını okuyun — program yapay zekâ olmadan da tam kapasite çalışır. **Sözlüğü yoğun kullanacaksanız** doğrudan 5. bölüme geçin. **Yapay zekâyı bağlayacaksanız** 6. bölüme bakın.
 
@@ -60,7 +61,7 @@ python Russian_Course_AI.pyw
 pip install -r requirements.txt
 ```
 
-Eksik paket programı durdurmaz, yalnızca ilgili düğmeler gri kalır: `pypdfium2` + `pypdf` (PDF), `pyttsx3` (seslendirme), `pillow` (el yazısı PNG ve görsel soru), `pymorphy3` (kesin morfoloji), `vosk` + `sounddevice` (mikrofonla telaffuz), `truststore` / `certifi` (Kaynak Merkezi indirmeleri).
+Eksik paket programı durdurmaz, yalnızca ilgili düğmeler gri kalır: `pypdfium2` + `pypdf` (PDF), `pillow` (el yazısı PNG ve görsel soru), `pymorphy3` (kesin morfoloji), `vosk` + `sounddevice` (mikrofonla telaffuz), `truststore` / `certifi` (Kaynak Merkezi indirmeleri).
 
 ### 2.4 Verileriniz nerede tutulur
 
@@ -175,7 +176,9 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Nasıl kullanılır.** `📂 PDF ac` ile dosyayı açın; `◀` / `▶`, `Git...`, `−` / `+` ve `Genislige sigdir` ile gezinin. Araçlar: `✏ Kalem`, `🖍 Isaretleme`, `🔤 Metin`, `🧽 Silgi`, `⬚ Metin sec`. Metin seçince sağ panelden `AI'a acikla`, `Sozlukte ara`, `🔊` veya `Bankaya ekle` deyin. `Sayfa notu` yazıp `Notlari kaydet`'e basın; `Isaretli PDF disa aktar` işaretleri gömülü yeni bir PDF yazar, `Sayfayi temizle` o sayfayı sıfırlar.
 
-**İpucu.** Bu sayfa `pypdfium2` (goruntuleme/metin) ve `pypdf` (isaretli disa aktarma) gerektirir; seçtiğiniz metni `AI Ogretmen` sayfasında `PDF'teki secimi al` ile de kullanabilirsiniz.
+**İpucu.** Bu sayfa `pypdfium2` (görüntüleme/metin) ve `pypdf` (işaretli dışa aktarma) gerektirir; seçtiğiniz metni `AI Ogretmen` sayfasında `PDF'teki secimi al` ile de kullanabilirsiniz.
+
+**Not metinlerinde Kiril ve Türkçe harfler.** `Isaretli PDF disa aktar` çıktısında notunuzun **tam metni her zaman korunur** ve PDF okuyucunuzun yorum/açıklama panelinde eksiksiz görünür. Sayfanın **üzerine çizilen** kopya ise gömülü Helvetica yazı tipiyle yazıldığı için yalnızca Batı Avrupa harflerini gösterebilir: Kiril harfleri ile `ı`, `ş`, `ğ`, `İ` gibi Türkçe harfler sayfa üzerinde `?` görünür. Kiril not alacaksanız notu yorum panelinden okuyun; işaretleme, kalem çizimi ve sarı vurgular bundan etkilenmez.
 
 #### Kaynak Merkezi (`Kaynak Merkezi`)
 
@@ -470,7 +473,7 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 
 **macOS "açılamıyor" uyarısı.** *Neden:* Uygulama notarize edilmemiştir; Gatekeeper tanımadığı geliştiricinin uygulamasını doğrudan açmaz. *Çözüm:* Çift tıklamayın; **sağ tıklayın → Aç**, çıkan uyarıda yine **Aç**'a basın. Onay bir kez verilir.
 
-**Ses çıkmıyor.** *Neden:* Seslendirme motoru kurulu değil (`pyttsx3` eksik), `Seslendirme acik` kapalı ya da sistemde Rusça ses paketi yok. *Çözüm:* `Ayarlar` → `Ses` bölümündeki durum satırını okuyup `Test et`'e basın; motor yoksa `pip install pyttsx3` kurun ve Windows ayarlarından Rusça konuşma paketi ekleyin.
+**Ses çıkmıyor.** *Neden:* `Seslendirme acik` kapalı, sistemde Rusça ses paketi yok ya da işletim sisteminin konuşma motoruna erişilemiyor. *Çözüm:* `Ayarlar` → `Ses` bölümündeki durum satırını okuyup `Test et`'e basın; seslendirme ek paket istemez (Windows'ta `System.Speech`, macOS'ta `say`), ancak Rusça konuşma paketini işletim sisteminizin ayarlarından eklemeniz gerekir.
 
 **exe açılmıyor.** *Neden:* Zip tam açılmamış, antivirüs dosyayı karantinaya almış ya da tek dosyalık paket kendini geçici klasöre açıyor. *Çözüm:* Zip'i gerçekten bir klasöre çıkarıp `RussianCourseAI.exe`'yi oradan çalıştırın; ilk açılış birkaç saniye sürebilir. Veritabanı açılamazsa program hatalı dosyanın yolunu gösterir; o dosyayı taşıyıp yeniden başlatın.
 
@@ -488,6 +491,7 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 | **v1.1.2** | Sözlük cilası: `Cins / Gorunus` alanı, etkin yön etiketi, araç çubuğundan politika seçimi, tekrar eden anlamların ayıklanması |
 | **v1.2.0** | **Yön seçimi ve Türkçe üçüncü dil:** `Otomatik / RU→EN / EN→RU / RU→TR / TR→RU` seçicisi, listede ve detay panelinde `Türkçe` sütunu, gömülü 1.360 maddenin tamamına Türkçe karşılık, eksik Türkçenin kopya oluşturmadan doldurulması, `tr` sütunlu CSV aktarımı ve eski veritabanlarına `tr` sütunu göçü |
 | **v1.2.1** | **Türkçe aramada ASCII ve büyük harf desteği:** `sinav`, `SINAV` ve `sınav` aynı sonucu verir; `cok` → `çok`, `ogrenci` → `öğrenci`, `gormek` → `görmek`. Katlanarak bulunan eşleşmeler doğrudan eşleşmelerin altına sıralanır, böylece `ask` yazan kullanıcı önce İngilizce karşılığı görür; gösterilen yazım değişmez. Ayrıca bu **kullanım kılavuzu** (`docs/KULLANIM_KILAVUZU.md`, İngilizcesi `docs/USER_GUIDE.md`) depoya eklendi ve PDF sürümü sürüm ek dosyası olarak yayımlandı |
+| **v1.3.0** | **MIT lisansı ve izin verici PDF katmanı:** PDF okuyucu artık `pypdfium2` (sayfa çizimi + metin) ve `pypdf` (işaretli PDF yazma) kullanıyor; AGPL lisanslı **PyMuPDF** kaldırıldı. Proje **MIT lisansı** altında yayımlandı, `LICENSE` ve `THIRD_PARTY_NOTICES.md` depoya eklendi ve indirdiğiniz zip'in içinde geliyor. Paketler temiz bir sanal ortamda derlendi: yalnızca `requirements.txt`'teki kütüphaneler pakete girer, böylece dosya boyutu küçülür |
 
 ---
 
@@ -529,8 +533,10 @@ tek kosul telif ve lisans bildiriminin korunmasidir.
 Programin kullandigi ve `.exe` / `.app` paketine gomulen ucuncu taraf bilesenlerin
 dogrulanmis lisanslari `THIRD_PARTY_NOTICES.md` dosyasindadir. PDF katmani izin verici
 lisanslidir (`pypdfium2`: Apache-2.0 / BSD-3-Clause, `pypdf`: BSD-3-Clause) ve projede
-AGPL lisansli hicbir bilesen yoktur. Iki bilesen dikkat ister: `pyttsx3` (GPL-3.0) ve
-`certifi` (MPL-2.0); ne anlama geldikleri bildirim dosyasinda aciklanmistir.
+AGPL lisansli hicbir bilesen yoktur. Indirdiginiz pakette tek copyleft bilesen `certifi`
+(MPL-2.0) olup degistirilmedigi surece ek bir yukumluluk getirmez. GPL-3.0 lisansli
+`pyttsx3` paketi bilerek disarida birakilmistir; seslendirme Windows'ta `System.Speech`,
+macOS'ta yerlesik `say` komutuyla yapilir.
 
 Kaynak Merkezi'nden indirdiginiz materyal programin lisansina degil, kendi acik
 lisansina tabidir ve her indirmenin yaninda bir `LISANS.txt` olusturulur.

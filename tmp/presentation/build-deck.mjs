@@ -112,8 +112,8 @@ async function main() {
     });
     footer(slide, 1);
     notes(slide, [
-      path.join(ROOT, "README.md (product positioning and supported levels)"),
-      path.join(ROOT, "docs/presentation/assets/russian-course-ai-hero.png (AI-generated original cover visual)"),
+      "README.md (product positioning and supported levels)",
+      "docs/presentation/assets/russian-course-ai-hero.png (AI-generated original cover visual)",
     ]);
   }
 
@@ -135,7 +135,7 @@ async function main() {
     });
     text(slide, "screen-footer", "02", 1180, 680, 56, 18, 13, { color: "#AEB8CA", align: "right" });
     notes(slide, [
-      path.join(ROOT, "docs/presentation/assets/russian-course-ai-screenshot.png (user-supplied product screenshot)"),
+      "docs/presentation/assets/russian-course-ai-screenshot.png (user-supplied product screenshot)",
     ]);
   }
 
@@ -159,8 +159,8 @@ async function main() {
     }
     footer(slide, 3);
     notes(slide, [
-      path.join(ROOT, "rca/i18n.py (Turkish, English, and Russian interface catalog)"),
-      path.join(ROOT, "Russian_Course_AI.pyw (instant and persistent language switching)"),
+      "rca/i18n.py (Turkish, English, and Russian interface catalog)",
+      "Russian_Course_AI.pyw (instant and persistent language switching)",
     ]);
   }
 
@@ -186,8 +186,8 @@ async function main() {
     }
     footer(slide, 4);
     notes(slide, [
-      path.join(ROOT, "rca/tabs/srs_tab.py (daily review workflow and five study modes)"),
-      path.join(ROOT, "Russian_Course_AI.pyw (learning, lab, read, practice, and system navigation groups)"),
+      "rca/tabs/srs_tab.py (daily review workflow and five study modes)",
+      "Russian_Course_AI.pyw (learning, lab, read, practice, and system navigation groups)",
     ]);
   }
 
@@ -219,9 +219,9 @@ async function main() {
     });
     footer(slide, 5);
     notes(slide, [
-      path.join(ROOT, "Russian_Course_AI.pyw (18 entries in TAB_SPECS)"),
-      path.join(ROOT, "rca/dictionary.py + rca/dict_data.py (RU-EN-TR dictionary with direction switch, 1,360 built-in entries with Turkish glosses, OpenRussian layer)"),
-      path.join(ROOT, "README.md (feature descriptions)"),
+      "Russian_Course_AI.pyw (18 entries in TAB_SPECS)",
+      "rca/dictionary.py + rca/dict_data.py (RU-EN-TR dictionary with direction switch, 1,360 built-in entries with Turkish glosses, OpenRussian layer)",
+      "README.md (feature descriptions)",
     ]);
   }
 
@@ -241,12 +241,12 @@ async function main() {
     text(slide, "optional-copy", "Kaynak indirmeleri ve alternatif AI ucu (NVIDIA NIM / özel OpenAI uyumlu URL) internet kullanır; anahtar Credential Manager'da.\nCore learning remains available without them.\n\nЗагрузки и альтернативный ИИ-узел (NVIDIA NIM) используют интернет.\nОсновное обучение доступно и без них.", 696, 382, 500, 170, 19, { color: C.muted });
     footer(slide, 6);
     notes(slide, [
-      path.join(ROOT, "README.md (local LM Studio, optional NVIDIA NIM, and Resource Center network behavior)"),
-      path.join(ROOT, "rca/db.py (SQLite persistence)"),
+      "README.md (local LM Studio, optional NVIDIA NIM, and Resource Center network behavior)",
+      "rca/db.py (SQLite persistence)",
     ]);
   }
 
-  // 7 — Platforms & download: v1.2.1 release availability with the private-repo caveat.
+  // 7 — Platforms & download: v1.3.0 release availability and package contents.
   {
     const slide = deck.slides.add();
     slide.background.fill = C.white;
@@ -254,9 +254,9 @@ async function main() {
     text(slide, "platform-subtitle", "Platformlar & İndirme  •  Платформы и загрузка", 42, 112, 1100, 30, 19, { color: C.muted });
     line(slide, "platform-rule", 42, 196, 1196, C.rule, 1);
     const rows = [
-      { label: "TÜRKÇE", color: C.ink, body: "Windows 10/11 (x64) + macOS (Apple Silicon) — İndirme: github.com/Azizsekerdil/RussianCourseAI/releases (v1.2.1) (özel repo)" },
-      { label: "ENGLISH", color: C.blue, body: "Windows 10/11 (x64) & macOS (Apple Silicon) — Download: GitHub Releases (v1.2.1)" },
-      { label: "РУССКИЙ", color: C.muted, body: "Windows 10/11 (x64) и macOS (Apple Silicon) — Загрузка: GitHub Releases (v1.2.1)" },
+      { label: "TÜRKÇE", color: C.ink, body: "Windows 10/11 (x64) + macOS (Apple Silicon) — İndirme: github.com/Azizsekerdil/RussianCourseAI/releases (v1.3.0)" },
+      { label: "ENGLISH", color: C.blue, body: "Windows 10/11 (x64) & macOS (Apple Silicon) — Download: GitHub Releases (v1.3.0)" },
+      { label: "РУССКИЙ", color: C.muted, body: "Windows 10/11 (x64) и macOS (Apple Silicon) — Загрузка: GitHub Releases (v1.3.0)" },
     ];
     for (const [i, row] of rows.entries()) {
       const y = 232 + i * 104;
@@ -267,13 +267,13 @@ async function main() {
     text(
       slide,
       "platform-footnote",
-      "Release v1.2.1 — iki paket: Windows zip + macOS zip. macOS paketi Apple Silicon (arm64) içindir ve notarize edilmemiştir; ilk açılışta sağ tık → Aç.\nDepo özel (private) — github.com/Azizsekerdil/RussianCourseAI bağlantısına yalnızca hesap sahibi erişebilir.",
+      "Release v1.3.0 — iki paket: Windows zip + macOS zip. macOS paketi Apple Silicon (arm64) içindir ve notarize edilmemiştir; ilk açılışta sağ tık → Aç.\nHer iki paketin içinde LICENSE ve THIRD_PARTY_NOTICES.md bulunur; proje MIT lisanslıdır — github.com/Azizsekerdil/RussianCourseAI",
       42, 576, 1120, 84, 15,
       { color: C.muted },
     );
     footer(slide, 7);
     notes(slide, [
-      "https://github.com/Azizsekerdil/RussianCourseAI/releases/tag/v1.2.1 (v1.2.1 release with Windows and macOS zip assets; private repository)",
+      "https://github.com/Azizsekerdil/RussianCourseAI/releases/tag/v1.3.0 (v1.3.0 release with Windows and macOS zip assets; MIT licensed)",
     ]);
   }
 
@@ -289,7 +289,7 @@ async function main() {
     text(slide, "close-action", "INSTALL  •  LEARN  •  REVIEW", 42, 614, 620, 28, 18, { bold: true, color: C.blue });
     text(slide, "close-meta", "Windows 10/11 + macOS  •  A1-C1  •  TR / EN / RU", 700, 614, 538, 28, 17, { color: C.muted, align: "right" });
     footer(slide, 8);
-    notes(slide, [path.join(ROOT, "README.md (installation, learning levels, and feature overview)")]);
+    notes(slide, ["README.md (installation, learning levels, and feature overview)"]);
   }
 
   for (const [index, slide] of deck.slides.items.entries()) {

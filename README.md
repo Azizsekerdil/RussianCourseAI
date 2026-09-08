@@ -104,11 +104,14 @@ dugmeler gri kalir, program acilmaya ve diger ozellikler calismaya devam eder:
 |---|---|
 | `pypdfium2` | PDF goruntuleme, metin secimi |
 | `pypdf` | Isaretlemeleri gomulu PDF'i disa aktarma |
-| `pyttsx3` | Cevrimdisi seslendirme (yedek: Windows System.Speech) |
 | `pillow` | El yazisi PNG kaydi, "ne yazdim?" gorsel sorusu |
 | `pymorphy3` | Kesin morfoloji etiketleri (yedek: sonek tabanli yaklasik etiketleme) |
 | `vosk` + `sounddevice` | Mikrofonla telaffuz karsilastirmasi |
 | `truststore` veya `certifi` | Kaynak Merkezi indirmeleri (bkz. asagidaki not) |
+
+Seslendirme hicbir paket istemez: Windows'ta `System.Speech` (PowerShell), macOS'ta
+yerlesik `say` komutu kullanilir. GPL-3.0 lisansli `pyttsx3` kuruluysa program onu
+tercih eder, ama MIT kalabilmek icin dagitilan pakete alinmaz.
 
 Vosk icin ayrica bir Rusca model indirip su klasore acmalisiniz:
 `%APPDATA%\RussianCourseAI\models\vosk-ru`
@@ -348,7 +351,10 @@ Bu proje **MIT Lisansi** ile dagitilir - tam metin: [`LICENSE`](LICENSE).
 Kullanilan ve ikili pakete gomulen ucuncu taraf bilesenlerin gercek lisanslari
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) dosyasindadir. PDF katmani
 izin verici lisanslidir (`pypdfium2`: Apache-2.0 / BSD-3-Clause, `pypdf`:
-BSD-3-Clause); depoda AGPL lisansli hicbir bilesen yoktur. Iki bilesen dikkat
-ister: `pyttsx3` (GPL-3.0) ve `certifi` (MPL-2.0) - ayrintilar bildirim
-dosyasindadir. Kaynak Merkezi'nden indirilen materyal depoya dahil degildir ve
-kendi acik lisansini korur.
+BSD-3-Clause); depoda AGPL lisansli hicbir bilesen yoktur. Dagitilan `.exe` /
+`.app` paketindeki tek copyleft bilesen `certifi`dir (MPL-2.0; degistirilmedigi
+surece yalnizca lisans metnini tasima yukumlulugu getirir). GPL-3.0 lisansli
+`pyttsx3` ne `requirements.txt` ile kurulur ne de pakete alinir
+(`--exclude-module pyttsx3`); seslendirme isletim sisteminin kendi motoruyla
+yapilir. Kaynak Merkezi'nden indirilen materyal depoya dahil degildir ve kendi
+acik lisansini korur.

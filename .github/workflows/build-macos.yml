@@ -16,6 +16,8 @@ jobs:
         run: |
           chmod +x build_macos.sh
           ./build_macos.sh
+      - name: Lisans denetimi (yayımlanan zip MIT koşullarıyla dağıtılabilir mi?)
+        run: python tools/check_build_licence.py dist/RussianCourseAI-macOS.zip
       - uses: actions/upload-artifact@v4
         with:
           name: RussianCourseAI-macOS

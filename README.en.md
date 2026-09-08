@@ -1,5 +1,10 @@
 # Russian Course AI
 
+[![release](https://img.shields.io/github/v/release/Azizsekerdil/RussianCourseAI?display_name=tag&sort=semver&label=release&color=2ea44f)](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest)
+[![license MIT](https://img.shields.io/github/license/Azizsekerdil/RussianCourseAI?label=license&color=blue)](LICENSE)
+[![platform Windows and macOS](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-0078D4)](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB)](https://www.python.org/downloads/)
+
 [Türkçe](README.md) | **English**
 
 [Trilingual promotional PDF](output/pdf/Russian-Course-AI-Trilingual.pdf) ·
@@ -7,8 +12,8 @@
 
 [User guide (English)](docs/USER_GUIDE.md) - installation, all 18 pages, the dictionary, AI setup, and troubleshooting.
 
-Russian Course AI is a Windows desktop learning workspace for studying Russian
-from A1 through C1. It brings structured review, vocabulary, grammar,
+Russian Course AI is a Windows and macOS desktop learning workspace for studying
+Russian from A1 through C1. It brings structured review, vocabulary, grammar,
 pronunciation, reading, writing, exams, progress tracking, and an optional local
 AI tutor into one application.
 
@@ -43,6 +48,26 @@ environment variable.
 The token log stores counts, model names, task types, and timing information;
 it does not store prompt or response text.
 
+## Download
+
+Ready-made packages are available - **no Python installation is required**. The
+links below always point at the
+[latest release](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest)
+and keep working as new versions are published.
+
+| Package | Download |
+|---|---|
+| Windows (64-bit) | [RussianCourseAI-Windows.zip](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest/download/RussianCourseAI-Windows.zip) |
+| macOS (Apple Silicon) | [RussianCourseAI-macOS.zip](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest/download/RussianCourseAI-macOS.zip) |
+| User guide (PDF, Turkish) | [RussianCourseAI-Kullanim-Kilavuzu.pdf](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest/download/RussianCourseAI-Kullanim-Kilavuzu.pdf) |
+
+Unzip the archive and launch the application. The macOS bundle is **not
+notarized**: on first launch do not double-click it - **right-click
+`RussianCourseAI.app` and choose Open**, then confirm **Open** in the dialog.
+Later launches work normally.
+
+To run from source instead, see below.
+
 ## Quick start
 
 Run from source with Python 3.11 or newer:
@@ -75,6 +100,29 @@ Available build options:
 | `build.bat /onedir` | Folder-based build with faster startup |
 
 The executable is written to `dist/RussianCourseAI.exe`.
+
+## Build the macOS application
+
+```bash
+./build_macos.sh
+```
+
+The script has to run **on a Mac**. It prepares a macOS-specific requirement set
+(`vosk` 0.3.44, no GPL-3.0 `pyttsx3`), builds `dist/RussianCourseAI.app` with
+PyInstaller, generates an `.icns` icon from `assets/app.png`, copies `LICENSE`
+and `THIRD_PARTY_NOTICES.md` into the bundle's `Contents/Resources`, runs the
+MIT licence check (`tools/check_build_licence.py`), and finally packs
+`dist/RussianCourseAI-macOS.zip` with `ditto`.
+
+The repository's only workflow, **macOS Paketi**
+(`.github/workflows/build-macos.yml`), runs the same script on GitHub's
+`macos-latest` runner. It is **manually triggered only** (`workflow_dispatch`):
+when a tag is given in the `release_tag` input (for example `v1.3.0`) the
+resulting zip is uploaded straight to that release, otherwise the zip is kept
+as a workflow artifact.
+
+The bundle is **not notarized**, so first-launch users go through right-click ->
+Open.
 
 ## Optional local AI setup
 
@@ -126,7 +174,7 @@ with autosave disabled, a selected AI entry can be saved with one click.
 python -m pytest -q
 ```
 
-The test suite (177 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN-TR dictionary engine
+The test suite (207 tests) covers the database and its schema migration, spaced-repetition calculations, quiz engine, the RU-EN-TR dictionary engine
 (direction selector, auto direction with Turkish queries, CSV with the `tr` column), the AI dictionary layer (a mock OpenAI-compatible server,
 English + Turkish glosses, provider resolution, the secrets store),
 content packages, multilingual text integrity, the PDF backend (page count and size, rendering that scales with the zoom, top-left word boxes, and an annotated export that pypdf can reopen), and UI smoke flows. No test touches the network,
@@ -141,6 +189,10 @@ rca/tabs/               Feature workspaces
 grammar/                Built-in grammar notes
 tests/                  Unit and UI smoke tests
 assets/                 Application icon assets
+tools/                  Icon generator, desktop shortcut, and licence checker
+build.bat               Windows build: executable and desktop shortcut
+build_macos.sh          macOS build: .app bundle and distribution zip
+.github/workflows/      Manually triggered "macOS Paketi" workflow
 docs/presentation/      Editable promotional presentation and visual assets
 output/pdf/             Final promotional PDF
 LICENSE                 MIT licence text

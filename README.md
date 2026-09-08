@@ -1,5 +1,10 @@
 # Russian Course AI
 
+[![sürüm](https://img.shields.io/github/v/release/Azizsekerdil/RussianCourseAI?display_name=tag&sort=semver&label=s%C3%BCr%C3%BCm&color=2ea44f)](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest)
+[![lisans MIT](https://img.shields.io/github/license/Azizsekerdil/RussianCourseAI?label=lisans&color=blue)](LICENSE)
+[![platform Windows ve macOS](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-0078D4)](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB)](https://www.python.org/downloads/)
+
 **Türkçe** | [English](README.en.md)
 
 [Üç dilli tanıtım PDF'i](output/pdf/Russian-Course-AI-Trilingual.pdf) ·
@@ -7,8 +12,8 @@
 
 [Kullanim kilavuzu (Turkce)](docs/KULLANIM_KILAVUZU.md) - kurulum, 18 ekran, sozluk, yapay zeka, sorun giderme.
 
-Windows uzerinde **%100 cevrimdisi** calisan, Rusca'yi A1'den C1'e (ТРКИ-3) goturmek
-icin tasarlanmis masaustu dil ogrenme istasyonu.
+Windows ve macOS uzerinde **%100 cevrimdisi** calisan, Rusca'yi A1'den C1'e (ТРКИ-3)
+goturmek icin tasarlanmis masaustu dil ogrenme istasyonu.
 
 Tek pencerede: PDF ders kitabi okuyucu + not alma, yerel yapay zeka ogretmen,
 Kiril yazi laboratuvari, dilbilgisi laboratuvarlari (hal / gorunus / hareket fiilleri),
@@ -21,6 +26,26 @@ dosyalari kendisi okur ve modele yalnizca sectiginiz metni gonderir.
 Bulut yok, hesap yok, internet gerekmez. Istege bagli olarak sozluk, LM Studio
 kapaliyken NVIDIA NIM ya da baska bir OpenAI uyumlu uca (API anahtariyla) sorabilir;
 bu yalnizca Ayarlar'dan acikca acilirsa olur.
+
+---
+
+## Indirme
+
+Hazir paketi indirip dogrudan calistirabilirsiniz - **Python kurmaniza gerek yoktur**.
+Asagidaki adresler her zaman [en guncel surume](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest)
+isaret eder; yeni surum ciktiginda kendilerini gunceller.
+
+| Paket | Indirme |
+|---|---|
+| Windows (64 bit) | [RussianCourseAI-Windows.zip](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest/download/RussianCourseAI-Windows.zip) |
+| macOS (Apple Silicon) | [RussianCourseAI-macOS.zip](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest/download/RussianCourseAI-macOS.zip) |
+| Kullanim kilavuzu (PDF) | [RussianCourseAI-Kullanim-Kilavuzu.pdf](https://github.com/Azizsekerdil/RussianCourseAI/releases/latest/download/RussianCourseAI-Kullanim-Kilavuzu.pdf) |
+
+Zip'i acin ve uygulamayi calistirin. macOS paketi **notarize edilmemistir**: ilk acilista
+cift tiklamak yerine `RussianCourseAI.app` uzerinde **sag tik -> Ac** deyin ve cikan
+uyarida yine **Ac**'i secin; sonraki acilislarda bu gerekmez.
+
+Kaynaktan calistirmak isterseniz asagiya bakin.
 
 ---
 
@@ -46,7 +71,7 @@ pip install -r requirements.txt
 
 ---
 
-## .exe uretimi ve masaustu kisayolu
+## Windows: .exe uretimi ve masaustu kisayolu
 
 ```bash
 build.bat
@@ -70,6 +95,32 @@ powershell -ExecutionPolicy Bypass -File tools\make_shortcut.ps1
 
 Betik once `dist\` altinda exe arar; bulamazsa `pythonw.exe` + `.pyw` ile
 calisan bir kisayol olusturur, boylece derlemeden de kullanabilirsiniz.
+
+---
+
+## macOS: .app paketi uretimi
+
+```bash
+./build_macos.sh
+```
+
+Betik bir **Mac uzerinde** calistirilmalidir. Sirasiyla: macOS'a uygun bir
+gereksinim listesi hazirlar (`vosk` 0.3.44, GPL-3.0 lisansli `pyttsx3` haric),
+PyInstaller ile `dist/RussianCourseAI.app` paketini uretir, `assets/app.png`
+dosyasindan `.icns` simgesi olusturur, `LICENSE` + `THIRD_PARTY_NOTICES.md`
+dosyalarini paketin `Contents/Resources` klasorune kopyalar, MIT lisans
+denetimini (`tools/check_build_licence.py`) calistirir ve son olarak
+`ditto` ile `dist/RussianCourseAI-macOS.zip` dagitim arsivini olusturur.
+
+Depodaki tek is akisi olan **macOS Paketi**
+(`.github/workflows/build-macos.yml`) ayni betigi GitHub'in `macos-latest`
+makinesinde calistirir. Yalnizca **elle tetiklenir** (`workflow_dispatch`);
+`release_tag` girdisine bir surum etiketi (or. `v1.3.0`) yazilirsa uretilen zip
+dogrudan o surume ek dosya olarak yuklenir, bos birakilirsa zip yalnizca is
+akisi ciktisi olarak saklanir.
+
+Paket **notarize edilmez**; kullanicilar ilk acilista sag tik -> Ac yontemini
+kullanir.
 
 ---
 
@@ -246,8 +297,10 @@ rca/
   dict_data.py            1.360 maddelik gomulu cekirdek sozluk (istege bagli Turkce alan)
 grammar/*.md              markdown dilbilgisi notlari
 assets/app.ico            uygulama simgesi
-tools/                    simge ureteci + masaustu kisayolu betigi
-build.bat                 exe uretimi + kisayol
+tools/                    simge ureteci + masaustu kisayolu betigi + lisans denetimi
+build.bat                 Windows: exe uretimi + kisayol
+build_macos.sh            macOS: .app paketi + dagitim zip'i (Mac uzerinde calisir)
+.github/workflows/        elle tetiklenen "macOS Paketi" is akisi
 Resources/                ders dosyalariniz
 Resources/Indirilenler/   Kaynak Merkezinden inen dosyalar + LISANS.txt
 tests/                    pytest paketi
@@ -314,7 +367,7 @@ Ingilizce ile doldurulur ki kartlar hemen calissin; sonradan duzenleyebilirsiniz
 python -m pytest tests -q
 ```
 
-177 test: SM-2 aralik hesabi, RU<->EN/TR sozluk motoru (veri butunlugu, yon secimli ve otomatik arama, Turkce sorgu, tr sutunlu CSV ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, Ingilizce + Turkce karsilik, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
+207 test: SM-2 aralik hesabi, RU<->EN/TR sozluk motoru (veri butunlugu, yon secimli ve otomatik arama, Turkce sorgu, tr sutunlu CSV ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, Ingilizce + Turkce karsilik, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
 repositoryleri, metin normalizasyonu (ё / vurgu), gomulu icerik tutarliligi,
 uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi, PDF arka ucu (sayfa sayisi/olcusu, zoom ile olceklenen cizim, sol-ust kokenli kelime kutulari, isaretli PDF'in geri acilmasi) ve pencere/sayfa duman testi.
 Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz.

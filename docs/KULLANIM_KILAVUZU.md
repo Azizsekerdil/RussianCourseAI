@@ -68,9 +68,10 @@ Eksik paket programı durdurmaz, yalnızca ilgili düğmeler gri kalır: `pypdfi
 | Sistem | Veri klasörü |
 |---|---|
 | Windows | `%APPDATA%\RussianCourseAI` |
-| macOS / Linux | `~/.russiancourseai` |
+| macOS | `~/Library/Application Support/RussianCourseAI` |
+| Linux | `~/.russiancourseai` |
 
-İçerik: `data/rca.db` (SQLite), `settings/settings.json`, `exports/` (dışa aktarımların varsayılan hedefi), `logs/`. Program dizininde ise salt okunur `Resources/` ve `grammar/` klasörleri bulunur.
+İçerik: `data/rca.db` (SQLite), `settings/settings.json`, `exports/` (dışa aktarımların varsayılan hedefi), `logs/`. Program dizininde ise salt okunur `grammar/` klasörü bulunur; ders dosyalarının tutulduğu `Resources/` de program dizinindedir — yalnız macOS'ta, imzalı `.app` paketinin içine yazılamayacağı için veri klasörünün altındadır.
 
 **Taşınabilir kullanım.** `RCA_HOME` ortam değişkeni tanımlıysa program veri klasörü olarak onu kullanır:
 
@@ -477,7 +478,7 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 
 **exe açılmıyor.** *Neden:* Zip tam açılmamış, antivirüs dosyayı karantinaya almış ya da tek dosyalık paket kendini geçici klasöre açıyor. *Çözüm:* Zip'i gerçekten bir klasöre çıkarıp `RussianCourseAI.exe`'yi oradan çalıştırın; ilk açılış birkaç saniye sürebilir. Veritabanı açılamazsa program hatalı dosyanın yolunu gösterir; o dosyayı taşıyıp yeniden başlatın.
 
-**Veriler nerede.** *Neden:* Program dizini ile veri dizini bilinçli olarak ayrıdır; böylece güncelleme ilerlemenizi silmez. *Çözüm:* Windows'ta `%APPDATA%\RussianCourseAI`, diğer sistemlerde `~/.russiancourseai`; `Ayarlar` → `Veri klasorunu ac` doğrudan oraya götürür. `RCA_HOME` tanımlıysa veriler orada tutulur.
+**Veriler nerede.** *Neden:* Program dizini ile veri dizini bilinçli olarak ayrıdır; böylece güncelleme ilerlemenizi silmez. *Çözüm:* Windows'ta `%APPDATA%\RussianCourseAI`, macOS'ta `~/Library/Application Support/RussianCourseAI`, diğer sistemlerde `~/.russiancourseai`; `Ayarlar` → `Veri klasorunu ac` doğrudan oraya götürür. `RCA_HOME` tanımlıysa veriler orada tutulur.
 
 ---
 

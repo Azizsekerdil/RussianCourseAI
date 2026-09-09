@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+from importlib.machinery import SourceFileLoader
 import json
 import sys
 import time
@@ -22,7 +23,8 @@ tk = pytest.importorskip("tkinter")
 
 def _load_main():
     """Russian_Course_AI.pyw modulunu yukle."""
-    spec = importlib.util.spec_from_file_location("rca_main", ROOT / "Russian_Course_AI.pyw")
+    spec = importlib.util.spec_from_file_location("rca_main", ROOT / "Russian_Course_AI.pyw",
+        loader=SourceFileLoader("rca_main", str(ROOT / "Russian_Course_AI.pyw")))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod

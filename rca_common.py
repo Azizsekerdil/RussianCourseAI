@@ -31,6 +31,12 @@ def _appdata_root() -> Path:
     base = os.environ.get("RCA_HOME")
     if base:
         return Path(base)
+    if sys.platform == "darwin":
+        # Kural olarak "Application Support"; ama eski surumler nokta dizinine yazdigi
+        # icin, yalnizca o varken yenisi yoksa veri kaybi olmasin diye eskisinde kalinir.
+        mac_home = Path.home() / "Library" / "Application Support" / APP_SLUG
+        legacy = Path.home() / f".{APP_SLUG.lower()}"
+        return legacy if legacy.exists() and not mac_home.exists() else mac_home
     if sys.platform.startswith("win"):
         return Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")) / APP_SLUG
     return Path.home() / f".{APP_SLUG.lower()}"
@@ -46,7 +52,7 @@ SETTINGS_PATH = SETTINGS_DIR / "settings.json"
 
 # program dizini (salt okunur icerik: Resources/, grammar/)
 PROGRAM_DIR = Path(__file__).resolve().parent
-RESOURCES_DIR = PROGRAM_DIR / "Resources"
+RESOURCES_DIR = APP_HOME / "Resources" if sys.platform == "darwin" else PROGRAM_DIR / "Resources"
 GRAMMAR_DIR = PROGRAM_DIR / "grammar"
 
 

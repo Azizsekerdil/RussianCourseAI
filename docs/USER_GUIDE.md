@@ -68,9 +68,10 @@ A missing package never stops the program; only the related buttons stay greyed 
 | System | Data folder |
 |---|---|
 | Windows | `%APPDATA%\RussianCourseAI` |
-| macOS / Linux | `~/.russiancourseai` |
+| macOS | `~/Library/Application Support/RussianCourseAI` |
+| Linux | `~/.russiancourseai` |
 
-Contents: `data/rca.db` (SQLite), `settings/settings.json`, `exports/` (default target for exports), `logs/`. The program directory holds read-only content: `Resources/` and `grammar/`.
+Contents: `data/rca.db` (SQLite), `settings/settings.json`, `exports/` (default target for exports), `logs/`. The program directory holds read-only content: `Resources/` and `grammar/`. On macOS `Resources/` sits inside the data folder instead, because a signed `.app` bundle cannot be written to.
 
 **Portable use.** If the `RCA_HOME` environment variable is set, the program uses it as the data folder:
 
@@ -477,7 +478,7 @@ The privacy rules: no data leaves the machine during core operation; the AI runs
 
 **The exe will not start.** *Cause:* the zip was not fully extracted, an antivirus quarantined the file, or the single-file build is unpacking itself into a temporary folder. *Fix:* extract the zip into a real folder and run `RussianCourseAI.exe` from there; the first launch can take a few seconds. If the database cannot be opened, the program shows the path of the offending file — move it and restart.
 
-**Where is my data.** *Cause:* the program directory and the data directory are deliberately separate, so updating never wipes your progress. *Fix:* `%APPDATA%\RussianCourseAI` on Windows, `~/.russiancourseai` elsewhere; `Ayarlar` → `Veri klasorunu ac` takes you straight there. If `RCA_HOME` is set, the data lives there instead.
+**Where is my data.** *Cause:* the program directory and the data directory are deliberately separate, so updating never wipes your progress. *Fix:* `%APPDATA%\RussianCourseAI` on Windows, `~/Library/Application Support/RussianCourseAI` on macOS, `~/.russiancourseai` elsewhere; `Ayarlar` → `Veri klasorunu ac` takes you straight there. If `RCA_HOME` is set, the data lives there instead.
 
 ---
 

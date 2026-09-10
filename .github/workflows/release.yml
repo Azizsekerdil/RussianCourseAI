@@ -1,0 +1,51 @@
+name: Sürüm Yayınla
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Sürüm etiketi (ör. v1.3.1). Etiket yoksa bu dalın son commit'i üzerinde oluşturulur."
+        required: true
+      notes_file:
+        description: "Sürüm notu dosyası. Boş bırakılırsa docs/releases/<etiket>.md kullanılır."
+        required: false
+        default: ''
+      title:
+        description: "Sürüm başlığı. Boş bırakılırsa 'RussianCourseAI <etiket>' kullanılır."
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Paketler bu surumu hedef alarak ayri ayri yuklenir: once surum olusur,
+      # sonra "Windows Paketi" ve "macOS Paketi" is akislari ayni etiketle
+      # calistirilinca zip'lerini bu surume ek dosya olarak birakir.
+      - name: Sürümü oluştur ya da notlarını güncelle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+          NOTES_INPUT: ${{ inputs.notes_file }}
+          TITLE_INPUT: ${{ inputs.title }}
+        run: |
+          set -euo pipefail
+          notes="${NOTES_INPUT:-docs/releases/${TAG}.md}"
+          title="${TITLE_INPUT:-RussianCourseAI ${TAG}}"
+          if [ ! -f "$notes" ]; then
+            echo "HATA: sürüm notu bulunamadı: $notes" >&2
+            exit 1
+          fi
+          if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
+            echo "Sürüm zaten var; başlık ve notlar güncelleniyor."
+            gh release edit "$TAG" -R "$REPO" --title "$title" --notes-file "$notes"
+          else
+            gh release create "$TAG" -R "$REPO" --target "$GITHUB_SHA" \
+              --title "$title" --notes-file "$notes"
+          fi
+          echo "Sürüm adresi: $(gh release view "$TAG" -R "$REPO" --json url --jq .url)"

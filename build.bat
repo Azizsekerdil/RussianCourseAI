@@ -7,7 +7,7 @@ REM      build.bat              -> exe uret ve masaustune kisayol koy
 REM      build.bat /noshortcut  -> yalnizca exe uret
 REM      build.bat /onedir      -> tek dosya yerine klasor olarak uret (daha hizli acilir)
 REM
-REM  Cikti: dist\RussianCourseAI.exe
+REM  Cikti: dist\RussianCourseAI.exe ve dist\RussianCourseAI-Windows.zip
 REM ==========================================================================
 setlocal EnableDelayedExpansion
 cd /d "%~dp0"
@@ -102,6 +102,16 @@ echo      Lisans denetimi (MIT olarak dagitilabilir mi?)...
 python tools\check_build_licence.py
 if errorlevel 1 goto :hata
 
+echo      Dagitim ZIP'i hazirlaniyor...
+REM  Indirilen pakette .exe ile birlikte MIT metni ve ucuncu taraf
+REM  bildirimleri de bulunmalidir; Windows is akisi da ayni betigi cagirir.
+if exist dist\RussianCourseAI.exe (
+    python tools\make_release_zip.py
+    if errorlevel 1 goto :hata
+) else (
+    echo      atlandi ^(/onedir modunda tek dosyalik ZIP uretilmez^)
+)
+
 echo [5/5] Masaustu kisayolu...
 if "%SHORTCUT%"=="1" (
     powershell -NoProfile -ExecutionPolicy Bypass -File tools\make_shortcut.ps1
@@ -115,6 +125,7 @@ echo   BITTI
 echo  ============================================
 if exist dist\RussianCourseAI.exe echo   Cikti : %cd%\dist\RussianCourseAI.exe
 if exist dist\RussianCourseAI\RussianCourseAI.exe echo   Cikti : %cd%\dist\RussianCourseAI\RussianCourseAI.exe
+if exist dist\RussianCourseAI-Windows.zip echo   ZIP   : %cd%\dist\RussianCourseAI-Windows.zip
 echo   Veri  : %%APPDATA%%\RussianCourseAI
 echo.
 goto :son

@@ -46,7 +46,10 @@ jobs:
           git commit -m "Kilavuzlar: PDF'leri kaynak Markdown'dan yeniden uret" \
                      -m "docs/*.md degistiginde PDF'ler geride kalmasin diye \"Kilavuzlari Yenile\" is akisiyla uretildi."
           git push
+      # Denetim adimi PDF'ler uretildikten SONRA da hata verebilir; ciktiyi
+      # her durumda sakla ki basarisiz bir kosu incelenebilsin.
       - uses: actions/upload-artifact@v4
+        if: always()
         continue-on-error: true
         with:
           name: kilavuzlar-pdf

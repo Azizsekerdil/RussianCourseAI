@@ -174,16 +174,23 @@ def check_pdf(pdf_path: Path, md_path: Path = None) -> list:
         return ["%s: pypdf kurulu degil, denetlenemedi" % pdf_path.name]
 
     problems = []
-    flat = re.sub(r"\s+", " ", text)
+    # Baslik denetimi bosluklardan tumuyle bagimsiz yapilir. Neden: baslik
+    # `#### Speaking (`Konusma Pratigi`)` gibi bir kod parcasi tasidiginda PDF
+    # icinde yazi tipi Segoe UI'dan Consolas'a gecer ve metin cikarici bu
+    # sinira kendiliginden bosluk koyar ("Speaking ( Konusma Pratigi )").
+    # Sayfada gorunen baslik degismez; ama bosluga duyarli karsilastirma
+    # yeni uretilmis bir PDF'i "eski" diye isaretlerdi. Bosluklari tumden
+    # atmak, bir basligin GERCEKTEN eksik oldugu durumu yakalamayi surdurur.
+    squeezed = re.sub(r"\s+", "", text)
     lower = text.lower()
 
     if md_path is not None and md_path.exists():
         source = unicodedata.normalize("NFKC", md_path.read_text(encoding="utf-8"))
         for head in re.findall(r"^##+ (.+)$", source, re.MULTILINE):
-            needle = re.sub(r"\s+", " ", head.replace("`", "")).strip()
-            if needle not in flat:
+            shown = re.sub(r"\s+", " ", head.replace("`", "")).strip()
+            if re.sub(r"\s+", "", shown) not in squeezed:
                 problems.append("%s: %r basligi PDF'te yok - PDF %s'den eski"
-                                % (pdf_path.name, needle, md_path.name))
+                                % (pdf_path.name, shown, md_path.name))
         md_hits = len(OLD_STACK.findall(source))
         pdf_hits = len(OLD_STACK.findall(text))
         if pdf_hits > md_hits:

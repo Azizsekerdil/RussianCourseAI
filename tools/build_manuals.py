@@ -27,6 +27,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -135,11 +136,20 @@ def print_pdf(html_path: Path, pdf_path: Path, browser: str) -> None:
 
 
 def pdf_text(pdf_path: Path) -> str:
-    """PDF'in duz metni (pypdf ile)."""
+    """PDF'in duz metni (pypdf ile), NFKC ile normallestirilmis.
+
+    Normallestirme sart: Chrome basliklari dizerken tipografik bag kullanir,
+    "Telaffuz" PDF'e tek kod noktasi olan "Telaﬀuz" (U+FB00), "Artificial" ise
+    "Artiﬁcial" (U+FB01) olarak girer. Sayfada dogru gorunur ama cikarilan
+    metin kaynaktaki iki harfle duz karsilastirmada eslesmez ve check_pdf
+    guncel bir PDF'i "eski" diye isaretler. NFKC baglari bilesenlerine geri
+    acar, boylece denetim dizgiyi degil metni olcer.
+    """
     import pypdf
 
     reader = pypdf.PdfReader(str(pdf_path))
-    return "\n".join((page.extract_text() or "") for page in reader.pages)
+    text = "\n".join((page.extract_text() or "") for page in reader.pages)
+    return unicodedata.normalize("NFKC", text)
 
 
 def check_pdf(pdf_path: Path, md_path: Path = None) -> list:
@@ -168,7 +178,7 @@ def check_pdf(pdf_path: Path, md_path: Path = None) -> list:
     lower = text.lower()
 
     if md_path is not None and md_path.exists():
-        source = md_path.read_text(encoding="utf-8")
+        source = unicodedata.normalize("NFKC", md_path.read_text(encoding="utf-8"))
         for head in re.findall(r"^##+ (.+)$", source, re.MULTILINE):
             needle = re.sub(r"\s+", " ", head.replace("`", "")).strip()
             if needle not in flat:
@@ -200,6 +210,16 @@ def main() -> int:
     ap.add_argument("--check", action="store_true",
                     help="uretme, mevcut PDF'leri denetle")
     args = ap.parse_args()
+
+    # Windows konsolu cp1252 ile acilir ve Turkce uyari metinleri ('g', 'i',
+    # 'c' ...) yazilirken UnicodeEncodeError ile cokerdi: PDF'ler uretilmis
+    # olmasina ragmen betik hata koduyla biterdi. Cikti akislari UTF-8'e
+    # alinir; desteklenmiyorsa eski davranis korunur.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
 
     problems = []
     if args.check:

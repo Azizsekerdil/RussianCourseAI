@@ -46,6 +46,15 @@ CLAIMS = {
     "pyinstaller": r"GPL",
     # Bilerek kurulmaz ve ikili pakete alinmaz; kurulu ise lisansi yine GPL olmali.
     "pyttsx3": r"GPL",
+    # requirements-audio.txt (istege bagli ses bilesenleri, bkz. bolum 2b)
+    "faster-whisper": r"\bMIT\b",
+    "ctranslate2": r"\bMIT\b",
+    "av": r"BSD",
+    "huggingface-hub": r"Apache",
+    "tokenizers": r"Apache",
+    "onnxruntime": r"\bMIT\b",
+    "edge-tts": r"LGPL|Lesser General Public",
+    "piper-tts": r"GPL",
 }
 
 
@@ -109,6 +118,44 @@ def test_build_scripts_exclude_the_gpl_speech_module() -> None:
         assert "--exclude-module pyttsx3" in text, (
             f"{script} pyttsx3'u haric tutmuyor: uretilen ikili paket GPL-3.0 olur, "
             "oysa indirme sayfasi MIT diyor.")
+
+
+def test_build_scripts_exclude_the_copyleft_audiobook_engines() -> None:
+    """Piper (GPL-3.0) ve edge-tts (LGPL-3.0) MIT ikili pakete girmez."""
+    for script in ("build.bat", "build_macos.sh"):
+        text = (ROOT / script).read_text(encoding="utf-8")
+        for mod in ("piper", "edge_tts"):
+            assert f"--exclude-module {mod}" in text, f"{script} {mod} modulunu haric tutmuyor"
+
+
+def test_audio_requirements_are_documented() -> None:
+    """requirements-audio.txt'teki her paket bildirim dosyasinda anlatilir."""
+    text = (ROOT / "requirements-audio.txt").read_text(encoding="utf-8")
+    pinned = re.findall(r"^([A-Za-z0-9_.\-]+)\s*==", text, re.MULTILINE)
+    assert "faster-whisper" in pinned and "piper-tts" in pinned
+    notices = NOTICES.read_text(encoding="utf-8").lower()
+    missing = [p for p in pinned if p.lower() not in notices]
+    assert not missing, f"THIRD_PARTY_NOTICES.md'de anlatilmayan ses paketleri: {missing}"
+
+
+def test_licence_gate_flags_bundled_audiobook_engines(tmp_path) -> None:
+    """Pakete Piper ya da edge-tts sizarsa kapi kirmizi yanar."""
+    gate = _gate()
+    for marker in (b"piper.voice", b"espeakbridge.pyd", b"edge_tts.communicate"):
+        blob = tmp_path / "RussianCourseAI.exe"
+        blob.write_bytes(b"\x00" + marker + b"\x00pypdfium2\x00")
+        found, _expected = gate.scan(blob)
+        assert found, marker
+        assert gate.main(["x", str(blob)]) == 1
+
+
+def test_licence_gate_ignores_engine_names_in_our_own_source(tmp_path) -> None:
+    """rca/audiobook.py "piper" ve "edge_tts" adlarini anar; bu gomulme demek degildir."""
+    gate = _gate()
+    blob = tmp_path / "RussianCourseAI.exe"
+    source = b"".join((ROOT / "rca" / f).read_bytes() for f in ("audiobook.py", "tts.py"))
+    blob.write_bytes(source + b"\x00pypdfium2_raw\x00")
+    assert gate.scan(blob) == (set(), True)
 
 
 def test_build_scripts_run_the_licence_gate() -> None:

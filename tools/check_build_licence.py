@@ -8,6 +8,8 @@ bozabilecek iki sey vardir:
 * GPL-3.0 lisansli **pyttsx3** - `requirements.txt`'te yoktur ve iki derleme
   betigi de `--exclude-module pyttsx3` verir, ama derleme makinesinde kurulu
   olabilecegi icin sonuc ayrica denetlenir.
+* GPL-3.0 lisansli **piper-tts** ve LGPL-3.0 lisansli **edge-tts** (sesli kitap
+  motorlari) - ayni sekilde `--exclude-module` ile disarida tutulur.
 
 Betik `dist/` altindaki dosyalarin BAYTLARINI tarar; hicbir sey ithal etmez,
 calistirmaz ve aga cikmaz.
@@ -42,6 +44,13 @@ FORBIDDEN = {
     b"pyttsx3/drivers": "pyttsx3 (GPL-3.0) - --exclude-module pyttsx3 verilmemis",
     b"pyttsx3\\drivers": "pyttsx3 (GPL-3.0) - --exclude-module pyttsx3 verilmemis",
     b"pyttsx3.engine": "pyttsx3 (GPL-3.0) - --exclude-module pyttsx3 verilmemis",
+    # Sesli kitap motorlari: kaynaktan calisirken kullanilir, ikili pakete girmez.
+    b"piper.voice": "piper-tts (GPL-3.0) - --exclude-module piper verilmemis",
+    b"piper/voice": "piper-tts (GPL-3.0) - --exclude-module piper verilmemis",
+    b"piper\\voice":"piper-tts (GPL-3.0) - --exclude-module piper verilmemis",
+    b"espeakbridge": "piper-tts / espeak-ng (GPL-3.0) - --exclude-module piper verilmemis",
+    b"edge_tts.communicate": "edge-tts (LGPL-3.0) - --exclude-module edge_tts verilmemis",
+    b"edge_tts/communicate": "edge-tts (LGPL-3.0) - --exclude-module edge_tts verilmemis",
 }
 #: Yeni PDF katmaninin pakette bulunmasi beklenen izi.
 EXPECTED = b"pypdfium"

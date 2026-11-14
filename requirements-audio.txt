@@ -1,0 +1,27 @@
+# Russian Course AI - istege bagli SES bilesenleri
+#
+# "Konusma Tanima (Whisper)" ve "Sesli Kitap" sayfalari icindir. Hicbiri zorunlu
+# degildir; kurulu degilse ilgili dugmeler gri kalir, program calismaya devam eder.
+#
+#   pip install -r requirements.txt -r requirements-audio.txt
+#
+# Lisanslar THIRD_PARTY_NOTICES.md, bolum 2b'de anlatilir.
+
+# --- Whisper konusma tanima (MIT) ---------------------------------------------
+# Modeller ilk kullanimda %APPDATA%\RussianCourseAI\models\whisper altina indirilir.
+faster-whisper==1.2.1
+sounddevice==0.5.0
+
+# --- NVIDIA GPU hizlandirma (Windows / Linux) ----------------------------------
+# CUDA Toolkit kurmaya gerek yoktur; DLL'ler bu paketlerden yuklenir. GPU yoksa
+# Whisper otomatik olarak CPU'ya duser. macOS'ta bu iki satiri atlayin.
+nvidia-cublas-cu12==12.9.2.10 ; sys_platform != "darwin"
+nvidia-cudnn-cu12==9.28.1.4 ; sys_platform != "darwin"
+
+# --- Sesli kitap / kelime seslendirme motorlari ---------------------------------
+# Piper: cevrimdisi sinir agi sesleri (VARSAYILAN). GPL-3.0-or-later lisanslidir;
+#   dagitilan .exe / .app paketlerine BILEREK alinmaz (--exclude-module piper).
+# edge-tts: Microsoft Edge cevrimici sesleri. LGPL-3.0; metin Microsoft'a gider.
+#   Dagitilan paketlere alinmaz (--exclude-module edge_tts).
+piper-tts==1.8.0
+edge-tts==7.3.1

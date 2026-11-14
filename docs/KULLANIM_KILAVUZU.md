@@ -19,7 +19,7 @@ Sürüm 1.3.0 · Windows ve macOS masaüstü uygulaması · Arayüz dilleri: Tü
 
 ## 1. Bu kılavuz hakkında
 
-Bu belge **Russian Course AI 1.3.0** sürümünün kullanım kılavuzudur. Program, Rusçayı A1'den C1'e çalışmak için tasarlanmış, tek pencerede 18 sayfa barındıran bir masaüstü çalışma istasyonudur.
+Bu belge **Russian Course AI 1.3.0** sürümünün kullanım kılavuzudur. Program, Rusçayı A1'den C1'e çalışmak için tasarlanmış, tek pencerede 20 sayfa barındıran bir masaüstü çalışma istasyonudur.
 
 Nasıl okunur: **yeni başlıyorsanız** 2. ve 3. bölümü, sonra 4. bölümdeki `Aralikli Tekrar`, `Kelime Bankasi` ve `Sozluk RU-EN-TR` sayfalarını okuyun — program yapay zekâ olmadan da tam kapasite çalışır. **Sözlüğü yoğun kullanacaksanız** doğrudan 5. bölüme geçin. **Yapay zekâyı bağlayacaksanız** 6. bölüme bakın.
 
@@ -63,6 +63,14 @@ pip install -r requirements.txt
 
 Eksik paket programı durdurmaz, yalnızca ilgili düğmeler gri kalır: `pypdfium2` + `pypdf` (PDF), `pillow` (el yazısı PNG ve görsel soru), `pymorphy3` (kesin morfoloji), `vosk` + `sounddevice` (mikrofonla telaffuz), `truststore` / `certifi` (Kaynak Merkezi indirmeleri).
 
+**Ses bileşenleri (isteğe bağlı).** `Konusma Tanima (Whisper)` ve `Sesli Kitap` sayfaları ile sinir ağı sesleri için ayrıca:
+
+```bash
+pip install -r requirements-audio.txt
+```
+
+Bu dosya `faster-whisper` (Whisper konuşma tanıma) ve `sounddevice` ile birlikte, Windows/Linux'ta NVIDIA GPU hızlandırması için `nvidia-cublas-cu12` ve `nvidia-cudnn-cu12` tekerleklerini kurar; **CUDA Toolkit kurmanız gerekmez**, program gereken DLL'leri bu paketlerden yükler. GPU yoksa Whisper kendiliğinden CPU'ya geçer; macOS'ta NVIDIA satırları atlanır. Aynı dosya sesli kitap motorlarını da kurar: `piper-tts` (çevrimdışı, GPL-3.0) ve `edge-tts` (çevrimiçi, LGPL-3.0). Bu iki paket lisansları nedeniyle dağıtılan `.exe` / `.app` paketine **bilerek alınmaz**; kullanmak istiyorsanız programı kaynaktan çalıştırıp kendiniz kurarsınız. Paketler eksikse ilgili sayfa nedenini ve kurulum komutunu yazar, programın geri kalanı etkilenmez.
+
 ### 2.4 Verileriniz nerede tutulur
 
 | Sistem | Veri klasörü |
@@ -71,7 +79,7 @@ Eksik paket programı durdurmaz, yalnızca ilgili düğmeler gri kalır: `pypdfi
 | macOS | `~/Library/Application Support/RussianCourseAI` |
 | Linux | `~/.russiancourseai` |
 
-İçerik: `data/rca.db` (SQLite), `settings/settings.json`, `exports/` (dışa aktarımların varsayılan hedefi), `logs/`. Program dizininde ise salt okunur `grammar/` klasörü bulunur; ders dosyalarının tutulduğu `Resources/` de program dizinindedir — yalnız macOS'ta, imzalı `.app` paketinin içine yazılamayacağı için veri klasörünün altındadır.
+İçerik: `data/rca.db` (SQLite), `settings/settings.json`, `exports/` (dışa aktarımların varsayılan hedefi), `logs/`; ses bileşenlerini kullanırsanız ayrıca `models/whisper` (Whisper modelleri), `models/piper` (Piper sesleri) ve `audiobooks/` (sesli kitaplar). Program dizininde ise salt okunur `grammar/` klasörü bulunur; ders dosyalarının tutulduğu `Resources/` de program dizinindedir — yalnız macOS'ta, imzalı `.app` paketinin içine yazılamayacağı için veri klasörünün altındadır.
 
 **Taşınabilir kullanım.** `RCA_HOME` ortam değişkeni tanımlıysa program veri klasörü olarak onu kullanır:
 
@@ -149,9 +157,29 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Ne işe yarar.** Rusçada vurgunun yeri anlamı değiştirir ve vurgusuz `о` [a] okunur.
 
-**Nasıl kullanılır.** Kelimeyi yazıp `Coz`'e basın ya da `Bankadan sec` ile seçin; program heceleri, kaba IPA okunuşunu ve indirgeme kurallarını gösterir. `Vurgulu hece:` listesinden vurguyu düzeltin, `🔊 Dinle` ile seslendirin. Vosk modeli kuruluysa `● Kaydet ve karsilastir` çıkar.
+**Nasıl kullanılır.** Kelimeyi yazıp `Coz`'e basın ya da `Bankadan sec` ile seçin; program heceleri, kaba IPA okunuşunu ve indirgeme kurallarını gösterir. `Vurgulu hece:` listesinden vurguyu düzeltin, `🔊 Dinle` ile seslendirin. Konuşma tanıma kullanılabiliyorsa `Mikrofonla tekrar` bölümünde `● Kaydet ve karsilastir` çıkar: program birkaç saniye kaydeder ve duyduğunu hedef kelimeyle karşılaştırır. Tanıma için önce **Whisper** kullanılır (`Konusma Tanima (Whisper)` sayfasından en az bir model indirilmişse); Whisper yoksa Vosk'a düşülür. Hangi motorun çalıştığı düğmenin sağında parantez içinde yazar (`(whisper)` / `(vosk)`).
 
-**İpucu.** Mikrofon bölümü kapalıysa nedeni orada yazar; Vosk `ru` modelini `%APPDATA%\RussianCourseAI\models\vosk-ru` klasörüne açın.
+**İpucu.** Mikrofon bölümü kapalıysa nedeni orada yazar; ya `Konusma Tanima (Whisper)` sayfasından bir Whisper modeli indirin ya da Vosk `ru` modelini `%APPDATA%\RussianCourseAI\models\vosk-ru` klasörüne açın. Cümle düzeyinde, kelime kelime renkli değerlendirme için Whisper sayfasının `Telaffuz` sekmesine bakın.
+
+#### Konuşma Tanıma (`Konusma Tanima (Whisper)`)
+
+**Ne işe yarar.** Whisper (faster-whisper) ile **tamamen bilgisayarınızda** çalışan konuşma tanıma: ses ve video dosyalarını yazıya döker ya da İngilizceye çevirir, mikrofondan dikte alır ve söylediğiniz Rusça cümleyi kelime kelime puanlar. İnternet yalnızca bir modeli ilk kez indirirken kullanılır.
+
+**Nasıl kullanılır.** Üst çubuk tüm sekmeler için ortaktır:
+
+- `Model:` — `tiny`, `base`, `small`, `medium`, `large-v1` / `large-v2` / `large-v3` boyutları, damıtılmış `distil-*` ve yalnızca İngilizce `.en` çeşitleri. Varsayılan **`large-v3-turbo`**'dur (~1,6 GB, large'a yakın doğruluk, çok hızlı); turbo modeli İngilizceye **çeviri yapmaz**, `Ingilizceye cevir` için `large-v3` ya da `medium` seçin. Altındaki satır seçilen modelin boyutunu ve `indirilmis, hazir` / `indirilmedi (ilk kullanimda indirilir)` durumunu gösterir.
+- `Modeli indir` onay sorup modeli **bir kez** `%APPDATA%\RussianCourseAI\models\whisper` klasörüne indirir; `Yukle` modeli önceden belleğe alır, `Bellekten bosalt` GPU belleğini / RAM'i boşaltır, 📂 model klasörünü açar.
+- `Aygit:` `auto` (NVIDIA GPU varsa `cuda`, yoksa `cpu`), `cuda` ya da `cpu`. `Hesap turu:` `auto`, `float16`, `int8_float16`, `bfloat16`, `int8`, `float32`; `auto` GPU'da `float16`, CPU'da `int8` seçer. GPU yüklenemezse program durmaz, CPU'ya geçer.
+- Altındaki durum satırı `GPU hazir (...)` ya da `GPU yok - CPU kullanilacak` yazar, model yüklüyse adını ve aygıt/hesap türünü ekler.
+
+Dört iç sekme vardır:
+
+- **`Dosya`** — `Dosya sec...` ile bir ses/video dosyası seçin (mp3, wav, m4a, ogg, opus, flac, mp4, mkv… ) ya da `Klasoru toplu isle...` ile bir klasördeki tüm dosyaları sırayla işleyin (her dosyanın yanına `.srt` ve `.txt` yazılır). `Gorev:` olarak `Yaziya dok` ya da `Ingilizceye cevir` seçin; `Dil:` `auto` (otomatik algıla) ya da sabit bir dildir. `Dili algila` en olası beş dili olasılıklarıyla gösterir ve ilkini seçer. `▶ Baslat` çalıştırır, `■ Durdur` keser; metin zaman damgalarıyla bölüm bölüm akar, bitince dil, süre, hız (gerçek zaman oranı) ve aygıt özetlenir. `Kelime guvenini renklendir` işaretliyse Whisper'ın emin olmadığı kelimeler sarı (orta) ve kırmızı (düşük) görünür. `Disa aktar:` satırındaki `TXT`, `SRT`, `VTT`, `TSV`, `JSON`, `LRC` düğmeleri dosyaya yazar; `Kopyala` panoya alır, `AI Ogretmen'e gonder` metni açıklama ya da çeviri için `AI Ogretmen` sayfasına taşır.
+- **`Mikrofon`** — üstte kullanılan mikrofon yazar. `● Kaydet` kaydı başlatır, `■ Bitir` durdurup yazıya döker; `🎙 Canli dikte` siz konuştukça metni canlı yazar (henüz kesinleşmemiş kısım soluk görünür). `Dil:` varsayılan olarak `ru`'dur. Ses düzeyi çubuğu ve süre kayıt sırasında görünür; `Kaydi WAV olarak sakla` son kaydı WAV dosyasına yazar.
+- **`Telaffuz`** — hedef bir Rusça cümle yazın ya da `Bankadan sec` ile kelime bankasından örnek cümle getirin, `🔊 Dinle` ile dinleyin, `● Kaydet` deyip söyleyin ve `■ Bitir`'e basın. Whisper duyduğunu hedefle kelime kelime karşılaştırır: yeşil = doğru, sarı = doğru ama belirsiz, kırmızı = farklı (parantezde duyulan), üstü çizili = atlandı, mavi = fazladan. `Puan` 100 üzerinden verilir ve `Duyulan` satırı Whisper'ın tam metnini gösterir. Her deneme `Ogrenci Takip` istatistiklerine telaffuz çalışması olarak işlenir (85 ve üzeri doğru sayılır).
+- **`Gelismis ayarlar`** — Whisper'ın tüm ayarları gruplar hâlinde: `Kod cozme` (`beam_size`, `best_of`, `patience`, `length_penalty`, `repetition_penalty`, `no_repeat_ngram_size`, geri düşme listesiyle `temperature`, `prompt_reset_on_temperature`), `Esikler ve dil algilama` (`compression_ratio_threshold`, `log_prob_threshold`, `no_speech_threshold`, `hallucination_silence_threshold`, `language_detection_threshold`, `language_detection_segments`), `Dil, istem ve metin` (`Varsayilan dil`, `multilingual`, `initial_prompt`, `prefix`, `hotwords`, `condition_on_previous_text`, `suppress_blank`, `clip_timestamps`), `Zaman damgalari` (`word_timestamps`, `without_timestamps`, `max_initial_timestamp`, `chunk_length`), `VAD (konusma algilama, Silero)` (`vad_filter`, `threshold`, `min_speech_duration_ms`, `min_silence_duration_ms`, `speech_pad_ms`, `max_speech_duration_s`) ve `Performans` (`batched`, `batch_size`, `cpu_threads`). `Ayarlari kaydet` yazar, `Varsayilanlara don` model/aygıt seçimini koruyarak gerisini sıfırlar.
+
+**İpucu.** Bol VRAM'li bir NVIDIA kartta `large-v3-turbo` + `float16` + `batched` uzun dosyaları gerçek zamandan çok daha hızlı işler; CPU'da `small` ya da `medium` + `int8` daha uygundur. Sessiz bölümlerde uydurma metin görürseniz `vad_filter`'ı açık tutun. Özel adlar ya da terimler yanlış yazılıyorsa onları `initial_prompt` veya `hotwords` alanına ekleyin.
 
 #### Dilbilgisi Lab (`Dilbilgisi Lab`)
 
@@ -180,6 +208,24 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 **İpucu.** Bu sayfa `pypdfium2` (görüntüleme/metin) ve `pypdf` (işaretli dışa aktarma) gerektirir; seçtiğiniz metni `AI Ogretmen` sayfasında `PDF'teki secimi al` ile de kullanabilirsiniz.
 
 **Not metinlerinde Kiril ve Türkçe harfler.** `Isaretli PDF disa aktar` çıktısında notunuzun **tam metni her zaman korunur** ve PDF okuyucunuzun yorum/açıklama panelinde eksiksiz görünür. Sayfanın **üzerine çizilen** kopya ise gömülü Helvetica yazı tipiyle yazıldığı için yalnızca Batı Avrupa harflerini gösterebilir: Kiril harfleri ile `ı`, `ş`, `ğ`, `İ` gibi Türkçe harfler sayfa üzerinde `?` görünür. Kiril not alacaksanız notu yorum panelinden okuyun; işaretleme, kalem çizimi ve sarı vurgular bundan etkilenmez.
+
+#### Sesli Kitap (`Sesli Kitap`)
+
+**Ne işe yarar.** Ders kitabınızı (ör. Rusça başlangıç kitabı) sayfa sayfa sesli kitaba çevirir ve **istediğiniz bölümü ya da sayfayı** seçip dinlemenizi sağlar. Her parça kendi dilinin sesiyle okunur: Rusça cümleler Rusça, Türkçe açıklamalar Türkçe, İngilizce kısımlar İngilizce sesle; okunan cümle metin panelinde vurgulanır.
+
+**Nasıl kullanılır.**
+
+- **Kitap.** Üstteki `Kitap:` listesinden kitabı seçin. Yeni kitap için `PDF'ten yeni kitap...`'a basıp PDF'i seçin; program bu kitap için hazır bir seslendirme betiği klasörü (`pNNN.json` dosyaları) olup olmadığını sorar. **Evet** derseniz klasörü gösterirsiniz ve elle hazırlanmış betik kullanılır (eksik sayfalar PDF'ten tamamlanır); **Hayır** derseniz betik PDF'in metninden otomatik üretilir (Kiril → Rusça, Türkçe harf/kelime → Türkçe, diğerleri → İngilizce). Kitabın altındaki satır sayfa sayısını, seçili motorla kaç sayfanın üretildiğini ve betiğin kaynağını (`elle hazirlanmis betik`, `kismen hazir betik`, `PDF metninden otomatik betik`) gösterir; 📂 kitap klasörünü açar. Kitaplar `%APPDATA%\RussianCourseAI\audiobooks\` altında durur.
+- **İçindekiler.** Soldaki `Icindekiler` ağacı PDF'in içindekiler tablosundan kurulur: bölüm → alt bölüm → `Sayfa N`. `Sayfa` sütunu sayfa aralığını, son sütun seçili motor için üretim durumunu gösterir: `✓` tamamı hazır, `3/8` gibi bir değer kısmen hazır, boş ise henüz üretilmemiş. Bir bölüme ya da sayfaya **çift tıklamak** veya **Enter**'a basmak oradan çalmaya başlar; bir bölüm seçildiğinde hazır sayfaları sırayla çalınır. Ses henüz yoksa program şimdi üretmeyi önerir. **Ctrl** / **Shift** ile birden fazla öğe seçebilirsiniz.
+- **Çalar.** `⏮` / `⏭` önceki / sonraki sayfa, `⏪` / `⏩` önceki / sonraki cümle (cümlenin ortasındaysanız `⏪` önce o cümlenin başına döner), `−10` / `+10` on saniye geri / ileri, `▶` / `⏸` oynat / duraklat, `■` durdur. Kaydırma çubuğuyla sayfa içinde istediğiniz yere gidin. `Hiz:` 0.5x ile 2x arasındadır ve **ses perdesi korunur** (yavaşlatınca ses kalınlaşmaz). `Ses:` kaydırıcısı ses düzeyini %150'ye kadar ayarlar.
+- **Tekrar ve sürekli çalma.** `Cumleyi tekrarla` işaretliyken o anki cümle siz kapatana kadar döngüde çalar — telaffuzu taklit etmek için idealdir. `Surekli cal` açıksa sayfa bitince üretilmiş bir sonraki sayfaya geçilir. `⏯ Kaldigim yerden` en son dinlediğiniz kitabı, sayfayı ve konumu geri getirir (konum durdurunca, sayfa bitince ve program kapanırken kaydedilir).
+- **Metin paneli.** Çalan sayfanın metni burada görünür ve okunan cümle vurgulanır; Rusça normal renkte, Türkçe yeşil, İngilizce soluk gri yazılır, başlıklar kalındır. Herhangi bir cümleye **tıklamak** çalmayı o cümleye atlatır.
+- **Ses üretimi.** Alttaki `Ses uretimi` kutusunda `Motor:` olarak **Piper** (`cevrimdisi`, varsayılan) ya da **Edge** (`cevrimici, Microsoft`) seçin; `Varsayilan yap` seçili motoru kalıcı varsayılan yapar. Edge ilk kullanımda metnin Microsoft sunucularına gideceğini söyleyip onay ister; Piper tamamen çevrimdışıdır. Her dil için ayrı ses seçilir (`Rusça:`, `Türkçe:`, `İngilizce:`; ör. Piper'da `ru_RU-irina-medium`, `tr_TR-dfki-medium`, `en_US-lessac-medium`; Edge'de `ru-RU-SvetlanaNeural`, `tr-TR-EmelNeural`, `en-US-AriaNeural`). `Sesleri dene` seçili seslerle kısa bir örnek çalar; `Konusma hizi:` (0.6–1.5) üretilen sesin temposudur.
+- **Üretim düğmeleri.** `Secileni uret` ağaçta seçtiğiniz bölüm/sayfaları, `Tum kitabi uret` bütün kitabı üretir; `■ Durdur` keser. Üretim paralel çalışır (Piper'da birden çok süreç, Edge'de eşzamanlı istekler) ve ilerleme `[k/toplam] sayfa N` olarak görünür. Betiği, sesi ve hızı değişmemiş sayfalar **atlanır**; yine de baştan üretmek için `guncel olsa da yeniden uret` kutusunu işaretleyin. Üretilen ses motor başına ayrı saklanır; iki motorla da üretip `Motor:` seçimiyle aralarında geçiş yapabilirsiniz (çalan sayfa yeni motorun sesine geçer). Piper için seçtiğiniz ses bilgisayarda yoksa program onu internetten indirmeyi önerir (`%APPDATA%\RussianCourseAI\models\piper`).
+- **Dışa aktarma.** `Bolum MP3'lerini disa aktar...` bir klasör sorar ve her üst bölüm için `01 - Bölüm adı.mp3` biçiminde tek bir MP3 yazar (ID3 etiketleri: başlık, albüm = kitap adı, parça numarası, sayfa aralığı) ve bölümleri sıralayan bir `.m3u8` çalma listesi ekler; telefonda ya da arabada dinlemek için kullanın. Üretilmemiş sayfalar atlanır.
+- **Whisper ile doğrulama.** `Whisper ile dogrula` çalan sayfanın Rusça parçalarını Whisper'a dinletip betikle karşılaştırır. Şüpheli cümleler (ses motorunun yanlış okuduğu ya da atladığı) metin panelinde **kırmızı altı çizili** görünür ve durum satırında `«betik» → «duyulan»` biçiminde listelenir. Bunun için `Konusma Tanima (Whisper)` sayfasında bir model indirilmiş olmalıdır.
+
+**İpucu.** Aynı işlemleri komut satırından da yapabilirsiniz: `python tools/make_audiobook.py --help` tüm seçenekleri gösterir (`--pdf`, `--script`, `--book`, `--engine piper|edge`, `--pages 4-9,15`, `--rate`, `--force`, `--export`, `--out`, `--workers`). Bu sayfa üretim için `piper-tts` ve/veya `edge-tts`, çalma için `av` + `sounddevice` ister; hepsi `requirements-audio.txt` ile gelir (bkz. 2.3).
 
 #### Kaynak Merkezi (`Kaynak Merkezi`)
 
@@ -253,7 +299,9 @@ Aşağıdaki sıra kenar çubuğunun kendi sırasıdır.
 
 **Ne işe yarar.** Arayüz, ses, yapay zekâ, profil ve veri ayarlarının tek yeri.
 
-**Nasıl kullanılır.** Sayfa başlıklı bölümlerden oluşur: `Arayuz` (`Dil:`, `Tema:`, `Gunluk hedef:`, `CEFR seviyesi:`), `Ses` (`Seslendirme acik`, `Hiz:` 80–260, `Test et`), `Yapay zeka (yerel)` (`AI ozellikleri acik`, `LM Studio adresi:`, `Baglantiyi dene`, `Varsayilan model:`), `Alternatif uc (OpenAI uyumlu - INTERNET)` (bkz. 6. bölüm), `Profiller` (`Yeni profil`, `Secili profili sil`) ve `Veri` (`Veri klasorunu ac`, `Ilerlemeyi sifirla (bu profil)`, `Eksik seed kelimeleri geri yukle`). Değişiklikler `Kaydet` ile yazılır.
+**Nasıl kullanılır.** Sayfa başlıklı bölümlerden oluşur: `Arayuz` (`Dil:`, `Tema:`, `Gunluk hedef:`, `CEFR seviyesi:`), `Ses` (`Seslendirme acik`, `Hiz:` 80–260, `Test et`, `Kelime seslendirme motoru:`, `Sesli kitap varsayilan motoru:`), `Yapay zeka (yerel)` (`AI ozellikleri acik`, `LM Studio adresi:`, `Baglantiyi dene`, `Varsayilan model:`), `Alternatif uc (OpenAI uyumlu - INTERNET)` (bkz. 6. bölüm), `Profiller` (`Yeni profil`, `Secili profili sil`) ve `Veri` (`Veri klasorunu ac`, `Ilerlemeyi sifirla (bu profil)`, `Eksik seed kelimeleri geri yukle`). Değişiklikler `Kaydet` ile yazılır.
+
+**Ses motorları.** `Kelime seslendirme motoru:` programın her yerindeki 🔊 düğmelerinin (kelime bankası, sözlük, telaffuz, AI yanıtı…) hangi sesle okuyacağını belirler: `Sistem sesi` (işletim sisteminin sesi, varsayılan), `Piper (cevrimdisi, dogal)` ya da `Edge (cevrimici, Microsoft)`. Seçilen sinir ağı motoru kurulu değilse ya da hata verirse program sessizce sistem sesine döner. `Sesli kitap varsayilan motoru:` (`Piper (cevrimdisi, dogal)` / `Edge (cevrimici, Microsoft)`) `Sesli Kitap` sayfasının açılışta seçeceği motordur; aynı ayar o sayfadaki `Varsayilan yap` düğmesiyle de değişir.
 
 **İpucu.** Dil anında değişir; tema için yeniden başlatma gerekir ve program bunu hatırlatır.
 
@@ -448,7 +496,7 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 
 | Tuş | İşlev |
 |---|---|
-| `Ctrl+1` … `Ctrl+9` | İlk dokuz sayfaya doğrudan geç (`Aralikli Tekrar`, `Kelime Bankasi`, `Sozluk RU-EN-TR`, `Sinav`, `Kiril Lab`, `Telaffuz & Vurgu`, `Dilbilgisi Lab`, `Kurs Kaynaklari`, `PDF Okuyucu`) |
+| `Ctrl+1` … `Ctrl+9` | İlk dokuz sayfaya doğrudan geç (`Aralikli Tekrar`, `Kelime Bankasi`, `Sozluk RU-EN-TR`, `Sinav`, `Kiril Lab`, `Telaffuz & Vurgu`, `Konusma Tanima (Whisper)`, `Dilbilgisi Lab`, `Kurs Kaynaklari`) |
 | `Ctrl+PgDn` / `Ctrl+PgUp` | Sonraki / önceki sayfa |
 | `F5` | Görünen sayfayı tazele |
 | `Ctrl+Q` | Programı kapat |
@@ -457,7 +505,8 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 | `Enter` | Aramayı çalıştır (sözlük, kelime bankası, telaffuz), cevabı kontrol et (sınav ve yazma modları), mesajı gönder (konuşma pratiği) |
 | `Ctrl+Enter` | `AI Ogretmen`'de soruyu gönder |
 | `Space` | `Kurs Kaynaklari`'nda `Bitirdim` işaretini değiştir |
-| Çift tık | Kelime bankası ve sözlük listelerinde seçili kelimeyi dinle |
+| Çift tık | Kelime bankası ve sözlük listelerinde seçili kelimeyi dinle; `Sesli Kitap` ağacında bölümü / sayfayı çal |
+| `Enter` | `Sesli Kitap` ağacında seçili bölümü / sayfayı çal |
 | `Esc` | Madde / kelime ekleme penceresini kapat |
 
 **İpuçları.** Üst çubuktaki yapay zekâ rozetine tıklamak bağlantıyı yeniden yoklar. Sayfa başlığının yanındaki gri metin o sayfaya özgü ipucudur. Sözlükte iki harf yazınca liste süzülür; tam sonuç ve gerekirse yapay zekâ için **Enter**'a basın. `PDF Okuyucu`'da seçtiğiniz metin `AI Ogretmen` sayfasında `PDF'teki secimi al` ile hazır gelir.
@@ -475,6 +524,16 @@ Gizlilik kuralları: çekirdek işleyişte hiçbir veri makineden çıkmaz; yapa
 **macOS "açılamıyor" uyarısı.** *Neden:* Uygulama notarize edilmemiştir; Gatekeeper tanımadığı geliştiricinin uygulamasını doğrudan açmaz. *Çözüm:* Çift tıklamayın; **sağ tıklayın → Aç**, çıkan uyarıda yine **Aç**'a basın. Onay bir kez verilir.
 
 **Ses çıkmıyor.** *Neden:* `Seslendirme acik` kapalı, sistemde Rusça ses paketi yok ya da işletim sisteminin konuşma motoruna erişilemiyor. *Çözüm:* `Ayarlar` → `Ses` bölümündeki durum satırını okuyup `Test et`'e basın; seslendirme ek paket istemez (Windows'ta `System.Speech`, macOS'ta `say`), ancak Rusça konuşma paketini işletim sisteminizin ayarlarından eklemeniz gerekir.
+
+**Whisper GPU'yu kullanmıyor.** *Neden:* Durum satırı `GPU yok - CPU kullanilacak` yazıyor ya da yüklü model `(cpu/int8)` görünüyor; NVIDIA cuBLAS/cuDNN kütüphaneleri bulunamamış, sürücü eski ya da `Aygit:` `cpu` seçili. *Çözüm:* `pip install -r requirements-audio.txt` ile `nvidia-cublas-cu12` ve `nvidia-cudnn-cu12` tekerleklerini kurun (CUDA Toolkit gerekmez), NVIDIA sürücüsünü güncelleyin, `Aygit:`'ı `auto` ya da `cuda` yapıp `Bellekten bosalt` → `Yukle` deyin. GPU yüklenemezse program `GPU yuklenemedi, CPU'ya geciliyor...` yazıp CPU ile devam eder.
+
+**İlk GPU çalıştırması çok yavaş.** *Neden:* Yeni nesil ekran kartlarında CUDA çekirdekleri ilk kullanımda kartınız için derlenir (JIT); bu bir defaya mahsus birkaç dakika sürebilir. Model ilk kez kullanılıyorsa üstüne indirme süresi eklenir. *Çözüm:* İlk işlemin bitmesini bekleyin; sonraki çalıştırmalar hızlıdır. Önceden hazırlık için `Yukle`'ye basıp kısa bir dosya yazıya dökün.
+
+**Piper sesi eksik.** *Neden:* Seçtiğiniz Piper sesi (`.onnx` dosyası) `%APPDATA%\RussianCourseAI\models\piper` klasöründe yok. *Çözüm:* `Secileni uret` ya da `Tum kitabi uret`'e basın; program eksik sesleri internetten indirmeyi önerir, onaylayınca indirip üretime devam eder. `piper-tts kurulu degil` yazıyorsa önce `pip install -r requirements-audio.txt` çalıştırın.
+
+**Edge motoru hata veriyor.** *Neden:* Edge sesleri çevrimiçidir; internet bağlantısı yok, güvenlik duvarı engelliyor ya da Microsoft sunucusu geçici olarak yanıt vermiyor. *Çözüm:* Bağlantınızı kontrol edip yeniden deneyin; hazır sayfalar atlandığı için yalnızca eksikler üretilir. İnternetsiz çalışmak için `Motor:`'u Piper yapın.
+
+**Sesli kitap çalmıyor.** *Neden:* Ses çıkış aygıtı yok ya da kapalı (`ses cikis aygiti yok`), veya `av` / `sounddevice` kurulu değil. *Çözüm:* Hoparlör ya da kulaklığı bağlayıp Windows'ta varsayılan çıkış aygıtı olarak seçin, sonra programı yeniden başlatın; paket eksikse `pip install -r requirements-audio.txt` çalıştırın. Mikrofon için de aynısı geçerlidir: `Mikrofon` sekmesi mikrofon bulamazsa kayıt düğmeleri gri kalır.
 
 **exe açılmıyor.** *Neden:* Zip tam açılmamış, antivirüs dosyayı karantinaya almış ya da tek dosyalık paket kendini geçici klasöre açıyor. *Çözüm:* Zip'i gerçekten bir klasöre çıkarıp `RussianCourseAI.exe`'yi oradan çalıştırın; ilk açılış birkaç saniye sürebilir. Veritabanı açılamazsa program hatalı dosyanın yolunu gösterir; o dosyayı taşıyıp yeniden başlatın.
 

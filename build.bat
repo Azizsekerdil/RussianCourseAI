@@ -53,6 +53,8 @@ echo [4/5] Derleniyor... (birkac dakika surebilir)
 REM  pyttsx3 GPL-3.0 lisanslidir. Ikili paket MIT kosullariyla dagitildigi icin
 REM  --exclude-module pyttsx3 ile disarida birakilir; seslendirme Windows'un
 REM  System.Speech (PowerShell) yedegine duser, ozellik kaybi olmaz.
+REM  Ayni gerekceyle piper-tts (GPL-3.0) ve edge-tts (LGPL-3.0) de disarida
+REM  birakilir; sesli kitap motorlari kaynaktan calistirildiginda kullanilir.
 REM  Ayrintili gerekce: THIRD_PARTY_NOTICES.md, "pyttsx3 hakkinda".
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
@@ -76,6 +78,8 @@ python -m PyInstaller ^
     --hidden-import rca.tabs.exam_tab ^
     --hidden-import rca.tabs.cyrillic_tab ^
     --hidden-import rca.tabs.pron_tab ^
+    --hidden-import rca.tabs.whisper_tab ^
+    --hidden-import rca.tabs.audiobook_tab ^
     --hidden-import rca.tabs.grammar_tab ^
     --hidden-import rca.tabs.resources_tab ^
     --hidden-import rca.tabs.pdf_tab ^
@@ -91,6 +95,8 @@ python -m PyInstaller ^
     --exclude-module pytest ^
     --exclude-module matplotlib ^
     --exclude-module pyttsx3 ^
+    --exclude-module piper ^
+    --exclude-module edge_tts ^
     Russian_Course_AI.pyw
 if errorlevel 1 goto :hata
 

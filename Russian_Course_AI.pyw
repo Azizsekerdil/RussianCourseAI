@@ -26,9 +26,11 @@ TAB_SPECS = [
     ("tab.exam",      "rca.tabs.exam_tab",      "ExamTab",      "📝", "grp.learn"),
     ("tab.cyrillic",  "rca.tabs.cyrillic_tab",  "CyrillicTab",  "Аа", "grp.lab"),
     ("tab.pron",      "rca.tabs.pron_tab",      "PronTab",      "🔊", "grp.lab"),
+    ("tab.whisper",   "rca.tabs.whisper_tab",   "WhisperTab",   "🎙", "grp.lab"),
     ("tab.grammar",   "rca.tabs.grammar_tab",   "GrammarTab",   "⚙", "grp.lab"),
     ("tab.resources", "rca.tabs.resources_tab", "ResourcesTab", "🗂", "grp.read"),
     ("tab.pdf",       "rca.tabs.pdf_tab",       "PdfTab",       "📕", "grp.read"),
+    ("tab.audiobook", "rca.tabs.audiobook_tab", "AudiobookTab", "🎧", "grp.read"),
     ("tab.library",   "rca.tabs.library_tab",   "LibraryTab",   "🌐", "grp.read"),
     ("tab.ai",        "rca.tabs.ai_tab",        "AITab",        "🤖", "grp.practice"),
     ("tab.speaking",  "rca.tabs.speaking_tab",  "SpeakingTab",  "💬", "grp.practice"),
@@ -114,7 +116,10 @@ class App(tk.Tk):
 
         from rca.tts import Speaker
         try:
-            self.speaker = Speaker(rate=int(self.settings.get("tts_rate", 150)))
+            self.speaker = Speaker(rate=int(self.settings.get("tts_rate", 150)),
+                                   engine=self.settings.get("tts_engine", "system"),
+                                   voices=(self.settings.get("ab_voices") or {}).get(
+                                       self.settings.get("tts_engine", "system"), {}))
         except Exception:
             self.speaker = None
 
@@ -527,6 +532,12 @@ class App(tk.Tk):
 
     def on_close(self) -> None:
         """Kapanis: ayarlari yaz, ses ve veritabanini kapat."""
+        for page in self._tabs.values():
+            if getattr(page, "_built", False) and hasattr(page, "shutdown"):
+                try:
+                    page.shutdown()
+                except Exception:
+                    pass
         for step in (lambda: C.save_settings(self.settings),
                      lambda: self.speaker and self.speaker.stop(),
                      lambda: self.db and self.db.close()):
@@ -569,4 +580,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # Sesli kitap uretimi Piper'i ayri sureclerde calistirir; dondurulmus .exe'de
+    # alt sureclerin pencereyi yeniden acmamasi icin gereklidir.
+    import multiprocessing
+    multiprocessing.freeze_support()
     raise SystemExit(main())

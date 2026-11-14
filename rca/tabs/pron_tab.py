@@ -60,20 +60,9 @@ class PronTab(LazyTab):
         self.reduction.pack(anchor="w", pady=(10, 0))
 
         # --- mikrofon ------------------------------------------------------
-        mic = ttk.LabelFrame(root, text="Mikrofonla tekrar", padding=12)
-        mic.pack(fill="x")
-        from rca.tts import ASR
-        self.asr = ASR()
-        if self.asr.available():
-            ttk.Button(mic, text="● Kaydet ve karsilastir",
-                       command=self.record).pack(side="left")
-            self.mic_out = ttk.Label(mic, text="", style="TLabel")
-            self.mic_out.pack(side="left", padx=12)
-        else:
-            ttk.Label(mic, style="Warn.TLabel", justify="left",
-                      text=f"Konusma tanima devre disi: {self.asr.reason}\n"
-                           f"Vosk 'ru' modelini indirip su klasore acin:\n"
-                           f"{C.APP_HOME / 'models' / 'vosk-ru'}").pack(anchor="w")
+        self.mic = ttk.LabelFrame(root, text="Mikrofonla tekrar", padding=12)
+        self.mic.pack(fill="x")
+        self._build_mic()
 
         # --- kurallar ------------------------------------------------------
         rules = ScrollFrame(root)
@@ -90,6 +79,48 @@ class PronTab(LazyTab):
             ttk.Label(row, text=ex, style="Card.TLabel", font=C.FONT_RU).pack(anchor="w")
 
         self.current_stress = -1
+
+    # -- mikrofon / tanima motoru ------------------------------------------
+    def _asr_signature(self) -> tuple:
+        """Tanima motoru secimini etkileyen durum: Whisper ayarlari + yerel modeller."""
+        opts = self.app.settings.get("whisper") or {}
+        try:
+            from rca import whisper_engine as W
+            have = tuple(W.downloaded_models()) if W.installed() else ()
+        except Exception:
+            have = ()
+        vosk = (C.APP_HOME / "models" / "vosk-ru").exists()
+        return (repr(sorted(opts.items())) if isinstance(opts, dict) else "", have, vosk)
+
+    def _build_mic(self) -> None:
+        """Mikrofon bolumunu (yeniden) kur; ASR guncel ayarlarla olusturulur."""
+        for child in self.mic.winfo_children():
+            child.destroy()
+        self.mic_out = None
+        self._mic_sig = self._asr_signature()
+        from rca.tts import ASR
+        self.asr = ASR(whisper_opts=self.app.settings.get("whisper") or {})
+        if self.asr.available():
+            ttk.Button(self.mic, text="● Kaydet ve karsilastir",
+                       command=self.record).pack(side="left")
+            self.mic_out = ttk.Label(self.mic, text="", style="TLabel")
+            self.mic_out.pack(side="left", padx=12)
+            ttk.Label(self.mic, text=f"({self.asr.backend})", style="Mute.TLabel").pack(side="right")
+        else:
+            ttk.Label(self.mic, style="Warn.TLabel", justify="left",
+                      text=f"Konusma tanima devre disi: {self.asr.reason}\n"
+                           f"Whisper icin 'Konusma Tanima (Whisper)' sayfasindan bir model indirin\n"
+                           f"ya da Vosk 'ru' modelini su klasore acin: "
+                           f"{C.APP_HOME / 'models' / 'vosk-ru'}").pack(anchor="w")
+
+    def on_show(self) -> None:
+        """Whisper ayari ya da indirilen modeller degistiyse mikrofon bolumunu yenile."""
+        if getattr(self, "mic", None) is None:
+            return
+        if getattr(self, "_rec_busy", False):
+            return                                     # kayit suruyor: etiket/ASR degismesin
+        if self._asr_signature() != getattr(self, "_mic_sig", None):
+            self._build_mic()
 
     # ------------------------------------------------------------------
     def pick(self) -> None:
@@ -155,16 +186,32 @@ class PronTab(LazyTab):
         self.app.speak(C.strip_stress(self.word.get()))
 
     def record(self) -> None:
-        """Mikrofondan 3 saniye kaydet ve Vosk ile karsilastir."""
+        """Mikrofondan birkac saniye kaydet ve Whisper (yoksa Vosk) ile karsilastir."""
         target = C.normalize_ru(self.word.get())
-        if not target:
+        if not target or self.mic_out is None:
             return
+        if self.asr.backend == "whisper":
+            # Whisper sayfasinda model/cihaz degismis olabilir: guncel ayarlarla yeniden sec
+            self.asr.whisper_opts = dict(self.app.settings.get("whisper") or {})
+            if not self.asr._try_whisper():
+                self._build_mic()                      # model kalmadi: bolumu durumuna gore kur
+                localize = getattr(self.app, "localize_widgets", None)
+                if localize is not None:
+                    localize(self)
+                return
+        whisper = self.asr.backend == "whisper"
         self.mic_out.configure(text="Dinliyor... (3 sn)")
+        self._rec_busy = True
 
         def job():
+            if whisper:
+                import re
+                heard = self.asr.listen_whisper(3.0)
+                return re.sub(r"[^\w\s\-]", "", heard).strip()
             return self._listen_once()
 
         def done(heard: str):
+            self._rec_busy = False
             p = self.palette()
             if not heard:
                 self.mic_out.configure(text="Ses alinamadi.", foreground=p["warn"])
@@ -178,8 +225,11 @@ class PronTab(LazyTab):
                     foreground=p["err"])
                 self.repos.study.log(self.pid, "pron", 0, 1)
 
-        self.app.worker.run(job, done,
-                            lambda e: self.mic_out.configure(text=f"Hata: {e}"))
+        def err(e):
+            self._rec_busy = False
+            self.mic_out.configure(text=f"Hata: {e}")
+
+        self.app.worker.run(job, done, err)
 
     def _listen_once(self) -> str:
         """Vosk ile tek seferlik tanima (mikrofon yoksa bos metin)."""

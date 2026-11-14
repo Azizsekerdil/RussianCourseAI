@@ -66,8 +66,23 @@ SECTIONS = [
     ("Telaffuz & Vurgu Studyosu",
      "Rusca'da vurgu yeri anlami degistirir ve vurgusuz 'o' [a] okunur; yazildigi gibi okunmaz.",
      "Kelimeyi yazip Coz'e basin. Vurgulu heceyi acilir listeden degistirebilirsiniz. "
-     "Dinle ile seslendirin; Vosk modeli kuruluysa mikrofonla tekrar edip karsilastirin.",
+     "Dinle ile seslendirin; Whisper (ya da Vosk) kuruluysa mikrofonla tekrar edip karsilastirin.",
      "Kelimeyi dogru vurguyla ogrenirsiniz - sonradan duzeltmek cok daha zordur."),
+
+    ("Konusma Tanima (Whisper)",
+     "Kendi sesinizi, bir dersin kaydini ya da bir videoyu yaziya dokmek; dogru telaffuz edip "
+     "etmediginizi bir insana sormadan ogrenmek istersiniz.",
+     "Once 'pip install -r requirements-audio.txt' ile faster-whisper'i kurun. Model listesinden "
+     "bir model secin (large-v3-turbo iyi bir dengedir); model ilk kullanimda bir kez indirilir, "
+     "sonra cevrimdisi calisir. Aygit 'auto' iken NVIDIA kart varsa GPU, yoksa CPU kullanilir. "
+     "Dosya sekmesinde ses/video dosyasi secip Yaziya dok'e basin ya da Ingilizceye cevirin; "
+     "'Dili algila' en olasi dilleri gosterir. Mikrofon sekmesinde kayit alin veya canli dikte "
+     "acin. Telaffuz sekmesinde hedef cumleyi okuyun; yanlis, eksik ve fazla kelimeler "
+     "isaretlenir. Gelismis sekmesinde beam, sicaklik, esikler, baslangic istemi, hotwords, "
+     "VAD ve toplu cikarim gibi tum Whisper ayarlari vardir. Sonucu TXT, SRT, VTT, TSV, JSON "
+     "veya LRC olarak kaydedin.",
+     "Dinledigini yaziya dokmek ve kendi telaffuzunu olcmek tek tikla olur; ses makineden "
+     "cikmaz. Telaffuz & Vurgu sayfasindaki mikrofon kontrolu de Whisper'i kullanir."),
 
     ("Dilbilgisi Laboratuvarlari",
      "Hal, gorunus ve hareket fiilleri Turkce konusan biri icin Rusca'nin en zor uc bolgesidir.",
@@ -83,6 +98,23 @@ SECTIONS = [
      "panelden AI'a acikla, Sozlukte ara veya Bankaya ekle deyin.",
      "Okuma, not alma ve kelime toplama tek ekranda birlesir; isaretlemeleriniz PDF'e "
      "gomulu olarak disa aktarilabilir."),
+
+    ("Sesli Kitap",
+     "Ders kitabini yalnizca okumak yetmez; Rusca'yi dogru sesle, yolda ya da kitap elinizde "
+     "degilken de dinlemek istersiniz - ama hepsini degil, calistiginiz bolumu.",
+     "'PDF'ten yeni kitap...' ile bir PDF secin (hazir bir seslendirme betigi klasoru varsa "
+     "onu da secin; yoksa betik PDF'in metninden otomatik cikarilir). Soldaki icindekiler "
+     "agacinda her sayfanin durumu gorunur. Istediginiz bolumu veya sayfalari secip "
+     "'Secileni uret'e basin (ya da 'Tum kitabi uret'); her sayfa ayri bir MP3 ve cumle "
+     "zamanlamasi olarak kaydedilir, degismeyen sayfa yeniden uretilmez. Calarken okunan "
+     "cumle vurgulanir; bir cumleye tiklayinca oraya atlanir. Cumle tekrari, hiz, ses duzeyi, "
+     "kesintisiz calma ve 'Kaldigim yerden' devam vardir. Motor olarak Piper (cevrimdisi, "
+     "varsayilan) ya da Edge (cevrimici, metin Microsoft'a gider) secin; her dil icin ses "
+     "secilebilir. 'Bolum MP3'lerini disa aktar' bolum bolum MP3 ve M3U8 calma listesi "
+     "uretir; bir sayfayi 'Whisper ile dogrula' ile kontrol edebilirsiniz. Komut satirindan: "
+     "tools/make_audiobook.py.",
+     "Kitabin istediginiz kismini istediginiz an dinlersiniz; Rusca kendi sesiyle, Turkce "
+     "aciklamalar Turkce sesle okunur ve uretilen ses telefona tasinabilir."),
 
     ("AI Ogretmen",
      "Bir cumlenin NEDEN yanlis oldugunu soracak birine ihtiyaciniz var - her saat.",
@@ -151,6 +183,9 @@ PRIVACY = [
     "Ag cagrisi yalnizca alternatif AI ucunu (NVIDIA NIM ya da baska bir OpenAI uyumlu adres) "
     "Ayarlar'dan acikca acarsaniz veya Kaynak Merkezinden bir dosya indirdiginizde yapilir - "
     "ikisi de sizin baslattiginiz islemlerdir.",
+    "Ses ozellikleri yalnizca siz acikca kullandiginizda ag kullanir: Edge sesleri (metin "
+    "Microsoft'a gider) ve Whisper modeli / Piper sesinin ilk kullanimda bir kez indirilmesi. "
+    "Sonrasinda Whisper ve Piper cevrimdisi calisir; mikrofon kaydi makineden cikmaz.",
     "Kaynak Merkezi yalnizca acik lisansli kaynak indirir; TLS sertifika "
     "dogrulamasi hicbir kosulda kapatilmaz.",
 ]

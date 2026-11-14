@@ -276,7 +276,21 @@ S: Dict[str, Dict[str, str]] = {
     "set.alt_key_stored": {"tr": "Anahtar kaydedildi.", "en": "Key stored.", "ru": "Ключ сохранён."},
     "set.models":      {"tr": "model", "en": "models", "ru": "моделей"},
     "set.dict_ai":     {"tr": "Sozluk AI kaynagi:", "en": "Dictionary AI source:", "ru": "Источник ИИ для словаря:"},
+    "set.tts_engine":  {"tr": "Kelime seslendirme motoru:", "en": "Word speech engine:",
+                        "ru": "Движок озвучки слов:"},
+    "set.tts_system":  {"tr": "Sistem sesi", "en": "System voice", "ru": "Системный голос"},
+    "set.tts_piper":   {"tr": "Piper (cevrimdisi, dogal)", "en": "Piper (offline, natural)",
+                        "ru": "Piper (офлайн, естественный)"},
+    "set.tts_edge":    {"tr": "Edge (cevrimici, Microsoft)", "en": "Edge (online, Microsoft)",
+                        "ru": "Edge (онлайн, Microsoft)"},
+    "set.ab_engine":   {"tr": "Sesli kitap varsayilan motoru:", "en": "Audiobook default engine:",
+                        "ru": "Движок аудиокниги по умолчанию:"},
 }
+
+# Whisper ve Sesli Kitap sayfalarinin metinleri ayri dosyada tutulur.
+from rca.i18n_audio import AUDIO_S as _AUDIO_S  # noqa: E402
+
+S.update(_AUDIO_S)
 
 
 # Eski sayfa modulleri tarihsel olarak gorunen metinleri dogrudan Turkce

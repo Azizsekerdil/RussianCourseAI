@@ -189,7 +189,21 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "dict_direction": "auto",     # sozluk arama yonu: auto | ru2en | en2ru | ru2tr | tr2ru
     "cefr": "A1",
     "last_pdf": "",
+    # --- ses: Whisper / sinir agi sesleri / sesli kitap ---
+    "tts_engine": "system",       # kelime seslendirme: system | piper | edge
+    "whisper": {},                # rca.whisper_engine.WhisperOptions.to_dict()
+    "ab_engine": "piper",         # sesli kitap varsayilan motoru: piper | edge
+    "ab_voices": {},              # {"piper": {"ru": ..., "tr": ..., "en": ...}, "edge": {...}}
+    "ab_rate": 1.0,               # sesli kitap uretim hizi
+    "ab_book": "",                # son acilan kitap kimligi
+    "ab_speed": 1.0,              # calma hizi
+    "ab_volume": 1.0,
+    "ab_continuous": True,        # sayfa bitince sonrakine gec
+    "ab_last": {},                # {"book", "page", "pos"} - kaldigin yerden devam
+    "ab_edge_ok": False,          # Edge gizlilik uyarisi onaylandi mi
 }
+TTS_ENGINES = ("system", "piper", "edge")
+AB_ENGINES = ("piper", "edge")
 # API anahtari ASLA settings.json'a yazilmaz; rca/secrets.py uzerinden saklanir.
 
 
@@ -211,6 +225,13 @@ def load_settings() -> Dict[str, Any]:
         data["dict_ai"] = "auto"
     if data.get("dict_direction") not in DICT_DIRECTIONS:
         data["dict_direction"] = "auto"
+    if data.get("tts_engine") not in TTS_ENGINES:
+        data["tts_engine"] = "system"
+    if data.get("ab_engine") not in AB_ENGINES:
+        data["ab_engine"] = "piper"
+    for key in ("whisper", "ab_voices", "ab_last"):
+        if not isinstance(data.get(key), dict):
+            data[key] = {}
     return data
 
 

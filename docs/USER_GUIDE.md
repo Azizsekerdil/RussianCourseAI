@@ -19,7 +19,7 @@ Version 1.3.0 · Windows and macOS desktop application · Interface languages: T
 
 ## 1. About this guide
 
-This document is the user guide for **Russian Course AI 1.3.0**. The program is a desktop workspace for studying Russian from A1 to C1, holding 18 pages in a single window.
+This document is the user guide for **Russian Course AI 1.3.0**. The program is a desktop workspace for studying Russian from A1 to C1, holding 20 pages in a single window.
 
 How to read it: **if you are starting out**, read sections 2 and 3, then the `Aralikli Tekrar`, `Kelime Bankasi` and `Sozluk RU-EN-TR` pages in section 4 — the program works at full capacity without any AI. **If you will use the dictionary heavily**, go straight to section 5. **If you want to connect the AI**, see section 6.
 
@@ -63,6 +63,14 @@ pip install -r requirements.txt
 
 A missing package never stops the program; only the related buttons stay greyed out: `pypdfium2` + `pypdf` (PDF), `pillow` (handwriting PNG and image questions), `pymorphy3` (exact morphology), `vosk` + `sounddevice` (microphone pronunciation), `truststore` / `certifi` (Library downloads).
 
+**Audio components (optional).** For the `Konusma Tanima (Whisper)` and `Sesli Kitap` pages and the neural voices, also run:
+
+```bash
+pip install -r requirements-audio.txt
+```
+
+This installs `faster-whisper` (Whisper speech recognition) and `sounddevice`, plus — on Windows/Linux — the `nvidia-cublas-cu12` and `nvidia-cudnn-cu12` wheels for NVIDIA GPU acceleration; **no CUDA Toolkit is needed**, the program loads the DLLs from those packages. Without a GPU, Whisper falls back to the CPU on its own; on macOS the NVIDIA lines are skipped. The same file installs the audiobook engines: `piper-tts` (offline, GPL-3.0) and `edge-tts` (online, LGPL-3.0). Because of their licences these two packages are **deliberately not bundled** into the distributed `.exe` / `.app`; to use them, run the program from source and install them yourself. If the packages are missing, the page in question prints the reason and the install command, and the rest of the program is unaffected.
+
 ### 2.4 Where your data is kept
 
 | System | Data folder |
@@ -71,7 +79,7 @@ A missing package never stops the program; only the related buttons stay greyed 
 | macOS | `~/Library/Application Support/RussianCourseAI` |
 | Linux | `~/.russiancourseai` |
 
-Contents: `data/rca.db` (SQLite), `settings/settings.json`, `exports/` (default target for exports), `logs/`. The program directory holds read-only content: `Resources/` and `grammar/`. On macOS `Resources/` sits inside the data folder instead, because a signed `.app` bundle cannot be written to.
+Contents: `data/rca.db` (SQLite), `settings/settings.json`, `exports/` (default target for exports), `logs/`; if you use the audio components, also `models/whisper` (Whisper models), `models/piper` (Piper voices) and `audiobooks/` (your audiobooks). The program directory holds read-only content: `Resources/` and `grammar/`. On macOS `Resources/` sits inside the data folder instead, because a signed `.app` bundle cannot be written to.
 
 **Portable use.** If the `RCA_HOME` environment variable is set, the program uses it as the data folder:
 
@@ -149,9 +157,29 @@ The order below is the sidebar's own order.
 
 **What it is for.** In Russian the position of the stress changes the meaning, and unstressed `о` is read [a].
 
-**How to use it.** Type a word and press `Coz`, or pick one with `Bankadan sec`; the program shows the syllables, a rough IPA reading and the reduction rules. Correct the stress from the `Vurgulu hece:` list and press `🔊 Dinle` to hear it. If a Vosk model is installed, `● Kaydet ve karsilastir` appears.
+**How to use it.** Type a word and press `Coz`, or pick one with `Bankadan sec`; the program shows the syllables, a rough IPA reading and the reduction rules. Correct the stress from the `Vurgulu hece:` list and press `🔊 Dinle` to hear it. When speech recognition is available, `● Kaydet ve karsilastir` appears in the `Mikrofonla tekrar` box: the program records a few seconds and compares what it heard with the target word. Recognition uses **Whisper** first (when at least one model has been downloaded on the `Konusma Tanima (Whisper)` page) and falls back to Vosk otherwise. The engine in use is shown in brackets to the right of the button (`(whisper)` / `(vosk)`).
 
-**Tip.** If the microphone section is disabled, the reason is printed there; extract the Vosk `ru` model into `%APPDATA%\RussianCourseAI\models\vosk-ru`.
+**Tip.** If the microphone section is disabled, the reason is printed there; either download a Whisper model on the `Konusma Tanima (Whisper)` page or extract the Vosk `ru` model into `%APPDATA%\RussianCourseAI\models\vosk-ru`. For sentence-level, word-by-word coloured feedback, use the `Telaffuz` tab of the Whisper page.
+
+#### Speech Recognition (`Konusma Tanima (Whisper)`)
+
+**What it is for.** Speech recognition with Whisper (faster-whisper) that runs **entirely on your computer**: it transcribes audio and video files or translates them into English, takes dictation from the microphone, and scores a Russian sentence you say word by word. The internet is used only the first time a model is downloaded.
+
+**How to use it.** The top bar is shared by all tabs:
+
+- `Model:` — the sizes `tiny`, `base`, `small`, `medium`, `large-v1` / `large-v2` / `large-v3`, the distilled `distil-*` models and the English-only `.en` variants. The default is **`large-v3-turbo`** (~1.6 GB, close to large accuracy, very fast); the turbo model does **not translate** into English, so pick `large-v3` or `medium` for `Ingilizceye cevir`. The line below shows the selected model's size and whether it is `indirilmis, hazir` (downloaded, ready) or `indirilmedi (ilk kullanimda indirilir)` (not downloaded, downloads on first use).
+- `Modeli indir` asks for confirmation and downloads the model **once** into `%APPDATA%\RussianCourseAI\models\whisper`; `Yukle` loads it into memory ahead of time, `Bellekten bosalt` frees GPU memory / RAM, and 📂 opens the model folder.
+- `Aygit:` (device) is `auto` (`cuda` when an NVIDIA GPU is present, otherwise `cpu`), `cuda` or `cpu`. `Hesap turu:` (compute type) is `auto`, `float16`, `int8_float16`, `bfloat16`, `int8` or `float32`; `auto` picks `float16` on the GPU and `int8` on the CPU. If the GPU cannot be loaded the program does not stop — it switches to the CPU.
+- The status line below reads `GPU hazir (...)` (GPU ready) or `GPU yok - CPU kullanilacak` (no GPU, CPU will be used), and adds the loaded model's name and device/compute type.
+
+There are four inner tabs:
+
+- **`Dosya`** (File) — choose an audio/video file with `Dosya sec...` (mp3, wav, m4a, ogg, opus, flac, mp4, mkv…) or process every file in a folder with `Klasoru toplu isle...` (a `.srt` and a `.txt` are written next to each file). Set `Gorev:` to `Yaziya dok` (transcribe) or `Ingilizceye cevir` (translate to English); `Dil:` is `auto` (detect) or a fixed language. `Dili algila` shows the five most likely languages with their probabilities and selects the first. `▶ Baslat` runs and `■ Durdur` stops; the text streams in segment by segment with timestamps, and at the end the language, duration, speed (real-time factor) and device are summarised. With `Kelime guvenini renklendir` ticked, words Whisper is unsure of are shown in yellow (medium) and red (low). The `TXT`, `SRT`, `VTT`, `TSV`, `JSON` and `LRC` buttons on the `Disa aktar:` row write a file; `Kopyala` copies to the clipboard, and `AI Ogretmen'e gonder` moves the text to the `AI Ogretmen` page for an explanation or translation.
+- **`Mikrofon`** (Microphone) — the microphone in use is shown at the top. `● Kaydet` starts recording and `■ Bitir` stops and transcribes; `🎙 Canli dikte` writes the text live while you speak (the not-yet-final part appears dimmed). `Dil:` defaults to `ru`. A level meter and the elapsed time are shown while recording; `Kaydi WAV olarak sakla` writes the last recording to a WAV file.
+- **`Telaffuz`** (Pronunciation) — type a target Russian sentence or fetch an example sentence from the word bank with `Bankadan sec`, listen with `🔊 Dinle`, press `● Kaydet`, say it and press `■ Bitir`. Whisper compares what it heard with the target word by word: green = correct, yellow = correct but unclear, red = different (what it heard in brackets), struck through = skipped, blue = extra. `Puan` (score) is out of 100, and the `Duyulan` (heard) line shows Whisper's full text. Every attempt is logged in the `Ogrenci Takip` statistics as pronunciation study (85 and above counts as correct).
+- **`Gelismis ayarlar`** (Advanced settings) — every Whisper option, in groups: `Kod cozme` (decoding: `beam_size`, `best_of`, `patience`, `length_penalty`, `repetition_penalty`, `no_repeat_ngram_size`, `temperature` with its fallback list, `prompt_reset_on_temperature`), `Esikler ve dil algilama` (thresholds and language detection: `compression_ratio_threshold`, `log_prob_threshold`, `no_speech_threshold`, `hallucination_silence_threshold`, `language_detection_threshold`, `language_detection_segments`), `Dil, istem ve metin` (language, prompt and text: `Varsayilan dil`, `multilingual`, `initial_prompt`, `prefix`, `hotwords`, `condition_on_previous_text`, `suppress_blank`, `clip_timestamps`), `Zaman damgalari` (timestamps: `word_timestamps`, `without_timestamps`, `max_initial_timestamp`, `chunk_length`), `VAD (konusma algilama, Silero)` (`vad_filter`, `threshold`, `min_speech_duration_ms`, `min_silence_duration_ms`, `speech_pad_ms`, `max_speech_duration_s`) and `Performans` (`batched`, `batch_size`, `cpu_threads`). `Ayarlari kaydet` saves them, and `Varsayilanlara don` resets everything except the model/device choice.
+
+**Tip.** On an NVIDIA card with plenty of VRAM, `large-v3-turbo` + `float16` + `batched` processes long files far faster than real time; on the CPU, `small` or `medium` + `int8` is a better fit. If you see invented text in silent stretches, keep `vad_filter` on. If names or terms come out wrong, add them to `initial_prompt` or `hotwords`.
 
 #### Grammar Labs (`Dilbilgisi Lab`)
 
@@ -180,6 +208,24 @@ The order below is the sidebar's own order.
 **Tip.** This page needs `pypdfium2` (viewing/text) and `pypdf` (annotated export); the text you select is also available on the `AI Ogretmen` page through `PDF'teki secimi al`.
 
 **Cyrillic and Turkish characters in note text.** In the output of `Isaretli PDF disa aktar` the **full text of your note is always preserved** and shows up complete in your PDF reader's comment/annotation pane. The copy that is **drawn onto the page**, however, uses the built-in Helvetica font and can only show Western European characters: Cyrillic letters and Turkish letters such as `ı`, `ş`, `ğ` and `İ` appear as `?` on the page itself. If you take notes in Cyrillic, read them in the comment pane; highlights, pen strokes and yellow marks are unaffected.
+
+#### Audiobook (`Sesli Kitap`)
+
+**What it is for.** Turns your textbook (for example a Russian beginner's book) into an audiobook page by page, and lets you pick **any section or page** to listen to. Every part is read with a voice for its own language — Russian sentences in Russian, Turkish explanations in Turkish, English parts in English — and the sentence being read is highlighted in the text panel.
+
+**How to use it.**
+
+- **Book.** Choose a book from the `Kitap:` list at the top. For a new one, press `PDF'ten yeni kitap...` (New book from PDF) and pick the PDF; the program asks whether you have a prepared narration script folder (`pNNN.json` files) for this book. Answer **Yes** and point to the folder to use the curated script (missing pages are filled from the PDF); answer **No** and the script is generated automatically from the PDF text (Cyrillic → Russian, Turkish letters/words → Turkish, everything else → English). The line under the book shows the page count, how many pages have been generated with the selected engine and the script source (`elle hazirlanmis betik` curated, `kismen hazir betik` partly curated, `PDF metninden otomatik betik` automatic); 📂 opens the book folder. Books live under `%APPDATA%\RussianCourseAI\audiobooks\`.
+- **Contents.** The `Icindekiler` (Contents) tree on the left is built from the PDF's table of contents: chapter → subsection → `Sayfa N`. The `Sayfa` column shows the page range and the last column the generation status for the selected engine: `✓` all ready, a value such as `3/8` partly ready, empty if nothing has been generated yet. **Double-click** a section or page, or press **Enter**, to start playing from there; selecting a section plays its ready pages in order. If the audio does not exist yet, the program offers to generate it now. Use **Ctrl** / **Shift** to select several items.
+- **Player.** `⏮` / `⏭` previous / next page, `⏪` / `⏩` previous / next sentence (in the middle of a sentence `⏪` first returns to its start), `−10` / `+10` ten seconds back / forward, `▶` / `⏸` play / pause, `■` stop. Use the scrub bar to jump anywhere in the page. `Hiz:` (speed) ranges from 0.5x to 2x with the **pitch preserved** (slowing down does not deepen the voice). The `Ses:` (volume) slider goes up to 150%.
+- **Repeat and continuous play.** With `Cumleyi tekrarla` (repeat sentence) ticked, the current sentence loops until you untick it — ideal for shadowing. With `Surekli cal` (continuous) on, the next generated page follows when a page ends. `⏯ Kaldigim yerden` (resume) brings back the book, page and position you last listened to (saved when you stop, when a page ends and when the program closes).
+- **Text panel.** Shows the text of the playing page with the current sentence highlighted; Russian is in the normal colour, Turkish in green, English in dim grey, and headings are bold. **Click** any sentence to jump playback to it.
+- **Audio generation.** In the `Ses uretimi` box at the bottom, choose `Motor:` **Piper** (`cevrimdisi` — offline, the default) or **Edge** (`cevrimici, Microsoft` — online); `Varsayilan yap` (make default) makes the selected engine the permanent default. On first use Edge asks for confirmation, warning that the text is sent to Microsoft servers; Piper is fully offline. Each language has its own voice (`Rusça:`, `Türkçe:`, `İngilizce:`; for example `ru_RU-irina-medium`, `tr_TR-dfki-medium`, `en_US-lessac-medium` with Piper, or `ru-RU-SvetlanaNeural`, `tr-TR-EmelNeural`, `en-US-AriaNeural` with Edge). `Sesleri dene` (try voices) plays a short sample with the selected voices; `Konusma hizi:` (speech rate, 0.6–1.5) sets the tempo of the generated audio.
+- **Generate buttons.** `Secileni uret` (generate selection) generates the sections/pages selected in the tree and `Tum kitabi uret` (generate whole book) the entire book; `■ Durdur` stops. Generation runs in parallel (several processes with Piper, concurrent requests with Edge) and progress shows as `[k/total] sayfa N`. Pages whose script, voice and rate have not changed are **skipped**; tick `guncel olsa da yeniden uret` (regenerate even if current) to force a rebuild. Audio is stored per engine, so you can generate with both and switch between them with `Motor:` (the playing page switches to the new engine's audio). If a Piper voice you chose is not on the computer, the program offers to download it (`%APPDATA%\RussianCourseAI\models\piper`).
+- **Export.** `Bolum MP3'lerini disa aktar...` (export chapter MP3s) asks for a folder and writes one MP3 per top-level chapter named `01 - Chapter title.mp3` (ID3 tags: title, album = book title, track number, page range) plus a `.m3u8` playlist in chapter order — handy for a phone or the car. Pages not yet generated are skipped.
+- **Verify with Whisper.** `Whisper ile dogrula` has Whisper listen to the Russian parts of the playing page and compares them with the script. Suspicious sentences (misread or skipped by the speech engine) get a **red underline** in the text panel and are listed in the status line as `«script» → «heard»`. This needs a model downloaded on the `Konusma Tanima (Whisper)` page.
+
+**Tip.** The same work can be done from the command line: `python tools/make_audiobook.py --help` lists every option (`--pdf`, `--script`, `--book`, `--engine piper|edge`, `--pages 4-9,15`, `--rate`, `--force`, `--export`, `--out`, `--workers`). The page needs `piper-tts` and/or `edge-tts` for generation and `av` + `sounddevice` for playback, all of which come with `requirements-audio.txt` (see 2.3).
 
 #### Library (`Kaynak Merkezi`)
 
@@ -253,7 +299,9 @@ The order below is the sidebar's own order.
 
 **What it is for.** The single place for interface, sound, AI, profile and data settings.
 
-**How to use it.** The page is a stack of titled sections: `Arayuz` (`Dil:`, `Tema:`, `Gunluk hedef:`, `CEFR seviyesi:`), `Ses` (`Seslendirme acik`, `Hiz:` 80–260, `Test et`), `Yapay zeka (yerel)` (`AI ozellikleri acik`, `LM Studio adresi:`, `Baglantiyi dene`, `Varsayilan model:`), `Alternatif uc (OpenAI uyumlu - INTERNET)` (see section 6), `Profiller` (`Yeni profil`, `Secili profili sil`) and `Veri` (`Veri klasorunu ac`, `Ilerlemeyi sifirla (bu profil)`, `Eksik seed kelimeleri geri yukle`). Changes are written when you press `Kaydet`.
+**How to use it.** The page is a stack of titled sections: `Arayuz` (`Dil:`, `Tema:`, `Gunluk hedef:`, `CEFR seviyesi:`), `Ses` (`Seslendirme acik`, `Hiz:` 80–260, `Test et`, `Kelime seslendirme motoru:`, `Sesli kitap varsayilan motoru:`), `Yapay zeka (yerel)` (`AI ozellikleri acik`, `LM Studio adresi:`, `Baglantiyi dene`, `Varsayilan model:`), `Alternatif uc (OpenAI uyumlu - INTERNET)` (see section 6), `Profiller` (`Yeni profil`, `Secili profili sil`) and `Veri` (`Veri klasorunu ac`, `Ilerlemeyi sifirla (bu profil)`, `Eksik seed kelimeleri geri yukle`). Changes are written when you press `Kaydet`.
+
+**Speech engines.** `Kelime seslendirme motoru:` (word speech engine) decides which voice reads the 🔊 buttons throughout the program (word bank, dictionary, pronunciation, AI answers…): `Sistem sesi` (the operating system's voice, the default), `Piper (cevrimdisi, dogal)` (offline, natural) or `Edge (cevrimici, Microsoft)` (online). If the chosen neural engine is not installed or fails, the program quietly falls back to the system voice. `Sesli kitap varsayilan motoru:` (audiobook default engine: `Piper (cevrimdisi, dogal)` / `Edge (cevrimici, Microsoft)`) is the engine the `Sesli Kitap` page selects when it opens; the `Varsayilan yap` button on that page changes the same setting.
 
 **Tip.** The language changes instantly; the theme needs a restart and the program reminds you.
 
@@ -448,7 +496,7 @@ The privacy rules: no data leaves the machine during core operation; the AI runs
 
 | Key | Action |
 |---|---|
-| `Ctrl+1` … `Ctrl+9` | Jump to one of the first nine pages (`Aralikli Tekrar`, `Kelime Bankasi`, `Sozluk RU-EN-TR`, `Sinav`, `Kiril Lab`, `Telaffuz & Vurgu`, `Dilbilgisi Lab`, `Kurs Kaynaklari`, `PDF Okuyucu`) |
+| `Ctrl+1` … `Ctrl+9` | Jump to one of the first nine pages (`Aralikli Tekrar`, `Kelime Bankasi`, `Sozluk RU-EN-TR`, `Sinav`, `Kiril Lab`, `Telaffuz & Vurgu`, `Konusma Tanima (Whisper)`, `Dilbilgisi Lab`, `Kurs Kaynaklari`) |
 | `Ctrl+PgDn` / `Ctrl+PgUp` | Next / previous page |
 | `F5` | Refresh the visible page |
 | `Ctrl+Q` | Quit the program |
@@ -457,7 +505,8 @@ The privacy rules: no data leaves the machine during core operation; the AI runs
 | `Enter` | Run the search (dictionary, word bank, pronunciation), check the answer (exam and typing modes), send the message (speaking) |
 | `Ctrl+Enter` | Send the question in `AI Ogretmen` |
 | `Space` | Toggle the `Bitirdim` mark in `Kurs Kaynaklari` |
-| Double-click | Speak the selected word in the word bank and dictionary lists |
+| Double-click | Speak the selected word in the word bank and dictionary lists; play the section / page in the `Sesli Kitap` tree |
+| `Enter` | Play the selected section / page in the `Sesli Kitap` tree |
 | `Esc` | Close the add-entry / add-word window |
 
 **Tips.** Clicking the AI pill in the top bar re-probes the connection. The grey text beside the page title is that page's own hint. In the dictionary the list filters after two characters; press **Enter** for the full result and, if needed, the AI. Text you select in `PDF Okuyucu` is waiting on the `AI Ogretmen` page behind `PDF'teki secimi al`.
@@ -475,6 +524,16 @@ The privacy rules: no data leaves the machine during core operation; the AI runs
 **macOS says the app "cannot be opened".** *Cause:* the application is not notarized, and Gatekeeper will not open an unrecognized developer's app directly. *Fix:* do not double-click; **right-click → Open** and press **Open** again in the warning. You confirm this only once.
 
 **There is no sound.** *Cause:* `Seslendirme acik` is off, the system has no Russian voice, or the operating system's speech engine cannot be reached. *Fix:* read the status line in `Ayarlar` → `Ses` and press `Test et`; speech needs no extra package (`System.Speech` on Windows, `say` on macOS), but you do have to add a Russian speech package in your operating system's settings.
+
+**Whisper does not use the GPU.** *Cause:* the status line says `GPU yok - CPU kullanilacak` (no GPU, CPU will be used) or the loaded model shows `(cpu/int8)`; the NVIDIA cuBLAS/cuDNN libraries were not found, the driver is old, or `Aygit:` is set to `cpu`. *Fix:* install the `nvidia-cublas-cu12` and `nvidia-cudnn-cu12` wheels with `pip install -r requirements-audio.txt` (no CUDA Toolkit needed), update the NVIDIA driver, set `Aygit:` to `auto` or `cuda`, then press `Bellekten bosalt` → `Yukle`. If the GPU cannot be loaded, the program prints `GPU yuklenemedi, CPU'ya geciliyor...` and carries on with the CPU.
+
+**The first GPU run is very slow.** *Cause:* on new-generation graphics cards the CUDA kernels are compiled for your card on first use (JIT), which can take a few minutes once. If the model is being used for the first time, the download time comes on top. *Fix:* let the first job finish; later runs are fast. To warm up ahead of time, press `Yukle` and transcribe a short file.
+
+**A Piper voice is missing.** *Cause:* the Piper voice you chose (its `.onnx` file) is not in `%APPDATA%\RussianCourseAI\models\piper`. *Fix:* press `Secileni uret` or `Tum kitabi uret`; the program offers to download the missing voices from the internet and, once you confirm, downloads them and carries on generating. If it says `piper-tts kurulu degil` (not installed), run `pip install -r requirements-audio.txt` first.
+
+**The Edge engine reports errors.** *Cause:* Edge voices are online; there is no internet connection, a firewall blocks it, or the Microsoft server is temporarily not answering. *Fix:* check your connection and try again; ready pages are skipped, so only the missing ones are generated. To work without the internet, switch `Motor:` to Piper.
+
+**The audiobook does not play.** *Cause:* there is no audio output device or it is disabled (`ses cikis aygiti yok`), or `av` / `sounddevice` is not installed. *Fix:* connect speakers or headphones and make them the default output device in Windows, then restart the program; if a package is missing, run `pip install -r requirements-audio.txt`. The same applies to the microphone: if the `Mikrofon` tab finds no microphone, its record buttons stay greyed out.
 
 **The exe will not start.** *Cause:* the zip was not fully extracted, an antivirus quarantined the file, or the single-file build is unpacking itself into a temporary folder. *Fix:* extract the zip into a real folder and run `RussianCourseAI.exe` from there; the first launch can take a few seconds. If the database cannot be opened, the program shows the path of the offending file — move it and restart.
 

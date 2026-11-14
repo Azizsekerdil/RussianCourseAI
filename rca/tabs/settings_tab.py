@@ -73,10 +73,24 @@ class SettingsTab(LazyTab):
             text=str(int(self.rate.get()))))
         status = (self.app.speaker.status_text() if self.app.speaker
                   else "Ses motoru yuklenemedi.")
-        ttk.Label(g2, text=status, style="Dim.TLabel", wraplength=700,
-                  justify="left").grid(row=2, column=0, columnspan=3, sticky="w", pady=6)
+        self.tts_status = ttk.Label(g2, text=status, style="Dim.TLabel", wraplength=700,
+                                    justify="left")
+        self.tts_status.grid(row=2, column=0, columnspan=3, sticky="w", pady=6)
         ttk.Button(g2, text="Test et", command=self.test_voice).grid(
             row=3, column=0, sticky="w")
+        # Sinir agi sesleri: kelime seslendirme motoru + sesli kitap varsayilani
+        self._tts_codes = {"system": "set.tts_system", "piper": "set.tts_piper", "edge": "set.tts_edge"}
+        ttk.Label(g2, text=self.t("set.tts_engine")).grid(row=4, column=0, sticky="w", pady=(10, 4))
+        self.tts_engine = tk.StringVar(value=self.t(self._tts_codes.get(s.get("tts_engine", "system"),
+                                                                        "set.tts_system")))
+        self.tts_engine_box = ttk.Combobox(g2, textvariable=self.tts_engine, state="readonly", width=30,
+                                           values=[self.t(k) for k in self._tts_codes.values()])
+        self.tts_engine_box.grid(row=4, column=1, columnspan=2, sticky="w", padx=8, pady=(10, 4))
+        ttk.Label(g2, text=self.t("set.ab_engine")).grid(row=5, column=0, sticky="w", pady=4)
+        self.ab_engine = tk.StringVar(value=self.t(self._tts_codes[s.get("ab_engine", "piper")]))
+        self.ab_engine_box = ttk.Combobox(g2, textvariable=self.ab_engine, state="readonly", width=30,
+                                          values=[self.t("set.tts_piper"), self.t("set.tts_edge")])
+        self.ab_engine_box.grid(row=5, column=1, columnspan=2, sticky="w", padx=8, pady=4)
 
         # --- yapay zeka ---------------------------------------------------
         g3 = ttk.LabelFrame(b, text="Yapay zeka (yerel)", padding=12)
@@ -376,6 +390,14 @@ class SettingsTab(LazyTab):
             added += 1
         messagebox.showinfo(C.APP_NAME, f"{added} kelime geri yuklendi.")
 
+    def _tts_code(self, label: str, fallback: str) -> str:
+        """Gorunen motor etiketini (her dilde) koda cevir."""
+        from rca.i18n import S
+        for code, key in self._tts_codes.items():
+            if label in S[key].values():
+                return code
+        return fallback
+
     # ------------------------------------------------------------------
     def save(self) -> None:
         """Ayarlari yaz ve gerekli yerlere uygula."""
@@ -392,6 +414,20 @@ class SettingsTab(LazyTab):
         s["cefr"] = self.cefr.get()
         s["tts_enabled"] = bool(self.tts_on.get())
         s["tts_rate"] = int(self.rate.get())
+        prev_engine = s.get("tts_engine", "system")
+        tts_engine = self._tts_code(self.tts_engine.get(), prev_engine)
+        # Edge tum seslendirmeyi (AI yanitlari, PDF secimleri dahil) Microsoft'a gonderir:
+        # sesli kitap sayfasindaki gizlilik onayi burada da istenir.
+        if tts_engine == "edge" and prev_engine != "edge" and not s.get("ab_edge_ok"):
+            if messagebox.askyesno(C.APP_NAME, self.t("ab.edge_privacy"), parent=self):
+                s["ab_edge_ok"] = True
+            else:
+                tts_engine = prev_engine
+                self.tts_engine.set(self.t(self._tts_codes.get(prev_engine, "set.tts_system")))
+        engine_changed = tts_engine != s.get("tts_engine")
+        s["tts_engine"] = tts_engine
+        ab = self._tts_code(self.ab_engine.get(), s.get("ab_engine", "piper"))
+        s["ab_engine"] = ab if ab in C.AB_ENGINES else "piper"
         s["ai_enabled"] = bool(self.ai_on.get())
         s["ai_base"] = self.ai_base.get().strip()
         s["ai_model"] = self.ai_model.get().strip()
@@ -411,7 +447,15 @@ class SettingsTab(LazyTab):
         C.save_settings(s)
 
         if self.app.speaker:
-            self.app.speaker.set_rate(int(self.rate.get()))
+            sp = self.app.speaker
+            sp.set_rate(int(self.rate.get()))
+            voices = (s.get("ab_voices") or {}).get(tts_engine, {})
+            # Motor ayni olsa da yeniden kur: sesler sonradan indirilmis / degismis olabilir
+            # (make_engine + status() model yuklemez, ucuzdur).
+            if engine_changed or (tts_engine != "system" and (
+                    sp.neural is None or voices != getattr(sp, "_neural_voices", None))):
+                sp.set_engine(tts_engine, voices)
+            self.tts_status.configure(text=sp.status_text())
         self.app.refresh_ai_clients()
         self._refresh_key_state()
         self.repos.profiles.set_cefr(self.pid, s["cefr"])

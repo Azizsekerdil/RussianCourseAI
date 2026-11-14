@@ -59,6 +59,8 @@ DATA_ARGS=()
   --hidden-import rca.tabs.exam_tab \
   --hidden-import rca.tabs.cyrillic_tab \
   --hidden-import rca.tabs.pron_tab \
+  --hidden-import rca.tabs.whisper_tab \
+  --hidden-import rca.tabs.audiobook_tab \
   --hidden-import rca.tabs.grammar_tab \
   --hidden-import rca.tabs.resources_tab \
   --hidden-import rca.tabs.pdf_tab \
@@ -73,6 +75,7 @@ DATA_ARGS=()
   --hidden-import rca.tabs.settings_tab \
   --exclude-module pytest --exclude-module matplotlib \
   --exclude-module pyttsx3 \
+  --exclude-module piper --exclude-module edge_tts \
   "$PROJECT_ROOT/Russian_Course_AI.pyw"
 
 APP_PATH="dist/RussianCourseAI.app"

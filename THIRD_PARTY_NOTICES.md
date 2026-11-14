@@ -115,6 +115,43 @@ belirtmek dışında bir yükümlülük getirmez. Bu depo certifi'yi değiştirm
 
 ---
 
+## 2b. İsteğe bağlı ses bileşenleri — `requirements-audio.txt`
+
+"Konuşma Tanıma (Whisper)" ve "Sesli Kitap" sayfaları bu paketlerle çalışır. Hiçbiri
+`requirements.txt` ile kurulmaz; kurulu değilse ilgili düğmeler gri kalır ve program
+çalışmaya devam eder. Lisanslar kurulu paketlerin yayımcı meta verisinden doğrulanmıştır
+(`tests/test_licenses.py`).
+
+| Bileşen | Sürüm | Lisans | Ne için kullanılır | Dağıtılan pakete |
+|---|---|---|---|---|
+| [faster-whisper](https://github.com/SYSTRAN/faster-whisper) | 1.2.1 | MIT | Whisper konuşma tanıma (yazıya dökme, çeviri, dil algılama, VAD) | girebilir |
+| [CTranslate2](https://github.com/OpenNMT/CTranslate2) | 4.9.0 | MIT | Whisper'ın GPU/CPU çıkarım motoru | girebilir |
+| [PyAV](https://github.com/PyAV-Org/PyAV) (`av`) | 18.1.0 | BSD-3-Clause (gömülü FFmpeg kitaplıkları LGPL-2.1+) | Ses/video çözme, MP3 kodlama, hız değiştirme (`atempo`) | girebilir |
+| [huggingface-hub](https://github.com/huggingface/huggingface_hub) | faster-whisper ile gelir | Apache-2.0 | Whisper modellerini bir kez indirmek | girebilir |
+| [tokenizers](https://github.com/huggingface/tokenizers) | faster-whisper ile gelir | Apache-2.0 | Whisper metin belirteçleri | girebilir |
+| [onnxruntime](https://github.com/microsoft/onnxruntime) | piper-tts ile gelir | MIT | Piper ses modellerini çalıştırmak (ve Silero VAD) | girebilir |
+| Whisper model ağırlıkları (OpenAI; CTranslate2 dönüşümü Systran) | large-v3-turbo, small, … | MIT | İlk kullanımda `%APPDATA%\RussianCourseAI\models\whisper` altına indirilir | **girmez** (indirilir) |
+| [nvidia-cublas-cu12](https://pypi.org/project/nvidia-cublas-cu12/), [nvidia-cudnn-cu12](https://pypi.org/project/nvidia-cudnn-cu12/) | 12.9 / 9.x | NVIDIA yazılım lisansı (özel mülk, yeniden dağıtılabilir bileşenler) | Whisper'ın NVIDIA GPU'da çalışması | **girmez** |
+| [edge-tts](https://github.com/rany2/edge-tts) | 7.3.1 | **LGPL-3.0** | Sesli kitap / kelime seslendirmede Microsoft Edge sinir ağı sesleri (çevrimiçi) | **girmez** (`--exclude-module edge_tts`) |
+| [piper-tts](https://github.com/OHF-Voice/piper1-gpl) | 1.8.0 | **GPL-3.0-or-later** (espeak-ng GPL-3.0 içerir) | Sesli kitap / kelime seslendirmede çevrimdışı sinir ağı sesleri | **girmez** (`--exclude-module piper`) |
+| Piper ses modelleri (rhasspy/piper-voices) | ru_RU-irina, tr_TR-dfki, en_US-lessac … | Her sesin kendi `MODEL_CARD` lisansı | İlk kullanımda `%APPDATA%\RussianCourseAI\models\piper` altına indirilir | **girmez** (indirilir) |
+
+**piper-tts ve edge-tts hakkında.** pyttsx3 için anlatılan gerekçe aynen geçerlidir: MIT
+kaynak kodunu bu kitaplıklarla birlikte *kullanmak* serbesttir, ama onları tek bir
+çalıştırılabilir dosyada birleştirip dağıtmak o ikili paketi GPL-3.0 (Piper) / LGPL-3.0
+(edge-tts) koşullarına bağlar. Bu yüzden ikisi de `build.bat` ve `build_macos.sh` içinde
+`--exclude-module` ile dışarıda tutulur ve `tools/check_build_licence.py` pakette
+`piper.voice` / `espeakbridge` / `edge_tts.communicate` izlerini arar. Kaynak koddan
+çalıştırırken `pip install -r requirements-audio.txt` ile kurduğunuzda program ikisini de
+kullanır; Piper varsayılan motordur (tamamen çevrimdışı), Edge isteğe bağlıdır ve metni
+seslendirme için Microsoft sunucularına gönderir (ilk kullanımda uyarı gösterilir).
+
+**Sesli kitap çıktıları hakkında.** Üretilen MP3'ler kaynak PDF'in içeriğini taşır; kaynak
+PDF'in lisansı neyse sesli sürümü de ona tabidir. Program yalnızca sizin seçtiğiniz
+dosyayı seslendirir ve hiçbir şeyi yayımlamaz.
+
+---
+
 ## 3. Veri lisansları
 
 | Bileşen | Lisans | Not |

@@ -10,14 +10,15 @@
 [Üç dilli tanıtım PDF'i](output/pdf/Russian-Course-AI-Trilingual.pdf) ·
 [Düzenlenebilir PowerPoint](docs/presentation/Russian-Course-AI-Trilingual.pptx)
 
-[Kullanim kilavuzu (Turkce)](docs/KULLANIM_KILAVUZU.md) - kurulum, 18 ekran, sozluk, yapay zeka, sorun giderme.
+[Kullanim kilavuzu (Turkce)](docs/KULLANIM_KILAVUZU.md) - kurulum, 20 ekran, sozluk, yapay zeka, sorun giderme.
 
 Windows ve macOS uzerinde **%100 cevrimdisi** calisan, Rusca'yi A1'den C1'e (ТРКИ-3)
 goturmek icin tasarlanmis masaustu dil ogrenme istasyonu.
 
 Tek pencerede: PDF ders kitabi okuyucu + not alma, yerel yapay zeka ogretmen,
 Kiril yazi laboratuvari, dilbilgisi laboratuvarlari (hal / gorunus / hareket fiilleri),
-telaffuz & vurgu studyosu, kelime bankasi + aralikli tekrar, sinav motoru,
+telaffuz & vurgu studyosu, **Whisper konusma tanima** (GPU destekli), PDF ders kitabindan
+**secmeli sesli kitap**, kelime bankasi + aralikli tekrar, sinav motoru,
 el yazisi cizim tahtasi, cift yonlu TR<->RU kelime bankasi ve **uc dilli Rusca<->Ingilizce/Turkce sozluk**
 (yon secici: Otomatik / RU→EN / EN→RU / RU→TR / TR→RU; 1.360 gomulu madde + OpenRussian ile 45.000+ madde).
 
@@ -25,7 +26,8 @@ el yazisi cizim tahtasi, cift yonlu TR<->RU kelime bankasi ve **uc dilli Rusca<-
 dosyalari kendisi okur ve modele yalnizca sectiginiz metni gonderir.
 Bulut yok, hesap yok, internet gerekmez. Istege bagli olarak sozluk, LM Studio
 kapaliyken NVIDIA NIM ya da baska bir OpenAI uyumlu uca (API anahtariyla) sorabilir;
-bu yalnizca Ayarlar'dan acikca acilirsa olur.
+bu yalnizca Ayarlar'dan acikca acilirsa olur. Sesli kitapta cevrimici Edge sesleri de
+yalnizca acikca secilirse kullanilir; varsayilan motor (Piper) cevrimdisidir.
 
 ---
 
@@ -67,6 +69,12 @@ Istege bagli ozellikler icin:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Whisper konusma tanima ve sesli kitap icin ayrica (istege bagli):
+
+```bash
+pip install -r requirements.txt -r requirements-audio.txt
 ```
 
 ---
@@ -157,14 +165,27 @@ dugmeler gri kalir, program acilmaya ve diger ozellikler calismaya devam eder:
 | `pypdf` | Isaretlemeleri gomulu PDF'i disa aktarma |
 | `pillow` | El yazisi PNG kaydi, "ne yazdim?" gorsel sorusu |
 | `pymorphy3` | Kesin morfoloji etiketleri (yedek: sonek tabanli yaklasik etiketleme) |
-| `vosk` + `sounddevice` | Mikrofonla telaffuz karsilastirmasi |
+| `vosk` + `sounddevice` | Mikrofonla telaffuz karsilastirmasi (Whisper yoksa yedek) |
 | `truststore` veya `certifi` | Kaynak Merkezi indirmeleri (bkz. asagidaki not) |
+
+Ses bilesenleri ayri bir dosyadadir: `requirements-audio.txt`
+
+| Paket | Kapatilan ozellik |
+|---|---|
+| `faster-whisper` (+ `sounddevice`) | Konusma Tanima (Whisper) sayfasi, Telaffuz'daki Whisper mikrofon kontrolu, sesli kitap dogrulamasi |
+| `nvidia-cublas-cu12` + `nvidia-cudnn-cu12` | Whisper'in NVIDIA GPU'da calismasi (yoksa CPU'ya duser; macOS'ta kurulmaz) |
+| `piper-tts` (GPL-3.0, pakete **alinmaz**) | Cevrimdisi sinir agi sesleri - sesli kitabin varsayilan motoru |
+| `edge-tts` (LGPL-3.0, pakete **alinmaz**) | Cevrimici Microsoft Edge sesleri (istege bagli motor) |
 
 Seslendirme hicbir paket istemez: Windows'ta `System.Speech` (PowerShell), macOS'ta
 yerlesik `say` komutu kullanilir. GPL-3.0 lisansli `pyttsx3` kuruluysa program onu
-tercih eder, ama MIT kalabilmek icin dagitilan pakete alinmaz.
+tercih eder, ama MIT kalabilmek icin dagitilan pakete alinmaz. Ayarlar'dan kelime
+seslendirmesi icin Piper ya da Edge secilebilir; motor yoksa sistem sesine donulur.
+`piper-tts` ve `edge-tts` ayni gerekceyle `.exe` / `.app` paketine alinmaz
+(`--exclude-module piper` / `edge_tts`); kaynaktan calistirirken kurulabilir.
 
-Vosk icin ayrica bir Rusca model indirip su klasore acmalisiniz:
+Mikrofon karsilastirmasi once Whisper'i kullanir; Whisper yoksa Vosk'a duser. Vosk
+icin ayrica bir Rusca model indirip su klasore acmalisiniz:
 `%APPDATA%\RussianCourseAI\models\vosk-ru`
 
 ---
@@ -207,6 +228,60 @@ maddeye (kopya olusturmadan) islenir. Iki saglayici vardir:
 
 ---
 
+## Whisper konusma tanima (istege bagli)
+
+`pip install -r requirements-audio.txt` sonrasi **Konusma Tanima (Whisper)** sayfasi acilir
+(faster-whisper / CTranslate2):
+
+- **Modeller bir kez indirilir**: tiny'den large-v3 / large-v3-turbo'ya, distil-* ve `.en`
+  cesitleri dahil tum modeller. Indirilen model `%APPDATA%\RussianCourseAI\models\whisper`
+  altinda durur; sonra tamamen cevrimdisi calisir.
+- **GPU otomatik**: aygit `auto` iken NVIDIA kart varsa CUDA, yoksa CPU kullanilir; hesap
+  turu (float16 / int8_float16 / int8 ...) aygita gore secilir. CUDA Toolkit kurmaya gerek
+  yoktur - cuBLAS / cuDNN DLL'leri `nvidia-*-cu12` pip paketlerinden yuklenir.
+- **Tum ozellikler**: yaziya dokme ve Ingilizceye ceviri, dil algilama (olasiliklarla),
+  ses/video dosyasi girdisi, mikrofon kaydi ve canli dikte, kelime zaman damgalari,
+  Silero VAD filtresi, toplu (batched) cikarim, telaffuz karsilastirmasi (yanlis / eksik /
+  fazla kelime) ve Gelismis sekmesinde tum kod cozme ayarlari (beam_size, best_of,
+  patience, sicaklik geri dusmesi, esikler, baslangic istemi, onek, hotwords, tekrar
+  cezasi, n-gram engeli, kirpma araliklari, halusinasyon sessizlik esigi ...).
+- **Cikti**: TXT, SRT, VTT, TSV, JSON, LRC.
+
+Telaffuz & Vurgu sayfasindaki mikrofon kontrolu de Whisper'i kullanir (yoksa Vosk).
+
+---
+
+## Sesli kitap (istege bagli)
+
+**Sesli Kitap** sayfasi bir PDF ders kitabini secmeli dinlenebilen sesli kitaba cevirir:
+
+1. **Kitap**: PDF secilir; icindekilerden (TOC) bolum agaci kurulur. Kitap
+   `%APPDATA%\RussianCourseAI\audiobooks\<kimlik>\` altinda tutulur.
+2. **Seslendirme betigi**: her sayfa icin dil etiketli parcalar (ru / tr / en). Elle
+   hazirlanmis (kuratorlu) bir betik klasoru ice aktarilabilir; yoksa betik PDF'in metin
+   katmanindan otomatik uretilir. Her parca kendi dilinin sesiyle okunur.
+3. **Sayfa sayfa ses**: her sayfa icin `pNNN.mp3` + cumle zaman cizelgesi (`pNNN.json`).
+   Betik, ses ve hiz degismediyse sayfa yeniden uretilmez; uretim paralel calisir.
+4. **Dinleme**: istediginiz bolumu / sayfayi secip dinleyin; okunan cumle vurgulanir,
+   cumleye tiklayinca oraya atlanir, cumle tekrari, hiz, ses, kesintisiz calma ve kaldigi
+   yerden devam vardir. Uretilen sayfa Whisper ile dogrulanabilir.
+5. **Disa aktarim**: bolum bolum MP3 (ID3 etiketli) + M3U8 calma listesi.
+
+Motorlar: **Piper** varsayilandir ve cevrimdisidir (ses modelleri ilk kullanimda bir kez
+`%APPDATA%\RussianCourseAI\models\piper` altina iner). **Edge** istege baglidir; daha
+dogal sesler verir ama **metin Microsoft'a gonderilir**.
+
+Komut satirindan da uretilebilir:
+
+```bash
+python tools/make_audiobook.py --pdf Kitap.pdf --script betik/ --engine piper --export
+```
+
+`--pages 4-9,15`, `--rate 0.9`, `--force`, `--workers N`, `--book <kimlik>` gibi
+secenekler icin `python tools/make_audiobook.py --help`.
+
+---
+
 ## Sekmeler
 
 | Sekme | Ne yapar |
@@ -216,10 +291,12 @@ maddeye (kopya olusturmadan) islenir. Iki saglayici vardir:
 | **Aralikli Tekrar** | "Bugun" panosu + SM-2/Leitner kart oturumu, 5 calisma modu |
 | **Sinav** | 9 soru tipi, otomatik puanlama, esdeger cevap toleransi |
 | **Kiril Lab** | 33 harf, basili/el yazisi formlari, yazim animasyonu, karisan ciftler |
-| **Telaffuz & Vurgu** | Vurgu yeri, редукция kurallari, IPA, TTS, mikrofonla karsilastirma |
+| **Telaffuz & Vurgu** | Vurgu yeri, редукция kurallari, IPA, TTS, mikrofonla karsilastirma (Whisper, yedek Vosk) |
+| **Konusma Tanima (Whisper)** | Dosya / Mikrofon / Telaffuz / Gelismis: tum Whisper modelleri, GPU, yaziya dokme + ceviri, dil algilama, canli dikte, VAD, TXT/SRT/VTT/TSV/JSON/LRC cikti |
 | **Dilbilgisi Lab** | Hal / Fiil / Hareket / Sayi / Soz Dizimi + `grammar/*.md` notlari |
 | **Kurs Kaynaklari** | `Resources/` agaci, "bitirdim" tiki, arama, yazdirma |
 | **PDF Okuyucu** | Zoom, kalem/isaretleme/metin/silgi, Kiril metin secimi, isaretli PDF cikti |
+| **Sesli Kitap** | PDF'ten bolum agacli sesli kitap: secili bolum/sayfayi uret ve dinle, cumle vurgusu + tikla-atla, tekrar, hiz, kaldigi yerden devam, Piper/Edge sesleri, bolum MP3 + M3U8 cikti, Whisper dogrulamasi |
 | **Kaynak Merkezi** | Acik lisansli e-kitap / ses / sozluk indirme, lisans gosterimi, sozluk ice aktarma |
 | **AI Ogretmen** | Acikla / cevir / duzelt / gorsel-OCR, gorev bazli model yonlendirme |
 | **Konusma Pratigi** | CEFR seviyeli rol-yapma senaryolari + oturum sonu hata dokumu |
@@ -228,7 +305,7 @@ maddeye (kopya olusturmadan) islenir. Iki saglayici vardir:
 | **Paketler** | `.rupack` (ZIP) disa/ice aktarim, `.json` geriye donuk uyumlu |
 | **Token Defteri** | Bugun/7/30/tum zamanlar sayaclari, CSV cikti - **istek metinleri saklanmaz** |
 | **Kilavuz** | Her ekrani neden -> nasil -> fayda biciminde anlatan cevrimdisi rehber |
-| **Ayarlar** | Dil (TR/EN/RU), tema, hedef, ses, AI adresi, alternatif uc (adres / model / API anahtari / baglanti testi), sozluk AI politikasi, profiller, veri yonetimi |
+| **Ayarlar** | Dil (TR/EN/RU), tema, hedef, ses (sistem / Piper / Edge), sesli kitap motoru, AI adresi, alternatif uc (adres / model / API anahtari / baglanti testi), sozluk AI politikasi, profiller, veri yonetimi |
 
 ---
 
@@ -287,17 +364,23 @@ rca/
   seed_words.py           A1 baslangic destesi
   ai_client.py            OpenAI uyumlu istemci: LM Studio + alternatif uc, saglayici secimi (yalnizca stdlib)
   secrets.py              API anahtari deposu: Windows Credential Manager (ctypes) + dosya yedegi
-  tts.py                  seslendirme + konusma tanima sarmalayicilari
+  tts.py                  seslendirme (sistem / Piper / Edge) + konusma tanima (Whisper, yedek Vosk)
+  whisper_engine.py       faster-whisper sarmalayicisi: modeller, GPU, tum secenekler, mikrofon, cikti bicimleri
+  audiobook.py            sesli kitap motoru: kitap + betik, Piper/Edge, sayfa MP3 + zamanlama, bolum disa aktarimi
+  audio_player.py         ses calar (PyAV + sounddevice): ileri/geri sarma, hiz, ses duzeyi
   i18n.py                 TR / EN / RU arayuz metinleri + AI sistem yonergeleri
+  i18n_audio.py           Whisper ve Sesli Kitap sayfalarinin TR / EN / RU metinleri
   library.py              acik lisansli kaynak katalogu + indirici + ice aktarici
   pdf_backend.py          PDF arka ucu: pypdfium2 ile cizim/metin, pypdf ile isaretli PDF
   ui_util.py              tema, kenar cubugu, yuvarlak kartlar, grafikler, thread kuyrugu
-  tabs/                   18 sayfa, her biri tek bir LazyTab sinifi
+  tabs/                   20 sayfa, her biri tek bir LazyTab sinifi
   dictionary.py           RU<->EN/TR sozluk motoru (yon secimi, gomulu + kullanici + OpenRussian + AI katmanlari)
   dict_data.py            1.360 maddelik gomulu cekirdek sozluk (istege bagli Turkce alan)
 grammar/*.md              markdown dilbilgisi notlari
 assets/app.ico            uygulama simgesi
 tools/                    simge ureteci + masaustu kisayolu betigi + lisans denetimi
+tools/make_audiobook.py   komut satirindan sesli kitap uretimi / disa aktarimi
+requirements-audio.txt    istege bagli ses bilesenleri (Whisper, CUDA, Piper, Edge)
 build.bat                 Windows: exe uretimi + kisayol
 build_macos.sh            macOS: .app paketi + dagitim zip'i (Mac uzerinde calisir)
 .github/workflows/        elle tetiklenen "macOS Paketi" is akisi
@@ -367,10 +450,14 @@ Ingilizce ile doldurulur ki kartlar hemen calissin; sonradan duzenleyebilirsiniz
 python -m pytest tests -q
 ```
 
-207 test: SM-2 aralik hesabi, RU<->EN/TR sozluk motoru (veri butunlugu, yon secimli ve otomatik arama, Turkce sorgu, tr sutunlu CSV ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, Ingilizce + Turkce karsilik, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
+244 test (+5 ortama bagli atlanan): SM-2 aralik hesabi, RU<->EN/TR sozluk motoru (veri butunlugu, yon secimli ve otomatik arama, Turkce sorgu, tr sutunlu CSV ice/disa aktarim), AI sozluk katmani (sahte OpenAI uyumlu sunucuyla yapisal sorgu, Ingilizce + Turkce karsilik, anahtar basligi, saglayici secimi, gizli anahtar deposu, sema gocu), cevap dogrulama ve harf-harf karsilastirma, veritabani
 repositoryleri, metin normalizasyonu (ё / vurgu), gomulu icerik tutarliligi,
-uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi, PDF arka ucu (sayfa sayisi/olcusu, zoom ile olceklenen cizim, sol-ust kokenli kelime kutulari, isaretli PDF'in geri acilmasi) ve pencere/sayfa duman testi.
-Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz.
+uc dilli metin butunlugu, kaynak katalogunun lisans butunlugu, OpenRussian ice aktaricisi, PDF arka ucu (sayfa sayisi/olcusu, zoom ile olceklenen cizim, sol-ust kokenli kelime kutulari, isaretli PDF'in geri acilmasi), ses katmani (`tests/test_audio.py`: Whisper secenekleri ve
+cikti bicimleri, telaffuz karsilastirmasi, model katalogu, sesli kitap bolum agaci, sayfa
+uretimi + onbellek, bolum disa aktarimi, iptal, ses calar hizi/sarma, ASR ve seslendirme
+yedeklemeleri) ve pencere/sayfa duman testi.
+Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz; ses testleri sahte
+motorla calisir, model indirmez.
 
 ---
 
@@ -383,6 +470,10 @@ Testler gercek aga, LM Studio'ya ya da Credential Manager'a dokunmaz.
   ayar klasorundeki yerel dosyada); `settings.json`'a asla yazilmaz.
 - Ag cagrisi yalnizca alternatif AI ucunu (NVIDIA NIM ya da baska bir OpenAI uyumlu
   adres) Ayarlar'dan acikca acarsaniz ya da Kaynak Merkezi'nden indirme yaparsaniz yapilir.
+- Ses ozellikleri yalnizca iki yeni ag cagrisi ekler, ikisi de yalnizca siz acikca
+  kullandiginizda: **Edge TTS** (secerseniz okunan metin Microsoft'a gider) ve **model
+  indirmeleri** (Whisper modeli / Piper sesi ilk kullanimda bir kez iner). Whisper ve
+  Piper bundan sonra tamamen cevrimdisi calisir; mikrofon kaydi makineden cikmaz.
 - Kullanici verisi tek yerde: `%APPDATA%\RussianCourseAI` (`data/`, `settings/`,
   `exports/`, `logs/`). Yedeklemek icin bu klasoru kopyalamak yeterlidir.
 

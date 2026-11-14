@@ -746,3 +746,192 @@ def test_dictionary_turkish_fill_updates_unstressed_stored_row_instead_of_duplic
         tab._sync_direction()
         tab._order_columns()
         mock_server.reset()
+
+
+# --------------------------------------------------------------------------
+# Sesli Kitap ve Whisper sayfalari
+# --------------------------------------------------------------------------
+class _ToneTTS:
+    """Gercek TTS yerine kisa sinus sesi ureten sahte Piper motoru."""
+    name = "piper"
+    sample_rate = 22050
+
+    def __init__(self):
+        self.voices = {"ru": "t-ru", "tr": "t-tr", "en": "t-en"}
+        self.rate = 1.0
+
+    def synth(self, text, lang):
+        import numpy as np
+        n = int(self.sample_rate * 0.3)
+        return (np.sin(np.arange(n) * 0.05) * 6000).astype(np.int16)
+
+
+def test_audiobook_tab_lists_book_selects_and_follows_text(app):
+    """Kitap listelenir, agacta bolum/sayfa secilir, sayfa yuklenir, cumle vurgulanir."""
+    pytest.importorskip("av")
+    instance, _ = app
+    from rca import audiobook as A
+    root = A.AUDIOBOOK_DIR / "test-kitap"
+    (root / "script").mkdir(parents=True, exist_ok=True)
+    (root / "book.json").write_text(json.dumps({
+        "title": "Test Kitap", "pages": 3, "script_source": "curated",
+        "toc": [{"level": 0, "title": "Giris", "page": 1},
+                {"level": 0, "title": "Kelimeler", "page": 2}]}), encoding="utf-8")
+    for p in (1, 2, 3):
+        segs = [{"lang": "tr", "kind": "heading", "text": f"Sayfa {p}"},
+                {"lang": "ru", "kind": "term", "text": "книга"},
+                {"lang": "en", "kind": "gloss", "text": "book"}]
+        (root / "script" / f"p{p:03d}.json").write_text(
+            json.dumps({"page": p, "segments": segs}, ensure_ascii=False), encoding="utf-8")
+    book = A.Book(root)
+    A.render_pages(book, _ToneTTS(), [1, 2])
+
+    tab = instance.goto_tab("tab.audiobook")
+    instance.update()
+    tab.engine_var.set("piper")
+    tab._load_books(select="test-kitap")
+    assert tab.book is not None and tab.book.id == "test-kitap"
+    tops = tab.tree.get_children("")
+    assert [tab.tree.item(i, "text") for i in tops] == ["Giris", "Kelimeler"]
+    assert tab.tree.set(tops[0], "st") == "✓"               # sayfa 1 uretildi
+    assert tab.tree.set(tops[1], "st") == "1/2"             # 2 uretildi, 3 uretilmedi
+    tab.tree.selection_set(tops[1])
+    assert tab._selected_pages() == [2, 3]
+
+    tab._load_page(2, autoplay=False)
+    assert _pump(instance, lambda: not tab._loading and tab.player.path), "sayfa yuklenmedi"
+    assert "книга" in tab.text.get("1.0", "end")
+    seg = tab.timings[1]
+    tab.player.seek(seg["start"] + 0.01)
+    tab._tick()
+    assert tab.cur_seg == 1
+    assert tab.text.tag_ranges("cur"), "o anki cumle vurgulanmadi"
+    tab.step_seg(1)
+    assert abs(tab.player.position() - tab.timings[2]["start"]) < 0.05
+    tab._remember()
+    assert instance.settings["ab_last"]["page"] == 2
+    tab.player.close()
+
+
+def test_whisper_tab_renders_transcript_and_saves_options(app, tmp_path):
+    """Whisper sayfasi: secenekler kaydedilir, transkript renklendirilir ve disa aktarilir."""
+    instance, _ = app
+    from rca import whisper_engine as W
+    tab = instance.goto_tab("tab.whisper")
+    instance.update()
+    tab._fields["beam_size"][0].set("3")
+    tab._fields["temperature"][0].set("0.0, 0.4")
+    tab._fields["vad_filter"][0].set(False)
+    tab._save_opts()
+    saved = instance.settings["whisper"]
+    assert saved["beam_size"] == 3 and saved["temperature"] == [0.0, 0.4]
+    assert saved["vad_filter"] is False
+    words = [W.Word(0, 0.5, " Привет", 0.3), W.Word(0.5, 1, " мир", 0.99)]
+    tab.transcript = W.Transcript([W.Segment(0, 0, 1, " Привет мир", words=words)], language="ru")
+    tab.words_var.set(True)
+    tab._render_transcript()
+    text = tab.out.get("1.0", "end")
+    assert "Привет" in text and "мир" in text
+    assert tab.out.tag_ranges("lo"), "dusuk guvenli kelime renklenmedi"
+    out = tmp_path / "t.srt"
+    W.export(tab.transcript, "srt", str(out))
+    assert "Привет мир" in out.read_text(encoding="utf-8")
+
+
+# --- regresyon: player
+def _make_tone_book(A, bid, title):
+    root = A.AUDIOBOOK_DIR / bid
+    (root / "script").mkdir(parents=True, exist_ok=True)
+    (root / "book.json").write_text(json.dumps({
+        "title": title, "pages": 3, "script_source": "curated",
+        "toc": [{"level": 0, "title": "Giris", "page": 1}]}), encoding="utf-8")
+    for p in (1, 2, 3):
+        segs = [{"lang": "tr", "kind": "heading", "text": f"Sayfa {p}"},
+                {"lang": "ru", "kind": "term", "text": "книга"},
+                {"lang": "en", "kind": "gloss", "text": "book"}]
+        (root / "script" / f"p{p:03d}.json").write_text(
+            json.dumps({"page": p, "segments": segs}, ensure_ascii=False), encoding="utf-8")
+    book = A.Book(root)
+    A.render_pages(book, _ToneTTS(), [1, 2])
+    return book
+
+
+def test_audiobook_player_regressions(app, monkeypatch):
+    """Tekrar dosya sonunda yeniden calar, yeni sayfa tekrari sifirlar, ilk cumleye
+    ileri gidilebilir, motor / kitap degisince calar bosaltilir (akis acilmaz)."""
+    pytest.importorskip("av")
+    instance, _ = app
+    from rca import audiobook as A
+    _make_tone_book(A, "reg-kitap-a", "Reg A")
+    _make_tone_book(A, "reg-kitap-b", "Reg B")
+    tab = instance.goto_tab("tab.audiobook")
+    instance.update()
+    tab.engine_var.set("piper")
+    tab._load_books(select="reg-kitap-a")
+    assert tab.book.id == "reg-kitap-a"
+
+    assert tab._load_page(2, autoplay=False)
+    assert _pump(instance, lambda: not tab._loading and tab.player.path), "sayfa yuklenmedi"
+    pl = tab.player
+    # henuz cumle yokken "sonraki cumle" ilk cumleye gider
+    pl.seek(0)
+    tab.cur_seg = -1
+    tab.step_seg(1)
+    assert abs(pl.position() - tab.timings[0]["start"]) < 0.05
+
+    # tekrar: dosya sonunda bittiyse cumle basina donup YENIDEN calar
+    plays = []
+    monkeypatch.setattr(pl, "play", lambda: plays.append(1))
+    last = len(tab.timings) - 1
+    tab.rep_var.set(True)
+    tab.repeat_seg = last
+    pl.seek(pl.duration)
+    pl.finished = True
+    tab._tick()
+    assert plays, "tekrar dosya sonunda durdu"
+    assert abs(pl.position() - tab.timings[last]["start"]) < 0.05
+
+    # yeni sayfa bayat tekrar indeksini sifirlar; bayat indeks ilerlemeyi engellemez
+    assert tab._load_page(1, autoplay=False)
+    assert tab.repeat_seg == -1
+    assert _pump(instance, lambda: not tab._loading)
+    tab.rep_var.set(False)
+    tab.repeat_seg = 99
+    tab._tick()
+    assert tab.repeat_seg == -1
+
+    # sesi olmayan sayfa yuklenmez (False) ve calma durumu bozulmaz
+    assert tab._load_page(3, autoplay=False) is False and tab.page == 1
+
+    # _tick govdesindeki hata dongunun yeniden kurulmasini engellemez
+    monkeypatch.setattr(tab, "_tick_body", lambda: (_ for _ in ()).throw(KeyError("start")))
+    scheduled = []
+    real_after = tab.after
+    monkeypatch.setattr(tab, "after", lambda ms, fn=None, *a: scheduled.append(ms) or real_after(ms, lambda: None))
+    tab._tick()
+    assert scheduled == [120]
+    monkeypatch.undo()
+
+    # motor degisti, sayfa yeni motorda yok: calar bosaltilir
+    tab.engine_var.set("edge")
+    tab._on_engine(save=False)
+    assert tab.player.path is None and tab.page == 0 and tab.playlist == []
+    tab.engine_var.set("piper")
+    tab._on_engine(save=False)
+
+    # kitap degisince eski kitabin konumu kaydedilir ve calar sifirlanir
+    assert tab._load_page(2, autoplay=False)
+    assert _pump(instance, lambda: not tab._loading and tab.player.path)
+    label_b = next(k for k, v in tab._books.items() if v == "reg-kitap-b")
+    tab.book_var.set(label_b)
+    tab._on_book_pick()
+    assert tab.book.id == "reg-kitap-b"
+    assert tab.player.path is None and tab.page == 0 and tab.timings == []
+    assert instance.settings["ab_last"]["book"] == "reg-kitap-a"
+    assert instance.settings["ab_last"]["page"] == 2
+
+    # kayitli kitap yoksa resume baska kitabi calmaz
+    instance.settings["ab_last"] = {"book": "silinmis-kitap", "page": 1, "pos": 0}
+    tab.resume()
+    assert tab.book.id == "reg-kitap-b" and tab.player.path is None
+    tab.player.close()
